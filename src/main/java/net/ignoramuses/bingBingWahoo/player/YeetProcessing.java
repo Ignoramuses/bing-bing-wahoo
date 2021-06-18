@@ -20,7 +20,7 @@ public class YeetProcessing {
 	
 	public static void yeetPlayer(PlayerEntity player) {
 		if (shouldYeet(player)) {
-			player.addVelocity(0f, 1f, 0f);
+			player.addVelocity(player.getRotationVec(1.0f).x / 4, 0f, player.getRotationVec(1.0f).z / 4);
 		}
 	}
 }

@@ -10,37 +10,34 @@ import org.lwjgl.glfw.GLFW;
 
 @Environment(EnvType.CLIENT)
 public class BingBingWahooClient implements ClientModInitializer {
-	public static boolean forwardsPressed = false;
-	public static long millisForwardsHeldFor = 0;
-	private static long millisForwardsLastPressedAt = 0;
-	
-	public static boolean crouchPressed = false;
-	public static long millisSinceCrouchPress = 0;
-	private static long millisCrouchPressedAt = 0;
+	public static long tickNum = 0;
+	public static long ticksSneakPressedFor = 0;
+	public static boolean sneakPressed = false;
 	
 	@Override
 	public void onInitializeClient() {
-		ClientTickEvents.END_CLIENT_TICK.register(BingBingWahooClient::handleKeyValueUpdates);
+		ClientTickEvents.END_CLIENT_TICK.register(BingBingWahooClient::handleKeyUpdates);
 	}
 	
-	public static void handleKeyValueUpdates(MinecraftClient client) {
-		// get current value
-		boolean forwardsPressed = MinecraftClient.getInstance().options.keyForward.isPressed();
-		// if theres a discrepancy, the value was updated this tick
-		if (BingBingWahooClient.forwardsPressed != forwardsPressed) {
-			// setting new value
-			BingBingWahooClient.forwardsPressed = forwardsPressed;
-		}
-		// if this tick enabled forwards
-		if (forwardsPressed) {
-			millisForwardsLastPressedAt = System.currentTimeMillis();
-		}
-		// do not do this if forwards has never been pressed
-		if (millisForwardsLastPressedAt != 0) {
-			millisForwardsHeldFor = System.currentTimeMillis() - millisForwardsLastPressedAt;
+	public static void handleKeyUpdates(MinecraftClient client) {
+		// discrepancy, value was updated this tick
+		if (sneakPressed != MinecraftClient.getInstance().options.keySneak.isPressed()) {
+			sneakPressed = MinecraftClient.getInstance().options.keySneak.isPressed();
+			
+			// value was set to true
+			if (sneakPressed) {
+			} else {
+				// value was set to false
+			}
+		} else {
+			// value is the same as last tick
+			if (sneakPressed) {
+				ticksSneakPressedFor++;
+			} else {
+				ticksSneakPressedFor = 0;
+			}
 		}
 		
-		crouchPressed = MinecraftClient.getInstance().options.keySneak.isPressed();
-		
+		tickNum++;
 	}
 }

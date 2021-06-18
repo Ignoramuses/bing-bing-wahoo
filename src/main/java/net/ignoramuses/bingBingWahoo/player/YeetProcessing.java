@@ -11,7 +11,7 @@ import org.lwjgl.glfw.GLFW;
 public class YeetProcessing {
 	
 	public static boolean shouldYeet(PlayerEntity player) {
-		if (BingBingWahooClient.millisForwardsHeldFor > 250) {
+		if (BingBingWahooClient.ticksSneakPressedFor < 4 && BingBingWahooClient.ticksSneakPressedFor > 0) {
 			return true;
 		}
 		

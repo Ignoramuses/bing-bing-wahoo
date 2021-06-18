@@ -1,9 +1,2 @@
-# Fabric Example Mod
-
-## Setup
-
-For setup instructions please see the [fabric wiki page](https://fabricmc.net/wiki/tutorial:setup) that relates to the IDE that you are using.
-
-## License
-
-This template is available under the CC0 license. Feel free to learn from it and incorporate it in your own projects.
+# Bing Bing Wahoo
+Bringing the physics of Super Mario 64 to Minecraft, one yahoo at a time.

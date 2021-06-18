@@ -1,38 +1,38 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "bingbingwahoo",
   "version": "${version}",
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Bing Bing Wahoo",
+  "description": "Bringing the physics of Super Mario 64 to Minecraft, one yahoo at a time.",
   "authors": [
-    "Me!"
+    "Tropheus Jay",
+    "InsaneASockJr"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "sources": "https://github.com/Ignoramuses/bing-bing-wahoo"
   },
 
-  "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "license": "MIT",
+  "icon": "assets/bingbingwahoo/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
+      "net.ignoramuses.bingBingWahoo.BingBingWahoo"
+    ],
+    "client": [
+      "net.ignoramuses.bingBingWahoo.BingBingWahooClient"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "bingbingwahoo.mixins.json"
   ],
 
   "depends": {
     "fabricloader": ">=0.11.3",
     "fabric": "*",
-    "minecraft": "1.17.x",
+    "minecraft": ">=1.17",
     "java": ">=16"
-  },
-  "suggests": {
-    "another-mod": "*"
   }
 }

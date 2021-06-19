@@ -33,15 +33,48 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private long wahoo$ticksSinceSneakingChanged = 0;
 	@Unique
 	private long wahoo$ticksLeftToLongJump = 0;
+	@Unique
+	private long wahoo$ticksLeftToDoubleJump = 0;
+	@Unique
+	private long wahoo$ticksLeftToTripleJump = 0;
+	@Unique
+	private boolean wahoo$isLongJumping = false;
+	@Unique
+	private long wahoo$tickCount = 0;
 	
 	@Inject(at = @At("RETURN"), method = "tickMovement()V")
 	public void wahoo$tickMovement(CallbackInfo ci) {
+		wahoo$tickCount++;
 		updateSneakTicks();
 		if (input.jumping && (onGround || lastOnGround) && (isSneaking() || lastSneaking) && wahoo$ticksLeftToLongJump > 0) {
-			setVelocity(getVelocity().multiply(10, 2, 10));
+			wahoo$isLongJumping = true;
+			setVelocity(getVelocity().multiply(10, 1.5, 10));
 			wahoo$ticksLeftToLongJump = 0;
 		}
+		
+//		Double Jump Code
+		
+		updateDoubleJumpTicks();
+		
+		
+		if (input.jumping && (lastOnGround || isOnGround()) && (wahoo$ticksLeftToDoubleJump > 0)) {
+				setVelocity(getVelocity().multiply(1, 2.125, 1));
+				wahoo$ticksLeftToDoubleJump = 0;
+			
+			
+		}
 	}
+	
+	private void updateDoubleJumpTicks() {
+		if (!lastOnGround && isOnGround()) {
+			wahoo$ticksLeftToDoubleJump = 5;
+		}
+		if (wahoo$ticksLeftToDoubleJump > 0) {
+			--this.wahoo$ticksLeftToDoubleJump;
+		}
+	}
+	
+	
 	
 	private void updateSneakTicks() {
 		if (isSneaking() != lastSneaking) {

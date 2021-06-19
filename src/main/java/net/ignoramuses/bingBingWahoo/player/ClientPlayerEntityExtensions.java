@@ -1,5 +1,5 @@
 package net.ignoramuses.bingBingWahoo.player;
 
-public interface PlayerEntityExtensions {
+public interface ClientPlayerEntityExtensions {
 
 }

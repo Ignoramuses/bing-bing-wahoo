@@ -3,10 +3,8 @@
   "minVersion": "0.8",
   "package": "net.ignoramuses.bingBingWahoo.mixin",
   "compatibilityLevel": "JAVA_16",
-  "mixins": [
-    "PlayerEntityMixin"
-  ],
   "client": [
+    "ClientPlayerEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

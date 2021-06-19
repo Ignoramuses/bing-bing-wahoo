@@ -1,7 +1,9 @@
 package net.ignoramuses.bingBingWahoo.mixin;
 
 import com.mojang.authlib.GameProfile;
-import net.ignoramuses.bingBingWahoo.player.ClientPlayerEntityExtensions;
+import net.ignoramuses.bingBingWahoo.BingBingWahooClient;
+import net.ignoramuses.bingBingWahoo.BingBingWahooClient.JumpTypes;
+import net.ignoramuses.bingBingWahoo.ClientPlayerEntityExtensions;
 import net.minecraft.client.input.Input;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -41,28 +43,41 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private boolean wahoo$isLongJumping = false;
 	@Unique
 	private long wahoo$tickCount = 0;
+	@Unique
+	private JumpTypes previousJumpType;
 	
 	@Inject(at = @At("RETURN"), method = "tickMovement()V")
 	public void wahoo$tickMovement(CallbackInfo ci) {
 		wahoo$tickCount++;
+		
+		// long jumps
 		updateSneakTicks();
-		if (input.jumping && (onGround || lastOnGround) && (isSneaking() || lastSneaking) && wahoo$ticksLeftToLongJump > 0) {
-			wahoo$isLongJumping = true;
-			setVelocity(getVelocity().multiply(10, 1.5, 10));
-			wahoo$ticksLeftToLongJump = 0;
+		if (input.jumping && (isSneaking() || lastSneaking) && (onGround || lastOnGround)) {
+			if (BingBingWahooClient.rapidFire) {
+				longJump();
+			} else if (wahoo$ticksLeftToLongJump > 0) {
+				longJump();
+				wahoo$ticksLeftToLongJump = 0;
+			}
 		}
 		
-//		Double Jump Code
-		
+		// Double Jump Code
 		updateDoubleJumpTicks();
-		
-		
 		if (input.jumping && (lastOnGround || isOnGround()) && (wahoo$ticksLeftToDoubleJump > 0)) {
-				setVelocity(getVelocity().multiply(1, 2.125, 1));
-				wahoo$ticksLeftToDoubleJump = 0;
-			
-			
+			doubleJump();
 		}
+	}
+	
+	private void longJump() {
+		setVelocity(getVelocity().multiply(10, 1.5, 10));
+		wahoo$isLongJumping = true;
+		previousJumpType = JumpTypes.LONG;
+	}
+	
+	private void doubleJump() {
+		setVelocity(getVelocity().multiply(1, 2.125, 1));
+		wahoo$ticksLeftToDoubleJump = 0;
+		previousJumpType = JumpTypes.DOUBLE;
 	}
 	
 	private void updateDoubleJumpTicks() {
@@ -73,8 +88,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			--this.wahoo$ticksLeftToDoubleJump;
 		}
 	}
-	
-	
 	
 	private void updateSneakTicks() {
 		if (isSneaking() != lastSneaking) {

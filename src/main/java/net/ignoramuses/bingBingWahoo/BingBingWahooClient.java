@@ -10,8 +10,16 @@ import org.lwjgl.glfw.GLFW;
 
 @Environment(EnvType.CLIENT)
 public class BingBingWahooClient implements ClientModInitializer {
+	public static boolean rapidFire = true;
+	
 	@Override
 	public void onInitializeClient() {
 	
+	}
+	
+	public enum JumpTypes {
+		LONG,
+		DOUBLE,
+		TRIPLE
 	}
 }

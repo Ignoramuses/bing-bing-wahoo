@@ -65,6 +65,10 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			doubleJump();
 			jumpTypeSetThisTick = true;
 		}
+		
+		if (isOnGround() && input.jumping && !jumpTypeSetThisTick) {
+			previousJumpType = JumpTypes.NORMAL;
+		}
 	}
 	
 	private void longJump() {
@@ -74,7 +78,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		
 		double cosOfVecs = (rotation.dot(velocity)) / (rotation.length() * velocity.length());
 		double degreesDiff = Math.toDegrees(Math.acos(cosOfVecs));
-		// ----------- end of black magic wizardry -----------
+		
 		
 		double velX = getVelocity().getX();
 		double velY = getVelocity().getY();
@@ -90,6 +94,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		double newVelZ = Math.copySign(newVelZAbs, velZ);
 		
 		setVelocity(newVelX / 2, Math.min(velY * 1.5, MAX_LONG_JUMP_SPEED.getY()), newVelZ / 2);
+		// ----------- end of black magic wizardry -----------
 		wahoo$ticksLeftToLongJump = 0;
 		previousJumpType = JumpTypes.LONG;
 	}

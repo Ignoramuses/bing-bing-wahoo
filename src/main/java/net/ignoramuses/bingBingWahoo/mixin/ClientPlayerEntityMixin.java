@@ -8,12 +8,17 @@ import net.minecraft.client.input.Input;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec2f;
+import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import static net.ignoramuses.bingBingWahoo.BingBingWahooClient.MAX_LONG_JUMP_SPEED;
 
 @Mixin(ClientPlayerEntity.class)
 public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity implements ClientPlayerEntityExtensions {
@@ -40,37 +45,52 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Unique
 	private long wahoo$ticksLeftToTripleJump = 0;
 	@Unique
-	private boolean wahoo$isLongJumping = false;
-	@Unique
-	private long wahoo$tickCount = 0;
-	@Unique
 	private JumpTypes previousJumpType;
 	
 	@Inject(at = @At("RETURN"), method = "tickMovement()V")
 	public void wahoo$tickMovement(CallbackInfo ci) {
-		wahoo$tickCount++;
-		
+		boolean jumpTypeSetThisTick = false;
 		// long jumps
 		updateSneakTicks();
-		if (input.jumping && (isSneaking() || lastSneaking) && (onGround || lastOnGround)) {
-			if (BingBingWahooClient.rapidFire) {
+		if (input.jumping && (isSneaking() || lastSneaking) && (onGround || lastOnGround) && previousJumpType != JumpTypes.TRIPLE) {
+			if (BingBingWahooClient.rapidFire || wahoo$ticksLeftToLongJump > 0) {
 				longJump();
-			} else if (wahoo$ticksLeftToLongJump > 0) {
-				longJump();
-				wahoo$ticksLeftToLongJump = 0;
+				jumpTypeSetThisTick = true;
 			}
 		}
 		
 		// Double Jump Code
 		updateDoubleJumpTicks();
-		if (input.jumping && (lastOnGround || isOnGround()) && (wahoo$ticksLeftToDoubleJump > 0)) {
+		if (input.jumping && (lastOnGround || isOnGround()) && (wahoo$ticksLeftToDoubleJump > 0) && previousJumpType == JumpTypes.NORMAL) {
 			doubleJump();
+			jumpTypeSetThisTick = true;
 		}
 	}
 	
 	private void longJump() {
-		setVelocity(getVelocity().multiply(10, 1.5, 10));
-		wahoo$isLongJumping = true;
+		// ------- warning: black magic wizardry below -------
+		Vec2f velocity = new Vec2f((float) getVelocity().getX(), (float) getVelocity().getZ());
+		Vec2f rotation = new Vec2f((float) getRotationVector().getX(), (float) getRotationVector().getZ());
+		
+		double cosOfVecs = (rotation.dot(velocity)) / (rotation.length() * velocity.length());
+		double degreesDiff = Math.toDegrees(Math.acos(cosOfVecs));
+		// ----------- end of black magic wizardry -----------
+		
+		double velX = getVelocity().getX();
+		double velY = getVelocity().getY();
+		double velZ = getVelocity().getZ();
+		
+		double velXAbs = Math.abs(velX);
+		double velZAbs = Math.abs(velZ);
+		
+		double newVelXAbs = Math.min(velXAbs * 10, MAX_LONG_JUMP_SPEED.getX());
+		double newVelZAbs = Math.min(velZAbs * 10, MAX_LONG_JUMP_SPEED.getZ());
+		
+		double newVelX = Math.copySign(newVelXAbs, velX);
+		double newVelZ = Math.copySign(newVelZAbs, velZ);
+		
+		setVelocity(newVelX / 2, Math.min(velY * 1.5, MAX_LONG_JUMP_SPEED.getY()), newVelZ / 2);
+		wahoo$ticksLeftToLongJump = 0;
 		previousJumpType = JumpTypes.LONG;
 	}
 	

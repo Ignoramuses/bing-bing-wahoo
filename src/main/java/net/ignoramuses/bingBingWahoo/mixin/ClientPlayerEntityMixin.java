@@ -73,6 +73,14 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		}
 	}
 	
+	@Override
+	protected void updatePose() {
+		if (wahoo$isdiving) {
+			return;
+		}
+		super.updatePose();
+	}
+	
 	public void onTripleJumpEnd() {
 		wahoo$midTripleJump = false;
 	}

@@ -3,13 +3,12 @@ package net.ignoramuses.bingBingWahoo.mixin;
 import com.mojang.authlib.GameProfile;
 import net.ignoramuses.bingBingWahoo.BingBingWahooClient;
 import net.ignoramuses.bingBingWahoo.BingBingWahooClient.JumpTypes;
-import net.ignoramuses.bingBingWahoo.ClientPlayerEntityExtensions;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.input.Input;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.Util;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
@@ -23,7 +22,7 @@ import static net.ignoramuses.bingBingWahoo.BingBingWahooClient.LONG_JUMP_SPEED_
 import static net.ignoramuses.bingBingWahoo.BingBingWahooClient.MAX_LONG_JUMP_SPEED;
 
 @Mixin(ClientPlayerEntity.class)
-public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity implements ClientPlayerEntityExtensions {
+public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity {
 	@Shadow
 	public Input input;
 	@Shadow
@@ -37,9 +36,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	
 	@Shadow
 	public abstract boolean isSneaking();
-	
-	@Shadow
-	public float renderYaw;
 	
 	@Shadow
 	public abstract float getPitch(float tickDelta);
@@ -103,6 +99,34 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				}
 			}
 		}
+	}
+	
+	private void multiplyHorizontalVelocity(double multiplier) {
+		double velX = getVelocity().getX();
+		double velY = getVelocity().getY();
+		double velZ = getVelocity().getZ();
+		
+		double velXAbs = Math.abs(velX);
+		double velZAbs = Math.abs(velZ);
+		
+		double newVelXAbs;
+		double newVelZAbs;
+		
+		double xToZRatio = velXAbs / velZAbs;
+		
+		// special handling for axis
+		if (velXAbs == 0 || velZAbs == 0) {
+			newVelXAbs = velXAbs * multiplier;
+			newVelZAbs = velZAbs * multiplier;
+		} else {
+			newVelXAbs = velZAbs * multiplier * xToZRatio;
+			newVelZAbs = velZAbs * multiplier;
+		}
+		
+		double newVelX = Math.copySign(newVelXAbs, velX);
+		double newVelZ = Math.copySign(newVelZAbs, velZ);
+		
+		setVelocity(newVelX, velY, newVelZ);
 	}
 	
 	private void longJump() {

@@ -37,7 +37,12 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Shadow
 	public abstract boolean isSneaking();
 	
-	@Shadow public float renderYaw;
+	@Shadow
+	public float renderYaw;
+	
+	@Shadow
+	public abstract float getPitch(float tickDelta);
+	
 	@Unique
 	private long wahoo$ticksSinceSneakingChanged = 0;
 	@Unique
@@ -48,15 +53,34 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private long wahoo$ticksLeftToTripleJump = 0;
 	@Unique
 	private JumpTypes wahoo$previousJumpType = JumpTypes.NORMAL;
-	
-	@Inject(at = @At("HEAD"), method = "sendMovementPackets()V")
-	public void wahoo$sendMovementPackets(CallbackInfo ci) {
-	
-	}
+	@Unique
+	private boolean wahoo$midTripleJump = false;
+	@Unique
+	private boolean wahoo$backwards = false;
 	
 	@Inject(at = @At("RETURN"), method = "tickMovement()V")
 	public void wahoo$tickMovement(CallbackInfo ci) {
 		updateJumpTicks();
+		if (wahoo$midTripleJump) {
+			if (isOnGround()) {
+				onTripleJumpEnd();
+			} else {
+				if (getPitch() == 90 || getPitch() == -90) {
+					wahoo$backwards = !wahoo$backwards;
+					setRotation(getYaw() + 180, getPitch());
+				}
+				
+				if (wahoo$backwards) {
+					setPitch(getPitch() - 45);
+				} else {
+					setPitch(getPitch() + 45);
+				}
+			}
+		}
+	}
+	
+	public void onTripleJumpEnd() {
+		wahoo$midTripleJump = false;
 	}
 	
 	@Override
@@ -66,8 +90,10 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			if ((isOnGround())) {
 				if ((isSneaking() || lastSneaking) && (BingBingWahooClient.rapidFire || wahoo$ticksLeftToLongJump > 0) && (wahoo$previousJumpType == JumpTypes.NORMAL || wahoo$previousJumpType == JumpTypes.LONG)) {
 					longJump();
-				} else if ((wahoo$ticksLeftToDoubleJump > 0) && wahoo$previousJumpType == JumpTypes.NORMAL) {
+				} else if (wahoo$ticksLeftToDoubleJump > 0 && wahoo$previousJumpType == JumpTypes.NORMAL) {
 					doubleJump();
+				} else if (wahoo$ticksLeftToTripleJump > 0 && wahoo$previousJumpType == JumpTypes.DOUBLE) {
+					tripleJump();
 				} else {
 					wahoo$previousJumpType = JumpTypes.NORMAL;
 				}
@@ -124,7 +150,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		double newVelX = Math.copySign(newVelXAbs, velX);
 		double newVelZ = Math.copySign(newVelZAbs, velZ);
 		
-		setVelocity(newVelX, Math.min(velY * 1.5, 1), newVelZ);
+		setVelocity(newVelX, Math.min(velY * 1.25, 1), newVelZ);
 		// ----------- end of black magic wizardry -----------
 		wahoo$ticksLeftToLongJump = 0;
 		wahoo$previousJumpType = JumpTypes.LONG;
@@ -136,6 +162,13 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		wahoo$previousJumpType = JumpTypes.DOUBLE;
 	}
 	
+	private void tripleJump() {
+		setVelocity(getVelocity().multiply(1, 2.5, 1));
+		wahoo$ticksLeftToTripleJump = 0;
+		wahoo$previousJumpType = JumpTypes.TRIPLE;
+		wahoo$midTripleJump = true;
+	}
+	
 	private void updateJumpTicks() {
 		// double jump
 		if (!lastOnGround && isOnGround()) {
@@ -145,6 +178,13 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			--this.wahoo$ticksLeftToDoubleJump;
 		}
 		
+		// triple jump
+		if (!lastOnGround && isOnGround()) {
+			wahoo$ticksLeftToTripleJump = 5;
+		}
+		if (wahoo$ticksLeftToTripleJump > 0) {
+			--this.wahoo$ticksLeftToTripleJump;
+		}
 		
 		// long jump
 		if (isSneaking() != lastSneaking) {

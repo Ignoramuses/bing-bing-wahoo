@@ -4,10 +4,12 @@ import com.mojang.authlib.GameProfile;
 import net.ignoramuses.bingBingWahoo.BingBingWahooClient;
 import net.ignoramuses.bingBingWahoo.BingBingWahooClient.JumpTypes;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.input.Input;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.EntityPose;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
@@ -52,6 +54,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private JumpTypes wahoo$previousJumpType = JumpTypes.NORMAL;
 	@Unique
 	private boolean wahoo$midTripleJump = false;
+	@Unique
+	private boolean wahoo$isdiving = false;
 	
 	@Inject(at = @At("RETURN"), method = "tickMovement()V")
 	public void wahoo$tickMovement(CallbackInfo ci) {
@@ -62,6 +66,10 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			} else {
 				setPitch(0); // number is actually irrelevant, is handled in our override
 			}
+		}
+		
+		if (isSprinting() && MinecraftClient.getInstance().options.keyAttack.isPressed() && isOnGround()) {
+			dive();
 		}
 	}
 	
@@ -94,6 +102,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 					doubleJump();
 				} else if (wahoo$ticksLeftToTripleJump > 0 && wahoo$previousJumpType == JumpTypes.DOUBLE) {
 					tripleJump();
+				} else if (isSprinting() && MinecraftClient.getInstance().options.keyAttack.isPressed()) {
+					dive();
 				} else {
 					wahoo$previousJumpType = JumpTypes.NORMAL;
 				}
@@ -195,6 +205,13 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		wahoo$ticksLeftToTripleJump = 0;
 		wahoo$previousJumpType = JumpTypes.TRIPLE;
 		wahoo$midTripleJump = true;
+	}
+	
+	private void dive() {
+		wahoo$isdiving = true;
+		setPose(EntityPose.SWIMMING);
+		multiplyHorizontalVelocity(1.5);
+		addVelocity(0, 0.001, 0);
 	}
 	
 	private void updateJumpTicks() {

@@ -61,14 +61,19 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	public void wahoo$tickMovement(CallbackInfo ci) {
 		updateJumpTicks();
 		if (wahoo$midTripleJump) {
-			if (isOnGround()) {
-				onTripleJumpEnd();
+			if (isOnGround() || isInSwimmingPose()) {
+				wahoo$midTripleJump = false;
+				setPitch(0f);
 			} else {
 				setPitch(0); // number is actually irrelevant, is handled in our override
 			}
 		}
 		
-		if (isSprinting() && MinecraftClient.getInstance().options.keyAttack.isPressed() && isOnGround()) {
+		if (wahoo$isdiving && isOnGround()) {
+			wahoo$isdiving = false;
+		}
+		
+		if (isSprinting() && MinecraftClient.getInstance().options.keyAttack.isPressed() && !wahoo$isdiving) {
 			dive();
 		}
 	}
@@ -81,22 +86,13 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		super.updatePose();
 	}
 	
-	public void onTripleJumpEnd() {
-		wahoo$midTripleJump = false;
-	}
-	
 	@Override
 	public void setPitch(float pitch) {
 		if (wahoo$midTripleJump) {
 			((EntityAccessor) this).setPitchRaw(getPitch() + 5);
 			return;
 		}
-		
-		if (!Float.isFinite(pitch)) {
-			Util.error("Invalid entity rotation: " + pitch + ", discarding.");
-		} else {
-			((EntityAccessor) this).setPitchRaw(pitch);
-		}
+		super.setPitch(pitch);
 	}
 	
 	@Override
@@ -171,26 +167,12 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		double newVelXAbs;
 		double newVelZAbs;
 		
-		double xToZRatio = velXAbs / velZAbs;
-		
-		// BLJ :)
-		// special handling for axis
-		if (velXAbs == 0 || velZAbs == 0) {
-			if (degreesDiff > 170) {
-				newVelXAbs = velXAbs * LONG_JUMP_SPEED_MULTIPLIER * 2;
-				newVelZAbs = velZAbs * LONG_JUMP_SPEED_MULTIPLIER * 2;
-			} else {
-				newVelXAbs = Math.min(velXAbs * LONG_JUMP_SPEED_MULTIPLIER * 2, MAX_LONG_JUMP_SPEED);
-				newVelZAbs = Math.min(velZAbs * LONG_JUMP_SPEED_MULTIPLIER * 2, MAX_LONG_JUMP_SPEED);
-			}
+		if (degreesDiff > 170) {
+			newVelXAbs = velXAbs * LONG_JUMP_SPEED_MULTIPLIER;
+			newVelZAbs = velZAbs * LONG_JUMP_SPEED_MULTIPLIER;
 		} else {
-			if (degreesDiff > 170) {
-				newVelXAbs = velZAbs * LONG_JUMP_SPEED_MULTIPLIER * xToZRatio * 2;
-				newVelZAbs = velZAbs * LONG_JUMP_SPEED_MULTIPLIER * 2;
-			} else {
-				newVelXAbs = Math.min(velZAbs * LONG_JUMP_SPEED_MULTIPLIER * xToZRatio * 2, MAX_LONG_JUMP_SPEED);
-				newVelZAbs = Math.min(velZAbs * LONG_JUMP_SPEED_MULTIPLIER * 2, MAX_LONG_JUMP_SPEED);
-			}
+			newVelXAbs = Math.min(velXAbs * LONG_JUMP_SPEED_MULTIPLIER, MAX_LONG_JUMP_SPEED);
+			newVelZAbs = Math.min(velZAbs * LONG_JUMP_SPEED_MULTIPLIER, MAX_LONG_JUMP_SPEED);
 		}
 		
 		double newVelX = Math.copySign(newVelXAbs, velX);

@@ -12,7 +12,8 @@ import org.lwjgl.glfw.GLFW;
 @Environment(EnvType.CLIENT)
 public class BingBingWahooClient implements ClientModInitializer {
 	public static boolean rapidFire = true;
-	public static final Vec3d MAX_LONG_JUMP_SPEED = new Vec3d(2, 1, 2);
+	public static final double MAX_LONG_JUMP_SPEED = 2;
+	public static final double LONG_JUMP_SPEED_MULTIPLIER = 10;
 	
 	@Override
 	public void onInitializeClient() {

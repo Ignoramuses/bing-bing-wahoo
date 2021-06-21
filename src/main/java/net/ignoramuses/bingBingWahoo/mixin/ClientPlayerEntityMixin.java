@@ -8,6 +8,7 @@ import net.minecraft.client.input.Input;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
@@ -55,8 +56,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private JumpTypes wahoo$previousJumpType = JumpTypes.NORMAL;
 	@Unique
 	private boolean wahoo$midTripleJump = false;
-	@Unique
-	private boolean wahoo$backwards = false;
 	
 	@Inject(at = @At("RETURN"), method = "tickMovement()V")
 	public void wahoo$tickMovement(CallbackInfo ci) {
@@ -65,22 +64,27 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			if (isOnGround()) {
 				onTripleJumpEnd();
 			} else {
-				if (getPitch() == 90 || getPitch() == -90) {
-					wahoo$backwards = !wahoo$backwards;
-					setRotation(getYaw() + 180, getPitch());
-				}
-				
-				if (wahoo$backwards) {
-					setPitch(getPitch() - 45);
-				} else {
-					setPitch(getPitch() + 45);
-				}
+				setPitch(0); // number is actually irrelevant, is handled in our override
 			}
 		}
 	}
 	
 	public void onTripleJumpEnd() {
 		wahoo$midTripleJump = false;
+	}
+	
+	@Override
+	public void setPitch(float pitch) {
+		if (wahoo$midTripleJump) {
+			((EntityAccessor) this).setPitchRaw(getPitch() + 5);
+			return;
+		}
+		
+		if (!Float.isFinite(pitch)) {
+			Util.error("Invalid entity rotation: " + pitch + ", discarding.");
+		} else {
+			((EntityAccessor) this).setPitchRaw(pitch);
+		}
 	}
 	
 	@Override

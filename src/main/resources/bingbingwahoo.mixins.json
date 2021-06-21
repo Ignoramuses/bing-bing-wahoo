@@ -4,7 +4,8 @@
   "package": "net.ignoramuses.bingBingWahoo.mixin",
   "compatibilityLevel": "JAVA_16",
   "client": [
-    "ClientPlayerEntityMixin"
+    "ClientPlayerEntityMixin",
+    "EntityAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

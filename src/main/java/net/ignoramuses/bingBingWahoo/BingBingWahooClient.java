@@ -13,7 +13,7 @@ import org.lwjgl.glfw.GLFW;
 public class BingBingWahooClient implements ClientModInitializer {
 	public static boolean rapidFire = true;
 	public static final double MAX_LONG_JUMP_SPEED = 2;
-	public static final double LONG_JUMP_SPEED_MULTIPLIER = 10;
+	public static final double LONG_JUMP_SPEED_MULTIPLIER = 5;
 	
 	@Override
 	public void onInitializeClient() {

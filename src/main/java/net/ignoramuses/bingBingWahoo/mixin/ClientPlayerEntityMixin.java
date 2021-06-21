@@ -47,28 +47,35 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Unique
 	private long wahoo$ticksLeftToTripleJump = 0;
 	@Unique
-	private JumpTypes previousJumpType = JumpTypes.NORMAL;
+	private JumpTypes wahoo$previousJumpType = JumpTypes.NORMAL;
+	
+	@Inject(at = @At("HEAD"), method = "sendMovementPackets()V")
+	public void wahoo$sendMovementPackets(CallbackInfo ci) {
+	
+	}
+	
+	@Inject(at = @At("RETURN"), method = "tickMovement()V")
+	public void wahoo$tickMovement(CallbackInfo ci) {
+		updateJumpTicks();
+	}
 	
 	@Override
 	public void jump() {
 		super.jump();
-		System.out.println("previous jump type: " + previousJumpType.name());
-		updateJumpTicks();
 		if (input.jumping) {
 			if ((isOnGround())) {
-				if ((isSneaking() || lastSneaking) && (BingBingWahooClient.rapidFire || wahoo$ticksLeftToLongJump > 0) && (previousJumpType == JumpTypes.NORMAL || previousJumpType == JumpTypes.LONG)) {
+				if ((isSneaking() || lastSneaking) && (BingBingWahooClient.rapidFire || wahoo$ticksLeftToLongJump > 0) && (wahoo$previousJumpType == JumpTypes.NORMAL || wahoo$previousJumpType == JumpTypes.LONG)) {
 					longJump();
-				} else if ((wahoo$ticksLeftToDoubleJump > 0) && previousJumpType == JumpTypes.NORMAL) {
+				} else if ((wahoo$ticksLeftToDoubleJump > 0) && wahoo$previousJumpType == JumpTypes.NORMAL) {
 					doubleJump();
 				} else {
-					previousJumpType = JumpTypes.NORMAL;
+					wahoo$previousJumpType = JumpTypes.NORMAL;
 				}
 			}
 		}
 	}
 	
 	private void longJump() {
-		System.out.println(getVelocity());
 		// ------- warning: black magic wizardry below -------
 		Vec2f velocity = new Vec2f((float) getVelocity().getX(), (float) getVelocity().getZ());
 		Vec2f rotation = new Vec2f((float) getRotationVector().getX(), (float) getRotationVector().getZ());
@@ -78,7 +85,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		
 		if (degreesDiff > 85 && degreesDiff < 95) { // don't long jump for moving straight left or right
 			wahoo$ticksLeftToLongJump = 0;
-			previousJumpType = JumpTypes.NORMAL;
+			wahoo$previousJumpType = JumpTypes.NORMAL;
 			return;
 		}
 		
@@ -120,13 +127,13 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		setVelocity(newVelX, Math.min(velY * 1.5, 1), newVelZ);
 		// ----------- end of black magic wizardry -----------
 		wahoo$ticksLeftToLongJump = 0;
-		previousJumpType = JumpTypes.LONG;
+		wahoo$previousJumpType = JumpTypes.LONG;
 	}
 	
 	private void doubleJump() {
-		setVelocity(getVelocity().multiply(1, 2.125, 1));
+		setVelocity(getVelocity().multiply(1, 1.75, 1));
 		wahoo$ticksLeftToDoubleJump = 0;
-		previousJumpType = JumpTypes.DOUBLE;
+		wahoo$previousJumpType = JumpTypes.DOUBLE;
 	}
 	
 	private void updateJumpTicks() {

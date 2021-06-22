@@ -131,7 +131,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			if (wahoo$bonkTime == 0 || !world.getFluidState(getBlockPos()).isEmpty()) {
 				setVelocity(0, getVelocity().getY(), 0);
 				wahoo$bonked = false;
-				((KeyboardInputExtensions) input).setStopWASD(false);
+				((KeyboardInputExtensions) input).enableControl();
+				setPitch(0);
 			}
 		}
 	}
@@ -171,7 +172,18 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			return;
 		}
 		
+		if (wahoo$bonked) {
+			return;
+		}
+		
 		super.setPitch(pitch);
+	}
+	
+	public void setYaw(float yaw) {
+		if (wahoo$bonked) {
+			return;
+		}
+		super.setYaw(yaw);
 	}
 	
 	@Override
@@ -298,17 +310,11 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	}
 	
 	private void bonk() {
-		((KeyboardInputExtensions) input).setStopWASD(true);
+		((KeyboardInputExtensions) input).disableControl();
 		exitDive();
-		double velX = getVelocity().getX();
-		double velY = getVelocity().getY();
-		double velZ = getVelocity().getZ();
-
-		double newVelX = Math.copySign(1, velX);
-		double newVelZ = Math.copySign(1, velZ);
-
-		setVelocity(-newVelX, velY, -newVelZ);
+		setVelocity(-getVelocity().getX(), getVelocity().getY(), -getVelocity().getZ());
 		setPose(EntityPose.SLEEPING);
+		setPitch(-90);
 		wahoo$bonked = true;
 		wahoo$bonkTime = 60;
 	}

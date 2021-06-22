@@ -1,7 +1,9 @@
 package net.ignoramuses.bingBingWahoo;
 
 public interface KeyboardInputExtensions {
-	void setStopWASD(boolean stop);
+	void disableControl();
 	
-	boolean getStopWASD();
+	void enableControl();
+	
+	boolean controlEnabled();
 }

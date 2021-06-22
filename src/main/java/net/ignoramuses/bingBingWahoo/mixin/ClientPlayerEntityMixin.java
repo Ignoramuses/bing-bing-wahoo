@@ -3,6 +3,7 @@ package net.ignoramuses.bingBingWahoo.mixin;
 import com.mojang.authlib.GameProfile;
 import net.ignoramuses.bingBingWahoo.BingBingWahooClient;
 import net.ignoramuses.bingBingWahoo.BingBingWahooClient.JumpTypes;
+import net.ignoramuses.bingBingWahoo.KeyboardInputExtensions;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.input.Input;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
@@ -54,32 +55,30 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private boolean wahoo$diveFlip = false;
 	@Unique
 	private int wahoo$flipDegrees = 0;
+	
 	private ClientPlayerEntityMixin(ClientWorld world, GameProfile profile) {
 		super(world, profile);
 	}
-
+	
 	@Shadow
 	public abstract boolean isSneaking();
-
+	
 	@Shadow
 	public abstract float getPitch(float tickDelta);
-
+	
 	@Shadow
 	protected abstract boolean isWalking();
-	
-	@Shadow public abstract boolean isSubmergedInWater();
 	
 	@Inject(at = @At("RETURN"), method = "tickMovement()V")
 	public void wahoo$tickMovement(CallbackInfo ci) {
 		updateJumpTicks();
 		// Triple Jump Shenanigans
 		if (wahoo$midTripleJump) {
-			if (isOnGround() || isTouchingWater()) {
+			// number is actually irrelevant, is handled in our override
+			if (isOnGround() || world.getFluidState(getBlockPos()).isEmpty()) {
 				wahoo$midTripleJump = false;
-				setPitch(0);
-			} else {
-				setPitch(0); // number is actually irrelevant, is handled in our override
 			}
+			setPitch(0);
 		}
 		
 		// Diving Shenanigans
@@ -99,7 +98,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				setVelocity(wahoo$currentDivingVelocity.getX(), getVelocity().getY() - 0.05, wahoo$currentDivingVelocity.getZ());
 			}
 			
-			if (isTouchingWater()) {
+			if (world.getFluidState(getBlockPos()).isEmpty()) {
 				exitDive();
 			}
 		}
@@ -122,14 +121,17 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				bonk();
 			}
 		}
-
+		
 		if (wahoo$bonked) {
+			if (getPose() != EntityPose.SLEEPING) {
+				setPose(EntityPose.SLEEPING);
+			}
 			multiplyHorizontalVelocity(0.8);
 			--wahoo$bonkTime;
 			if (wahoo$bonkTime == 0 || !world.getFluidState(getBlockPos()).isEmpty()) {
 				setVelocity(0, getVelocity().getY(), 0);
 				wahoo$bonked = false;
-				
+				((KeyboardInputExtensions) input).setStopWASD(false);
 			}
 		}
 	}
@@ -219,11 +221,10 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		// special handling for axis
 		if (velXAbs == 0 || velZAbs == 0) {
 			newVelXAbs = velXAbs * multiplier;
-			newVelZAbs = velZAbs * multiplier;
 		} else {
 			newVelXAbs = velZAbs * multiplier * xToZRatio;
-			newVelZAbs = velZAbs * multiplier;
 		}
+		newVelZAbs = velZAbs * multiplier;
 		
 		double newVelX = Math.copySign(newVelXAbs, velX);
 		double newVelZ = Math.copySign(newVelZAbs, velZ);
@@ -297,6 +298,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	}
 	
 	private void bonk() {
+		((KeyboardInputExtensions) input).setStopWASD(true);
 		exitDive();
 		double velX = getVelocity().getX();
 		double velY = getVelocity().getY();

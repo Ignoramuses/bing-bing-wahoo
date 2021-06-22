@@ -4,13 +4,11 @@ import com.mojang.authlib.GameProfile;
 import net.ignoramuses.bingBingWahoo.BingBingWahooClient;
 import net.ignoramuses.bingBingWahoo.BingBingWahooClient.JumpTypes;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.input.Input;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.EntityPose;
-import net.minecraft.util.Util;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
@@ -32,20 +30,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private boolean lastOnGround;
 	@Shadow
 	private boolean lastSneaking;
-	
-	private ClientPlayerEntityMixin(ClientWorld world, GameProfile profile) {
-		super(world, profile);
-	}
-	
-	@Shadow
-	public abstract boolean isSneaking();
-	
-	@Shadow
-	public abstract float getPitch(float tickDelta);
-	
-	@Shadow
-	protected abstract boolean isWalking();
-	
 	@Unique
 	private long wahoo$ticksSinceSneakingChanged = 0;
 	@Unique
@@ -69,18 +53,30 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Unique
 	private boolean wahoo$diveFlip = false;
 	@Unique
-	private boolean wahoo$diveFlipDone = false;
-	@Unique
 	private int wahoo$flipDegrees = 0;
+	private ClientPlayerEntityMixin(ClientWorld world, GameProfile profile) {
+		super(world, profile);
+	}
+
+	@Shadow
+	public abstract boolean isSneaking();
+
+	@Shadow
+	public abstract float getPitch(float tickDelta);
+
+	@Shadow
+	protected abstract boolean isWalking();
+	
+	@Shadow public abstract boolean isSubmergedInWater();
 	
 	@Inject(at = @At("RETURN"), method = "tickMovement()V")
 	public void wahoo$tickMovement(CallbackInfo ci) {
 		updateJumpTicks();
 		// Triple Jump Shenanigans
 		if (wahoo$midTripleJump) {
-			if (isOnGround() || isInSwimmingPose()) {
+			if (isOnGround() || isTouchingWater()) {
 				wahoo$midTripleJump = false;
-				setPitch(0f);
+				setPitch(0);
 			} else {
 				setPitch(0); // number is actually irrelevant, is handled in our override
 			}
@@ -89,49 +85,58 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		// Diving Shenanigans
 		if (wahoo$isDiving) {
 			if (wahoo$diveFlip) {
-				if (wahoo$diveFlipDone) {
-					wahoo$isDiving = false;
-					wahoo$diveFlip = false;
-				}
 				setPitch(0);
 			}
-		}
-		
-		if (!isOnGround()) {
-			if (wahoo$isDiving) {
-				setVelocity(wahoo$currentDivingVelocity.getX(), getVelocity().getY() - 0.05, wahoo$currentDivingVelocity.getZ());
-			}
-		} else {
-			if (wahoo$isDiving) {
+			
+			if (isOnGround()) {
 				Vec3d divingVelocity = new Vec3d(wahoo$currentDivingVelocity.getX() * 0.9, 0, wahoo$currentDivingVelocity.getZ() * 0.9);
 				setVelocity(divingVelocity);
 				wahoo$currentDivingVelocity = divingVelocity;
 				if ((divingVelocity.getX() < 0.01 && divingVelocity.getX() > -0.01) && (divingVelocity.getZ() < 0.01 && divingVelocity.getZ() > -0.01)) {
-					wahoo$isDiving = false;
+					exitDive();
 				}
+			} else {
+				setVelocity(wahoo$currentDivingVelocity.getX(), getVelocity().getY() - 0.05, wahoo$currentDivingVelocity.getZ());
+			}
+			
+			if (isTouchingWater()) {
+				exitDive();
 			}
 		}
 		
 		// Initiates Diving
 		if ((isSprinting()) && MinecraftClient.getInstance().options.keyAttack.isPressed() && !wahoo$isDiving && wahoo$previousJumpType != JumpTypes.LONG) {
-			setPos(getPos().getX(), getPos().getY() + 1, getPos().getZ());
 			dive();
 			wahoo$previousJumpType = JumpTypes.DIVE;
 		}
+		
 		// Thyne Bonking Shenanigans
-		
-		if (!world.getBlockState(getBlockPos().offset(Direction.fromRotation(getYaw()))).isAir() &&
-						((!isOnGround() && wahoo$previousJumpType != JumpTypes.NORMAL) || wahoo$isDiving)) {
-			bonk();
+		for (Direction direction : BingBingWahooClient.CARDINAL_DIRECTIONS) {
+			if (direction != Direction.fromRotation(getYaw())) {
+				continue;
+			}
+			
+			if ((!world.getBlockState(getBlockPos().offset(direction)).isAir() ||// feet pos 1 block forwards in look direction
+					!world.getBlockState(getBlockPos().offset(direction).up()).isAir()) // head pos 1 block forwards in look direction
+					&& (wahoo$isDiving || (!isOnGround() && wahoo$previousJumpType != JumpTypes.NORMAL))) {
+				bonk();
+			}
 		}
-		
+
 		if (wahoo$bonked) {
-			multiplyHorizontalVelocity(0.5);
+			multiplyHorizontalVelocity(0.8);
 			--wahoo$bonkTime;
-			if (wahoo$bonkTime == 0) {
+			if (wahoo$bonkTime < 0 || !world.getFluidState(getBlockPos()).isEmpty()) {
 				wahoo$bonked = false;
 			}
 		}
+	}
+	
+	public void exitDive() {
+		wahoo$isDiving = false;
+		wahoo$diveFlip = false;
+		wahoo$flipDegrees = 0;
+		setPitch(0);
 	}
 	
 	@Override
@@ -151,14 +156,14 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		
 		if (wahoo$diveFlip) {
 			if (wahoo$flipDegrees > 360) {
-				wahoo$diveFlip = false;
-				wahoo$isDiving = false;
+				exitDive();
 			}
+			
 			((EntityAccessor) this).setPitchRaw(getPitch() + 3);
 			wahoo$flipDegrees += 3;
-			wahoo$diveFlipDone = true;
 			return;
 		}
+		
 		super.setPitch(pitch);
 	}
 	
@@ -200,6 +205,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		
 		double xToZRatio = velXAbs / velZAbs;
 		
+		// after re-reading this code, how does this work at all???
+		
 		// special handling for axis
 		if (velXAbs == 0 || velZAbs == 0) {
 			newVelXAbs = velXAbs * multiplier;
@@ -240,6 +247,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		double newVelXAbs;
 		double newVelZAbs;
 		
+		// after re-reading this code, how does this work at all???
+		
 		if (degreesDiff > 170) {
 			newVelXAbs = velXAbs * LONG_JUMP_SPEED_MULTIPLIER;
 			newVelZAbs = velZAbs * LONG_JUMP_SPEED_MULTIPLIER;
@@ -271,6 +280,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	}
 	
 	private void dive() {
+		setPos(getPos().getX(), getPos().getY() + 1, getPos().getZ());
 		wahoo$isDiving = true;
 		setPose(EntityPose.SWIMMING);
 		wahoo$currentDivingVelocity = multiplyHorizontalVelocity(2.25);
@@ -278,17 +288,17 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	}
 	
 	private void bonk() {
-		double velX = getVelocity().getX();
-		double velY = getVelocity().getY();
-		double velZ = getVelocity().getZ();
-		
-		double newVelX = Math.copySign(1, velX);
-		double newVelZ = Math.copySign(1, velZ);
-		
-		setVelocity(-newVelX, velY, -newVelZ);
-		setPose(EntityPose.SLEEPING);
-		wahoo$bonked = true;
-		wahoo$bonkTime = 20;
+//		double velX = getVelocity().getX();
+//		double velY = getVelocity().getY();
+//		double velZ = getVelocity().getZ();
+//
+//		double newVelX = Math.copySign(1, velX);
+//		double newVelZ = Math.copySign(1, velZ);
+//
+//		setVelocity(-newVelX, velY, -newVelZ);
+//		setPose(EntityPose.SLEEPING);
+//		wahoo$bonked = true;
+//		wahoo$bonkTime = 60;
 	}
 	
 	private void updateJumpTicks() {

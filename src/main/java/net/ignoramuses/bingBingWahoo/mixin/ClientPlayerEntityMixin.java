@@ -116,8 +116,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				continue;
 			}
 			
-			if ((!world.getBlockState(getBlockPos().offset(direction)).isAir() ||// feet pos 1 block forwards in look direction
-					!world.getBlockState(getBlockPos().offset(direction).up()).isAir()) // head pos 1 block forwards in look direction
+			if ((world.getBlockState(getBlockPos().offset(direction)).isSolidBlock(world, getBlockPos().offset(direction)) ||// feet pos 1 block forwards in look direction
+					world.getBlockState(getBlockPos().offset(direction).up()).isSolidBlock(world, getBlockPos().offset(direction))) // head pos 1 block forwards in look direction
 					&& (wahoo$isDiving || (!isOnGround() && wahoo$previousJumpType != JumpTypes.NORMAL))) {
 				bonk();
 			}
@@ -126,8 +126,10 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		if (wahoo$bonked) {
 			multiplyHorizontalVelocity(0.8);
 			--wahoo$bonkTime;
-			if (wahoo$bonkTime < 0 || !world.getFluidState(getBlockPos()).isEmpty()) {
+			if (wahoo$bonkTime == 0 || !world.getFluidState(getBlockPos()).isEmpty()) {
+				setVelocity(0, getVelocity().getY(), 0);
 				wahoo$bonked = false;
+				
 			}
 		}
 	}
@@ -151,6 +153,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	public void setPitch(float pitch) {
 		if (wahoo$midTripleJump) {
 			((EntityAccessor) this).setPitchRaw(getPitch() + 3);
+			if (wahoo$isDiving) {
+				wahoo$midTripleJump = false;
+			}
 			return;
 		}
 		
@@ -174,6 +179,10 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			wahoo$diveFlip = true;
 			wahoo$flipDegrees = 0;
 			multiplyHorizontalVelocity(1.25);
+			return;
+		}
+		
+		if (wahoo$bonked) {
 			return;
 		}
 		super.jump();
@@ -288,17 +297,18 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	}
 	
 	private void bonk() {
-//		double velX = getVelocity().getX();
-//		double velY = getVelocity().getY();
-//		double velZ = getVelocity().getZ();
-//
-//		double newVelX = Math.copySign(1, velX);
-//		double newVelZ = Math.copySign(1, velZ);
-//
-//		setVelocity(-newVelX, velY, -newVelZ);
-//		setPose(EntityPose.SLEEPING);
-//		wahoo$bonked = true;
-//		wahoo$bonkTime = 60;
+		exitDive();
+		double velX = getVelocity().getX();
+		double velY = getVelocity().getY();
+		double velZ = getVelocity().getZ();
+
+		double newVelX = Math.copySign(1, velX);
+		double newVelZ = Math.copySign(1, velZ);
+
+		setVelocity(-newVelX, velY, -newVelZ);
+		setPose(EntityPose.SLEEPING);
+		wahoo$bonked = true;
+		wahoo$bonkTime = 60;
 	}
 	
 	private void updateJumpTicks() {

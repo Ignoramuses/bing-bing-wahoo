@@ -69,6 +69,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Shadow
 	protected abstract boolean isWalking();
 	
+	/**
+	 * Handles most tick-based physics, and when stuff should happen
+	 */
 	@Inject(at = @At("RETURN"), method = "tickMovement()V")
 	public void wahoo$tickMovement(CallbackInfo ci) {
 		updateJumpTicks();
@@ -76,7 +79,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		if (wahoo$midTripleJump) {
 			// number is actually irrelevant, is handled in our override
 			if (isOnGround() || world.getFluidState(getBlockPos()).isEmpty()) {
-				wahoo$midTripleJump = false;
+				exitTripleJump();
 			}
 			setPitch(0);
 		}
@@ -126,73 +129,25 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			if (getPose() != EntityPose.SLEEPING) {
 				setPose(EntityPose.SLEEPING);
 			}
-			multiplyHorizontalVelocity(0.8);
+			setVelocity(getVelocity().multiply(0.8, 1, 0.8));
 			--wahoo$bonkTime;
 			if (wahoo$bonkTime == 0 || !world.getFluidState(getBlockPos()).isEmpty()) {
 				setVelocity(0, getVelocity().getY(), 0);
-				wahoo$bonked = false;
-				((KeyboardInputExtensions) input).enableControl();
-				setPitch(0);
+				exitBonk();
 			}
 		}
 	}
 	
-	public void exitDive() {
-		wahoo$isDiving = false;
-		wahoo$diveFlip = false;
-		wahoo$flipDegrees = 0;
-		setPitch(0);
-	}
-	
-	@Override
-	protected void updatePose() {
-		if (wahoo$isDiving || wahoo$bonked) {
-			return;
-		}
-		super.updatePose();
-	}
-	
-	@Override
-	public void setPitch(float pitch) {
-		if (wahoo$midTripleJump) {
-			((EntityAccessor) this).setPitchRaw(getPitch() + 3);
-			if (wahoo$isDiving) {
-				wahoo$midTripleJump = false;
-			}
-			return;
-		}
-		
-		if (wahoo$diveFlip) {
-			if (wahoo$flipDegrees > 360) {
-				exitDive();
-			}
-			
-			((EntityAccessor) this).setPitchRaw(getPitch() + 3);
-			wahoo$flipDegrees += 3;
-			return;
-		}
-		
-		if (wahoo$bonked) {
-			return;
-		}
-		
-		super.setPitch(pitch);
-	}
-	
-	public void setYaw(float yaw) {
-		if (wahoo$bonked) {
-			return;
-		}
-		super.setYaw(yaw);
-	}
-	
+	/**
+	 * Handles triggering of jump-based physics
+	 */
 	@Override
 	public void jump() {
 		if (wahoo$isDiving) {
 			addVelocity(0, 0.5, 0);
 			wahoo$diveFlip = true;
 			wahoo$flipDegrees = 0;
-			multiplyHorizontalVelocity(1.25);
+			setVelocity(getVelocity().multiply(1.25, 1, 1.25));
 			return;
 		}
 		
@@ -215,111 +170,10 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		}
 	}
 	
-	private Vec3d multiplyHorizontalVelocity(double multiplier) {
-		double velX = getVelocity().getX();
-		double velY = getVelocity().getY();
-		double velZ = getVelocity().getZ();
-		
-		double velXAbs = Math.abs(velX);
-		double velZAbs = Math.abs(velZ);
-		
-		double newVelXAbs;
-		double newVelZAbs;
-		
-		double xToZRatio = velXAbs / velZAbs;
-		
-		// after re-reading this code, how does this work at all???
-		
-		// special handling for axis
-		if (velXAbs == 0 || velZAbs == 0) {
-			newVelXAbs = velXAbs * multiplier;
-		} else {
-			newVelXAbs = velZAbs * multiplier * xToZRatio;
-		}
-		newVelZAbs = velZAbs * multiplier;
-		
-		double newVelX = Math.copySign(newVelXAbs, velX);
-		double newVelZ = Math.copySign(newVelZAbs, velZ);
-		
-		setVelocity(newVelX, velY, newVelZ);
-		return new Vec3d(newVelX, velY, newVelZ);
-	}
-	
-	private void longJump() {
-		// ------- warning: black magic wizardry below -------
-		Vec2f velocity = new Vec2f((float) getVelocity().getX(), (float) getVelocity().getZ());
-		Vec2f rotation = new Vec2f((float) getRotationVector().getX(), (float) getRotationVector().getZ());
-		
-		double cosOfVecs = (rotation.dot(velocity)) / (rotation.length() * velocity.length());
-		double degreesDiff = Math.toDegrees(Math.acos(cosOfVecs));
-		
-		if (degreesDiff > 85 && degreesDiff < 95) { // don't long jump for moving straight left or right
-			wahoo$ticksLeftToLongJump = 0;
-			wahoo$previousJumpType = JumpTypes.NORMAL;
-			return;
-		}
-		
-		double velX = getVelocity().getX();
-		double velY = getVelocity().getY();
-		double velZ = getVelocity().getZ();
-		
-		double velXAbs = Math.abs(velX);
-		double velZAbs = Math.abs(velZ);
-		
-		double newVelXAbs;
-		double newVelZAbs;
-		
-		// after re-reading this code, how does this work at all???
-		
-		if (degreesDiff > 170) {
-			newVelXAbs = velXAbs * LONG_JUMP_SPEED_MULTIPLIER;
-			newVelZAbs = velZAbs * LONG_JUMP_SPEED_MULTIPLIER;
-		} else {
-			newVelXAbs = Math.min(velXAbs * LONG_JUMP_SPEED_MULTIPLIER, MAX_LONG_JUMP_SPEED);
-			newVelZAbs = Math.min(velZAbs * LONG_JUMP_SPEED_MULTIPLIER, MAX_LONG_JUMP_SPEED);
-		}
-		
-		double newVelX = Math.copySign(newVelXAbs, velX);
-		double newVelZ = Math.copySign(newVelZAbs, velZ);
-		
-		setVelocity(newVelX, Math.min(velY * 1.25, 1), newVelZ);
-		// ----------- end of black magic wizardry -----------
-		wahoo$ticksLeftToLongJump = 0;
-		wahoo$previousJumpType = JumpTypes.LONG;
-	}
-	
-	private void doubleJump() {
-		setVelocity(getVelocity().multiply(1, 1.75, 1));
-		wahoo$ticksLeftToDoubleJump = 0;
-		wahoo$previousJumpType = JumpTypes.DOUBLE;
-	}
-	
-	private void tripleJump() {
-		setVelocity(getVelocity().multiply(1, 2.5, 1));
-		wahoo$ticksLeftToTripleJump = 0;
-		wahoo$previousJumpType = JumpTypes.TRIPLE;
-		wahoo$midTripleJump = true;
-	}
-	
-	private void dive() {
-		setPos(getPos().getX(), getPos().getY() + 1, getPos().getZ());
-		wahoo$isDiving = true;
-		setPose(EntityPose.SWIMMING);
-		wahoo$currentDivingVelocity = multiplyHorizontalVelocity(2.25);
-		addVelocity(0, 0.5, 0);
-	}
-	
-	private void bonk() {
-		((KeyboardInputExtensions) input).disableControl();
-		exitDive();
-		setVelocity(-getVelocity().getX(), getVelocity().getY(), -getVelocity().getZ());
-		setPose(EntityPose.SLEEPING);
-		setPitch(-90);
-		wahoo$bonked = true;
-		wahoo$bonkTime = 60;
-	}
-	
-	private void updateJumpTicks() {
+	/**
+	 * Keeps track of timers for jumps
+	 */
+	public void updateJumpTicks() {
 		// double jump
 		if (!lastOnGround && isOnGround()) {
 			wahoo$ticksLeftToDoubleJump = 6;
@@ -347,5 +201,141 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		if (this.wahoo$ticksLeftToLongJump > 0) {
 			--this.wahoo$ticksLeftToLongJump;
 		}
+	}
+	
+	/**
+	 * An override of updatePose to allow for custom handling, sleeping for bonking and swimming for diving, etc.
+	 */
+	@Override
+	protected void updatePose() {
+		if (wahoo$isDiving || wahoo$bonked) {
+			return;
+		}
+		super.updatePose();
+	}
+	
+	/**
+	 * Similar to {@link ClientPlayerEntityMixin#updatePose}, allows for special handling of pitch changes
+	 */
+	@Override
+	public void setPitch(float pitch) {
+		if (wahoo$midTripleJump) {
+			((EntityAccessor) this).setPitchRaw(getPitch() + 3);
+			if (wahoo$isDiving) {
+				exitTripleJump();
+			}
+			return;
+		}
+		
+		if (wahoo$diveFlip) {
+			if (wahoo$flipDegrees > 360) {
+				exitDive();
+			}
+			
+			((EntityAccessor) this).setPitchRaw(getPitch() + 3);
+			wahoo$flipDegrees += 3;
+			return;
+		}
+		
+		if (wahoo$bonked) {
+			return;
+		}
+		
+		super.setPitch(pitch);
+	}
+	
+	/**
+	 * Similar to {@link ClientPlayerEntityMixin#updatePose}, allows for special handling of yaw changes
+	 */
+	public void setYaw(float yaw) {
+		if (wahoo$bonked) {
+			return;
+		}
+		super.setYaw(yaw);
+	}
+	
+	// ---------- JUMPS ----------
+	
+	public void longJump() {
+		// ------- warning: black magic wizardry below -------
+		Vec2f velocity = new Vec2f((float) getVelocity().getX(), (float) getVelocity().getZ());
+		Vec2f rotation = new Vec2f((float) getRotationVector().getX(), (float) getRotationVector().getZ());
+		
+		double cosOfVecs = (rotation.dot(velocity)) / (rotation.length() * velocity.length());
+		double degreesDiff = Math.toDegrees(Math.acos(cosOfVecs));
+		
+		if (degreesDiff > 85 && degreesDiff < 95) { // don't long jump for moving straight left or right
+			wahoo$ticksLeftToLongJump = 0;
+			wahoo$previousJumpType = JumpTypes.NORMAL;
+			return;
+		}
+		
+		double newVelXAbs;
+		double newVelZAbs;
+		
+		if (degreesDiff > 170) { //BLJ
+			newVelXAbs = Math.abs(getVelocity().getX()) * LONG_JUMP_SPEED_MULTIPLIER;
+			newVelZAbs = Math.abs(getVelocity().getZ()) * LONG_JUMP_SPEED_MULTIPLIER;
+		} else {
+			newVelXAbs = Math.min(Math.abs(getVelocity().getX()) * LONG_JUMP_SPEED_MULTIPLIER, MAX_LONG_JUMP_SPEED);
+			newVelZAbs = Math.min(Math.abs(getVelocity().getZ()) * LONG_JUMP_SPEED_MULTIPLIER, MAX_LONG_JUMP_SPEED);
+		}
+		
+		double newVelX = Math.copySign(newVelXAbs, getVelocity().getX());
+		double newVelZ = Math.copySign(newVelZAbs, getVelocity().getZ());
+		// ----------- end of black magic wizardry -----------
+		setVelocity(newVelX, Math.min(getVelocity().getY() * 1.25, 1), newVelZ);
+		wahoo$ticksLeftToLongJump = 0;
+		wahoo$previousJumpType = JumpTypes.LONG;
+	}
+	
+	private void doubleJump() {
+		setVelocity(getVelocity().multiply(1, 1.75, 1));
+		wahoo$ticksLeftToDoubleJump = 0;
+		wahoo$previousJumpType = JumpTypes.DOUBLE;
+	}
+	
+	private void tripleJump() {
+		setVelocity(getVelocity().multiply(1, 2.5, 1));
+		wahoo$ticksLeftToTripleJump = 0;
+		wahoo$previousJumpType = JumpTypes.TRIPLE;
+		wahoo$midTripleJump = true;
+	}
+	
+	public void exitTripleJump() {
+		wahoo$midTripleJump = false;
+	}
+	
+	private void dive() {
+		setPos(getPos().getX(), getPos().getY() + 1, getPos().getZ());
+		wahoo$isDiving = true;
+		setPose(EntityPose.SWIMMING);
+		wahoo$currentDivingVelocity = getVelocity().multiply(2.25, 1, 2.25);
+		setVelocity(wahoo$currentDivingVelocity);
+		addVelocity(0, 0.5, 0);
+	}
+	
+	public void exitDive() {
+		wahoo$isDiving = false;
+		wahoo$diveFlip = false;
+		wahoo$flipDegrees = 0;
+		setPitch(0);
+	}
+	
+	public void bonk() {
+		((KeyboardInputExtensions) input).disableControl();
+		exitDive();
+		setVelocity(-getVelocity().getX(), getVelocity().getY(), -getVelocity().getZ());
+		setPose(EntityPose.SLEEPING);
+		setPitch(-90);
+		wahoo$bonked = true;
+		wahoo$bonkTime = 60;
+	}
+	
+	public void exitBonk() {
+		((KeyboardInputExtensions) input).enableControl();
+		wahoo$bonked = false;
+		wahoo$bonkTime = 0;
+		setPitch(0);
 	}
 }

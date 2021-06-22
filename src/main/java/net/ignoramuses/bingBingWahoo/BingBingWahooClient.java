@@ -24,6 +24,7 @@ public class BingBingWahooClient implements ClientModInitializer {
 		NORMAL,
 		LONG,
 		DOUBLE,
-		TRIPLE
+		TRIPLE,
+		DIVE
 	}
 }

@@ -55,6 +55,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private boolean wahoo$diveFlip = false;
 	@Unique
 	private int wahoo$flipDegrees = 0;
+	@Unique
+	private long wahoo$ticksLeftToWallJump = 0;
 	
 	private ClientPlayerEntityMixin(ClientWorld world, GameProfile profile) {
 		super(world, profile);
@@ -163,6 +165,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 					doubleJump();
 				} else if (wahoo$ticksLeftToTripleJump > 0 && wahoo$ticksLeftToTripleJump < 5 && wahoo$previousJumpType == JumpTypes.DOUBLE && (isSprinting() || isWalking())) {
 					tripleJump();
+				} else if (wahoo$ticksLeftToWallJump > 0 && (wahoo$previousJumpType.canWallJumpFrom() || !isOnGround()) && !wahoo$isDiving
+					/*	&& world.getBlockState(getBlockPos().offset(direction)).isSolidBlock(world, getBlockPos().offset(direction)) || getBlockState(getBlockPos().offset(direction).up()).isSolidBlock(world, getBlockPos().offset(direction))*/) {
+					wallJump();
 				} else {
 					wahoo$previousJumpType = JumpTypes.NORMAL;
 				}
@@ -200,6 +205,14 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		}
 		if (this.wahoo$ticksLeftToLongJump > 0) {
 			--this.wahoo$ticksLeftToLongJump;
+		}
+		
+		// Wall Jump
+		if (!lastOnGround && isOnGround()) {
+			wahoo$ticksLeftToWallJump = 3;
+		}
+		if (this.wahoo$ticksLeftToWallJump > 0) {
+			--this.wahoo$ticksLeftToWallJump;
 		}
 	}
 	
@@ -337,5 +350,12 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		wahoo$bonked = false;
 		wahoo$bonkTime = 0;
 		setPitch(0);
+	}
+	
+	private void wallJump() {
+		setRotation(-getYaw(), getPitch());
+		addVelocity(0, 0.5, 0);
+		wahoo$ticksLeftToWallJump = 0;
+		wahoo$previousJumpType = JumpTypes.WALL;
 	}
 }

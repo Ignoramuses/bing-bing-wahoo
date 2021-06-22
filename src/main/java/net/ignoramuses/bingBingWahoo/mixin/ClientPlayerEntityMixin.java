@@ -20,6 +20,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.function.Supplier;
+
 import static net.ignoramuses.bingBingWahoo.BingBingWahooClient.LONG_JUMP_SPEED_MULTIPLIER;
 import static net.ignoramuses.bingBingWahoo.BingBingWahooClient.MAX_LONG_JUMP_SPEED;
 
@@ -57,6 +59,12 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private int wahoo$flipDegrees = 0;
 	@Unique
 	private long wahoo$ticksLeftToWallJump = 0;
+	@Unique
+	private boolean wahoo$jumpHeldSinceLastJump = false;
+	@Unique
+	private long wahoo$ticksSinceLaunch = 0;
+	@Unique
+	private long wahoo$tickJumpedAt = 0;
 	
 	private ClientPlayerEntityMixin(ClientWorld world, GameProfile profile) {
 		super(world, profile);
@@ -166,7 +174,43 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				} else if (wahoo$ticksLeftToTripleJump > 0 && wahoo$ticksLeftToTripleJump < 5 && wahoo$previousJumpType == JumpTypes.DOUBLE && (isSprinting() || isWalking())) {
 					tripleJump();
 				} else if (wahoo$ticksLeftToWallJump > 0 && (wahoo$previousJumpType.canWallJumpFrom() || !isOnGround()) && !wahoo$isDiving
-					/*	&& world.getBlockState(getBlockPos().offset(direction)).isSolidBlock(world, getBlockPos().offset(direction)) || getBlockState(getBlockPos().offset(direction).up()).isSolidBlock(world, getBlockPos().offset(direction))*/) {
+						&& world.getBlockState(getBlockPos().offset(((Supplier<Direction>) () -> {
+							Direction result = Direction.UP;
+							for (Direction direction : BingBingWahooClient.CARDINAL_DIRECTIONS) {
+								if (direction != Direction.fromRotation(getYaw())) {
+									continue;
+								}
+								result = direction;
+							}
+					return result;
+				}).get())).isSolidBlock(world, getBlockPos().offset(((Supplier<Direction>) () -> {
+					Direction result = Direction.UP;
+					for (Direction direction : BingBingWahooClient.CARDINAL_DIRECTIONS) {
+						if (direction != Direction.fromRotation(getYaw())) {
+							continue;
+						}
+						result = direction;
+					}
+					return result;
+				}).get())) || world.getBlockState(getBlockPos().offset(((Supplier<Direction>) () -> {
+					Direction result = Direction.UP;
+					for (Direction direction : BingBingWahooClient.CARDINAL_DIRECTIONS) {
+						if (direction != Direction.fromRotation(getYaw())) {
+							continue;
+						}
+						result = direction;
+					}
+					return result;
+				}).get()).up()).isSolidBlock(world, getBlockPos().offset(((Supplier<Direction>) () -> {
+					Direction result = Direction.UP;
+					for (Direction direction : BingBingWahooClient.CARDINAL_DIRECTIONS) {
+						if (direction != Direction.fromRotation(getYaw())) {
+							continue;
+						}
+						result = direction;
+					}
+					return result;
+				}).get()))) {
 					wallJump();
 				} else {
 					wahoo$previousJumpType = JumpTypes.NORMAL;

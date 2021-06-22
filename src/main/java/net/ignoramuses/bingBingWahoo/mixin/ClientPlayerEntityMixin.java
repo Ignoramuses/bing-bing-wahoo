@@ -42,6 +42,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Shadow
 	public abstract float getPitch(float tickDelta);
 	
+	@Shadow
+	protected abstract boolean isWalking();
+	
 	@Unique
 	private long wahoo$ticksSinceSneakingChanged = 0;
 	@Unique
@@ -56,6 +59,10 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private boolean wahoo$midTripleJump = false;
 	@Unique
 	private boolean wahoo$isdiving = false;
+	//	@Unique
+//	private long wahoo$timeLeftDiving = 0;
+	@Unique
+	private Vec3d wahoo$currentDivingVelocity;
 	
 	@Inject(at = @At("RETURN"), method = "tickMovement()V")
 	public void wahoo$tickMovement(CallbackInfo ci) {
@@ -68,13 +75,22 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				setPitch(0); // number is actually irrelevant, is handled in our override
 			}
 		}
-		
-		if (wahoo$isdiving && isOnGround()) {
-			wahoo$isdiving = false;
+		if (!isOnGround()) {
+			if (wahoo$isdiving) {
+				setVelocity(wahoo$currentDivingVelocity.getX(), getVelocity().getY() - 0.05, wahoo$currentDivingVelocity.getZ());
+			}
+		} else {
+			if (wahoo$isdiving) {
+				Vec3d divingVelocity = new Vec3d(wahoo$currentDivingVelocity.getX() * 0.999, 0, wahoo$currentDivingVelocity.getZ() * 0.999);
+				if ((divingVelocity.getX() < 0.001 && divingVelocity.getX() > -0.001) && (divingVelocity.getZ() < 0.001 && divingVelocity.getZ() > -0.001)) {
+					wahoo$isdiving = false;
+				}
+			}
 		}
 		
-		if (isSprinting() && MinecraftClient.getInstance().options.keyAttack.isPressed() && !wahoo$isdiving) {
+		if ((isSprinting()) && MinecraftClient.getInstance().options.keyAttack.isPressed() && !wahoo$isdiving) {
 			dive();
+			wahoo$previousJumpType = JumpTypes.NORMAL;
 		}
 	}
 	
@@ -97,17 +113,18 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	
 	@Override
 	public void jump() {
+		if (wahoo$isdiving) {
+			return;
+		}
 		super.jump();
 		if (input.jumping) {
 			if ((isOnGround())) {
 				if ((isSneaking() || lastSneaking) && (BingBingWahooClient.rapidFire || wahoo$ticksLeftToLongJump > 0) && (wahoo$previousJumpType == JumpTypes.NORMAL || wahoo$previousJumpType == JumpTypes.LONG)) {
 					longJump();
-				} else if (wahoo$ticksLeftToDoubleJump > 0 && wahoo$previousJumpType == JumpTypes.NORMAL) {
+				} else if (wahoo$ticksLeftToDoubleJump > 0 && wahoo$ticksLeftToDoubleJump < 5 && wahoo$previousJumpType == JumpTypes.NORMAL) {
 					doubleJump();
-				} else if (wahoo$ticksLeftToTripleJump > 0 && wahoo$previousJumpType == JumpTypes.DOUBLE) {
+				} else if (wahoo$ticksLeftToTripleJump > 0 && wahoo$ticksLeftToTripleJump < 5 && wahoo$previousJumpType == JumpTypes.DOUBLE && (isSprinting() || isWalking())) {
 					tripleJump();
-				} else if (isSprinting() && MinecraftClient.getInstance().options.keyAttack.isPressed()) {
-					dive();
 				} else {
 					wahoo$previousJumpType = JumpTypes.NORMAL;
 				}
@@ -115,7 +132,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		}
 	}
 	
-	private void multiplyHorizontalVelocity(double multiplier) {
+	private Vec3d multiplyHorizontalVelocity(double multiplier) {
 		double velX = getVelocity().getX();
 		double velY = getVelocity().getY();
 		double velZ = getVelocity().getZ();
@@ -141,6 +158,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		double newVelZ = Math.copySign(newVelZAbs, velZ);
 		
 		setVelocity(newVelX, velY, newVelZ);
+		return new Vec3d(newVelX, velY, newVelZ);
 	}
 	
 	private void longJump() {
@@ -200,14 +218,15 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private void dive() {
 		wahoo$isdiving = true;
 		setPose(EntityPose.SWIMMING);
-		multiplyHorizontalVelocity(1.5);
-		addVelocity(0, 0.001, 0);
+		wahoo$currentDivingVelocity = multiplyHorizontalVelocity(1.5);
+		addVelocity(0, 0, 0);
+//		wahoo$timeLeftDiving = 15;
 	}
 	
 	private void updateJumpTicks() {
 		// double jump
 		if (!lastOnGround && isOnGround()) {
-			wahoo$ticksLeftToDoubleJump = 5;
+			wahoo$ticksLeftToDoubleJump = 6;
 		}
 		if (wahoo$ticksLeftToDoubleJump > 0) {
 			--this.wahoo$ticksLeftToDoubleJump;
@@ -215,7 +234,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		
 		// triple jump
 		if (!lastOnGround && isOnGround()) {
-			wahoo$ticksLeftToTripleJump = 5;
+			wahoo$ticksLeftToTripleJump = 6;
 		}
 		if (wahoo$ticksLeftToTripleJump > 0) {
 			--this.wahoo$ticksLeftToTripleJump;

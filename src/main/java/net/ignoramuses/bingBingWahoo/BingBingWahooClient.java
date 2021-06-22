@@ -22,6 +22,12 @@ public class BingBingWahooClient implements ClientModInitializer {
 		LONG,
 		DOUBLE,
 		TRIPLE,
-		DIVE
+		DIVE,
+		
+		;
+		
+		public boolean isRegularJump() {
+			return this == NORMAL || this == DOUBLE || this == TRIPLE;
+		}
 	}
 }

@@ -173,6 +173,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 					doubleJump();
 				} else if (wahoo$ticksLeftToTripleJump > 0 && wahoo$ticksLeftToTripleJump < 5 && wahoo$previousJumpType == JumpTypes.DOUBLE && (isSprinting() || isWalking())) {
 					tripleJump();
+					// This is so unnecessary but I love it so much
 				} else if (wahoo$ticksLeftToWallJump > 0 && (wahoo$previousJumpType.canWallJumpFrom() || !isOnGround()) && !wahoo$isDiving
 						&& world.getBlockState(getBlockPos().offset(((Supplier<Direction>) () -> {
 							Direction result = Direction.UP;

@@ -11,6 +11,7 @@ import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.EntityPose;
+import net.minecraft.tag.FluidTags;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
@@ -251,6 +252,12 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	 */
 	@Override
 	protected void onBlockCollision(BlockState state) {
+		if (state.isAir() ||
+				world.getBlockState(getBlockPos().down()).equals(state) ||
+				world.getBlockState(getBlockPos().up()).equals(state) ||
+				world.getBlockState(getBlockPos().up(2)).equals(state)) {
+			return; // ignore floor, ceiling, and air
+		}
 		wahoo$colliding = true;
 		wahoo$collisionHeartbeat++;
 		// start

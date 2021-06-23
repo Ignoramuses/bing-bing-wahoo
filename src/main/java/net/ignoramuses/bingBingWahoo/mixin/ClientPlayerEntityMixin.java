@@ -174,45 +174,47 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				} else if (wahoo$ticksLeftToTripleJump > 0 && wahoo$ticksLeftToTripleJump < 5 && wahoo$previousJumpType == JumpTypes.DOUBLE && (isSprinting() || isWalking())) {
 					tripleJump();
 					// This is so unnecessary but I love it so much
-				} else if (wahoo$ticksLeftToWallJump > 0 && (wahoo$previousJumpType.canWallJumpFrom() || !isOnGround()) && !wahoo$isDiving
-						&& world.getBlockState(getBlockPos().offset(((Supplier<Direction>) () -> {
-							Direction result = Direction.UP;
-							for (Direction direction : BingBingWahooClient.CARDINAL_DIRECTIONS) {
-								if (direction != Direction.fromRotation(getYaw())) {
-									continue;
-								}
-								result = direction;
+				} else if (!isOnGround()) {
+					if (wahoo$ticksLeftToWallJump > 0 && (wahoo$previousJumpType.canWallJumpFrom() || !isOnGround())  && !wahoo$isDiving
+							&& world.getBlockState(getBlockPos().offset(((Supplier<Direction>) () -> {
+						Direction result = Direction.UP;
+						for (Direction direction : BingBingWahooClient.CARDINAL_DIRECTIONS) {
+							if (direction != Direction.fromRotation(getYaw())) {
+								continue;
 							}
-					return result;
-				}).get())).isSolidBlock(world, getBlockPos().offset(((Supplier<Direction>) () -> {
-					Direction result = Direction.UP;
-					for (Direction direction : BingBingWahooClient.CARDINAL_DIRECTIONS) {
-						if (direction != Direction.fromRotation(getYaw())) {
-							continue;
+							result = direction;
 						}
-						result = direction;
-					}
-					return result;
-				}).get())) || world.getBlockState(getBlockPos().offset(((Supplier<Direction>) () -> {
-					Direction result = Direction.UP;
-					for (Direction direction : BingBingWahooClient.CARDINAL_DIRECTIONS) {
-						if (direction != Direction.fromRotation(getYaw())) {
-							continue;
+						return result;
+					}).get())).isSolidBlock(world, getBlockPos().offset(((Supplier<Direction>) () -> {
+						Direction result = Direction.UP;
+						for (Direction direction : BingBingWahooClient.CARDINAL_DIRECTIONS) {
+							if (direction != Direction.fromRotation(getYaw())) {
+								continue;
+							}
+							result = direction;
 						}
-						result = direction;
-					}
-					return result;
-				}).get()).up()).isSolidBlock(world, getBlockPos().offset(((Supplier<Direction>) () -> {
-					Direction result = Direction.UP;
-					for (Direction direction : BingBingWahooClient.CARDINAL_DIRECTIONS) {
-						if (direction != Direction.fromRotation(getYaw())) {
-							continue;
+						return result;
+					}).get())) || world.getBlockState(getBlockPos().offset(((Supplier<Direction>) () -> {
+						Direction result = Direction.UP;
+						for (Direction direction : BingBingWahooClient.CARDINAL_DIRECTIONS) {
+							if (direction != Direction.fromRotation(getYaw())) {
+								continue;
+							}
+							result = direction;
 						}
-						result = direction;
+						return result;
+					}).get()).up()).isSolidBlock(world, getBlockPos().offset(((Supplier<Direction>) () -> {
+						Direction result = Direction.UP;
+						for (Direction direction : BingBingWahooClient.CARDINAL_DIRECTIONS) {
+							if (direction != Direction.fromRotation(getYaw())) {
+								continue;
+							}
+							result = direction;
+						}
+						return result;
+					}).get()))) {
+						wallJump();
 					}
-					return result;
-				}).get()))) {
-					wallJump();
 				} else {
 					wahoo$previousJumpType = JumpTypes.NORMAL;
 				}
@@ -399,8 +401,10 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	
 	private void wallJump() {
 		setRotation(-getYaw(), getPitch());
-		addVelocity(0, 0.5, 0);
+//		addVelocity(0, 0.5, 0);
+		setVelocity(getVelocity().getX(), 0.5, getVelocity().getZ());
 		wahoo$ticksLeftToWallJump = 0;
 		wahoo$previousJumpType = JumpTypes.WALL;
+		
 	}
 }

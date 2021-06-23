@@ -4,14 +4,12 @@ import com.mojang.authlib.GameProfile;
 import net.ignoramuses.bingBingWahoo.BingBingWahooClient;
 import net.ignoramuses.bingBingWahoo.BingBingWahooClient.JumpTypes;
 import net.ignoramuses.bingBingWahoo.KeyboardInputExtensions;
-import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.input.Input;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.EntityPose;
-import net.minecraft.tag.FluidTags;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
@@ -52,6 +50,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Unique
 	private boolean wahoo$midTripleJump = false;
 	@Unique
+	private long wahoo$tripleJumpTicks = 0;
+	@Unique
 	private boolean wahoo$isDiving = false;
 	@Unique
 	private Vec3d wahoo$currentDivingVelocity;
@@ -66,11 +66,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Unique
 	private long wahoo$ticksLeftToWallJump = 0;
 	@Unique
-	private boolean wahoo$colliding = false;
-	@Unique
-	private long wahoo$collisionHeartbeat = 0;
-	@Unique
-	private long wahoo$tickCollisionHeartbeat = 0;
+	private boolean wahoo$walljumping = false;
 	
 	private ClientPlayerEntityMixin(ClientWorld world, GameProfile profile) {
 		super(world, profile);
@@ -84,7 +80,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	
 	@Shadow
 	protected abstract boolean isWalking();
-	
+
 	/**
 	 * Handles most tick-based physics, and when stuff should happen
 	 */
@@ -93,8 +89,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		updateJumpTicks();
 		// Triple Jump Shenanigans
 		if (wahoo$midTripleJump) {
+			wahoo$tripleJumpTicks++;
 			// number is actually irrelevant, is handled in our override
-			if (isOnGround() || world.getFluidState(getBlockPos()).isEmpty()) {
+			if ((isOnGround() || !world.getFluidState(getBlockPos()).isEmpty()) && wahoo$tripleJumpTicks > 3) {
 				exitTripleJump();
 			}
 			setPitch(0);
@@ -117,8 +114,12 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				setVelocity(wahoo$currentDivingVelocity.getX(), getVelocity().getY() - 0.05, wahoo$currentDivingVelocity.getZ());
 			}
 			
-			if (world.getFluidState(getBlockPos()).isEmpty()) {
+			if (!world.getFluidState(getBlockPos()).isEmpty()) {
 				exitDive();
+			}
+			
+			if (horizontalCollision) {
+				bonk();
 			}
 		}
 		
@@ -126,19 +127,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		if ((isSprinting()) && MinecraftClient.getInstance().options.keyAttack.isPressed() && !wahoo$isDiving && wahoo$previousJumpType != JumpTypes.LONG) {
 			dive();
 			wahoo$previousJumpType = JumpTypes.DIVE;
-		}
-		
-		// Thyne Bonking Shenanigans
-		for (Direction direction : BingBingWahooClient.CARDINAL_DIRECTIONS) {
-			if (direction != Direction.fromRotation(getYaw())) {
-				continue;
-			}
-			
-			if ((world.getBlockState(getBlockPos().offset(direction)).isSolidBlock(world, getBlockPos().offset(direction)) ||// feet pos 1 block forwards in look direction
-					world.getBlockState(getBlockPos().offset(direction).up()).isSolidBlock(world, getBlockPos().offset(direction))) // head pos 1 block forwards in look direction
-					&& (wahoo$isDiving || (!isOnGround() && wahoo$previousJumpType != JumpTypes.NORMAL))) {
-				bonk();
-			}
 		}
 		
 		if (wahoo$bonked) {
@@ -151,6 +139,20 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				setVelocity(0, getVelocity().getY(), 0);
 				exitBonk();
 			}
+		}
+		
+		if (horizontalCollision) {
+			if (wahoo$ticksLeftToWallJump <= 0 && wahoo$previousJumpType.canWallJumpFrom() && !wahoo$isDiving && !isOnGround()) {
+				wahoo$ticksLeftToWallJump = 20;
+			}
+		}
+		
+		if (wahoo$ticksLeftToWallJump > 0 && wahoo$previousJumpType.canWallJumpFrom() && !wahoo$isDiving && input.jumping) {
+			wallJump();
+		}
+		
+		if (wahoo$walljumping && isOnGround()) {
+			exitWallJump();
 		}
 	}
 	
@@ -196,7 +198,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			wahoo$ticksLeftToDoubleJump = 6;
 		}
 		if (wahoo$ticksLeftToDoubleJump > 0) {
-			--this.wahoo$ticksLeftToDoubleJump;
+			wahoo$ticksLeftToDoubleJump--;
 		}
 		
 		// triple jump
@@ -204,35 +206,28 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			wahoo$ticksLeftToTripleJump = 6;
 		}
 		if (wahoo$ticksLeftToTripleJump > 0) {
-			--this.wahoo$ticksLeftToTripleJump;
+			wahoo$ticksLeftToTripleJump--;
 		}
 		
 		// long jump
 		if (isSneaking() != lastSneaking) {
 			wahoo$ticksSinceSneakingChanged = 0;
 		}
-		++this.wahoo$ticksSinceSneakingChanged;
+		wahoo$ticksSinceSneakingChanged++;
 		if (wahoo$ticksSinceSneakingChanged == 1 && isSneaking()) {
 			wahoo$ticksLeftToLongJump = 5;
 		}
 		if (this.wahoo$ticksLeftToLongJump > 0) {
-			--this.wahoo$ticksLeftToLongJump;
+			wahoo$ticksLeftToLongJump--;
 		}
 		
 		// wall jump
-		
-		// ending wall jump
-		if (wahoo$colliding) {
-			wahoo$tickCollisionHeartbeat++;
-			if (wahoo$tickCollisionHeartbeat != wahoo$collisionHeartbeat) {
-				wahoo$colliding = false;
-				wahoo$tickCollisionHeartbeat = 0;
-				wahoo$collisionHeartbeat = 0;
+		if (wahoo$ticksLeftToWallJump > 0) {
+			wahoo$ticksLeftToWallJump--;
+			
+			if (wahoo$ticksLeftToWallJump == 0 && wahoo$previousJumpType != JumpTypes.NORMAL && !wahoo$walljumping) {
+				bonk();
 			}
-		}
-		
-		if (this.wahoo$ticksLeftToWallJump > 0) {
-			--this.wahoo$ticksLeftToWallJump;
 		}
 	}
 	
@@ -245,35 +240,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			return;
 		}
 		super.updatePose();
-	}
-	
-	/**
-	 * Similar to {@link ClientPlayerEntityMixin#updatePose}, allows for special handling of block collisions
-	 */
-	@Override
-	protected void onBlockCollision(BlockState state) {
-		if (state.isAir() ||
-				world.getBlockState(getBlockPos().down()).equals(state) ||
-				world.getBlockState(getBlockPos().up()).equals(state) ||
-				world.getBlockState(getBlockPos().up(2)).equals(state)) {
-			return; // ignore floor, ceiling, and air
-		}
-		wahoo$colliding = true;
-		wahoo$collisionHeartbeat++;
-		// start
-		if (wahoo$collisionHeartbeat == 1) {
-			wahoo$ticksLeftToWallJump = 3;
-		}
-		
-		// bonking
-		if (wahoo$ticksLeftToWallJump == -1) {
-			bonk();
-		}
-		
-		// the actual wall jump
-		if (wahoo$ticksLeftToWallJump > 0 && (wahoo$previousJumpType.canWallJumpFrom() || !isOnGround()) && !wahoo$isDiving) {
-			wallJump();
-		}
 	}
 	
 	/**
@@ -366,9 +332,11 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	
 	public void exitTripleJump() {
 		wahoo$midTripleJump = false;
+		wahoo$tripleJumpTicks = 0;
 	}
 	
 	private void dive() {
+		exitTripleJump();
 		setPos(getPos().getX(), getPos().getY() + 1, getPos().getZ());
 		wahoo$isDiving = true;
 		setPose(EntityPose.SWIMMING);
@@ -387,11 +355,12 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	public void bonk() {
 		((KeyboardInputExtensions) input).disableControl();
 		exitDive();
+		exitTripleJump();
 		setVelocity(-getVelocity().getX(), getVelocity().getY(), -getVelocity().getZ());
 		setPose(EntityPose.SLEEPING);
 		setPitch(-90);
 		wahoo$bonked = true;
-		wahoo$bonkTime = 60;
+		wahoo$bonkTime = 30;
 	}
 	
 	public void exitBonk() {
@@ -402,10 +371,15 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	}
 	
 	private void wallJump() {
+		exitTripleJump();
 		setRotation(-getYaw(), getPitch());
 		setVelocity(-getVelocity().getX(), 0.5, -getVelocity().getZ());
+		wahoo$walljumping = true;
 		wahoo$ticksLeftToWallJump = 0;
 		wahoo$previousJumpType = JumpTypes.WALL;
-		
+	}
+	
+	private void exitWallJump() {
+		wahoo$walljumping = false;
 	}
 }

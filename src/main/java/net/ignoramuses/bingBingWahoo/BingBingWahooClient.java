@@ -31,7 +31,7 @@ public class BingBingWahooClient implements ClientModInitializer {
 		}
 		
 		public boolean canWallJumpFrom() {
-			return isRegularJump() || this == WALL;
+			return (isRegularJump() || this == WALL) && this != NORMAL;
 		}
 	}
 }

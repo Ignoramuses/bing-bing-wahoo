@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import net.ignoramuses.bingBingWahoo.BingBingWahooClient;
 import net.ignoramuses.bingBingWahoo.BingBingWahooClient.JumpTypes;
 import net.ignoramuses.bingBingWahoo.KeyboardInputExtensions;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.input.Input;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
@@ -20,13 +21,17 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.function.Supplier;
-
 import static net.ignoramuses.bingBingWahoo.BingBingWahooClient.LONG_JUMP_SPEED_MULTIPLIER;
 import static net.ignoramuses.bingBingWahoo.BingBingWahooClient.MAX_LONG_JUMP_SPEED;
 
 @Mixin(ClientPlayerEntity.class)
 public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity {
+	@Unique
+	private final boolean wahoo$jumpHeldSinceLastJump = false;
+	@Unique
+	private final long wahoo$ticksSinceLaunch = 0;
+	@Unique
+	private final long wahoo$tickJumpedAt = 0;
 	@Shadow
 	public Input input;
 	@Shadow
@@ -60,11 +65,11 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Unique
 	private long wahoo$ticksLeftToWallJump = 0;
 	@Unique
-	private boolean wahoo$jumpHeldSinceLastJump = false;
+	private boolean wahoo$colliding = false;
 	@Unique
-	private long wahoo$ticksSinceLaunch = 0;
+	private long wahoo$collisionHeartbeat = 0;
 	@Unique
-	private long wahoo$tickJumpedAt = 0;
+	private long wahoo$tickCollisionHeartbeat = 0;
 	
 	private ClientPlayerEntityMixin(ClientWorld world, GameProfile profile) {
 		super(world, profile);
@@ -164,6 +169,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		if (wahoo$bonked) {
 			return;
 		}
+		
 		super.jump();
 		if (input.jumping) {
 			if ((isOnGround())) {
@@ -173,48 +179,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 					doubleJump();
 				} else if (wahoo$ticksLeftToTripleJump > 0 && wahoo$ticksLeftToTripleJump < 5 && wahoo$previousJumpType == JumpTypes.DOUBLE && (isSprinting() || isWalking())) {
 					tripleJump();
-					// This is so unnecessary but I love it so much
-				} else if (!isOnGround()) {
-					if (wahoo$ticksLeftToWallJump > 0 && (wahoo$previousJumpType.canWallJumpFrom() || !isOnGround())  && !wahoo$isDiving
-							&& world.getBlockState(getBlockPos().offset(((Supplier<Direction>) () -> {
-						Direction result = Direction.UP;
-						for (Direction direction : BingBingWahooClient.CARDINAL_DIRECTIONS) {
-							if (direction != Direction.fromRotation(getYaw())) {
-								continue;
-							}
-							result = direction;
-						}
-						return result;
-					}).get())).isSolidBlock(world, getBlockPos().offset(((Supplier<Direction>) () -> {
-						Direction result = Direction.UP;
-						for (Direction direction : BingBingWahooClient.CARDINAL_DIRECTIONS) {
-							if (direction != Direction.fromRotation(getYaw())) {
-								continue;
-							}
-							result = direction;
-						}
-						return result;
-					}).get())) || world.getBlockState(getBlockPos().offset(((Supplier<Direction>) () -> {
-						Direction result = Direction.UP;
-						for (Direction direction : BingBingWahooClient.CARDINAL_DIRECTIONS) {
-							if (direction != Direction.fromRotation(getYaw())) {
-								continue;
-							}
-							result = direction;
-						}
-						return result;
-					}).get()).up()).isSolidBlock(world, getBlockPos().offset(((Supplier<Direction>) () -> {
-						Direction result = Direction.UP;
-						for (Direction direction : BingBingWahooClient.CARDINAL_DIRECTIONS) {
-							if (direction != Direction.fromRotation(getYaw())) {
-								continue;
-							}
-							result = direction;
-						}
-						return result;
-					}).get()))) {
-						wallJump();
-					}
 				} else {
 					wahoo$previousJumpType = JumpTypes.NORMAL;
 				}
@@ -254,10 +218,18 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			--this.wahoo$ticksLeftToLongJump;
 		}
 		
-		// Wall Jump
-		if (!lastOnGround && isOnGround()) {
-			wahoo$ticksLeftToWallJump = 3;
+		// wall jump
+		
+		// ending wall jump
+		if (wahoo$colliding) {
+			wahoo$tickCollisionHeartbeat++;
+			if (wahoo$tickCollisionHeartbeat != wahoo$collisionHeartbeat) {
+				wahoo$colliding = false;
+				wahoo$tickCollisionHeartbeat = 0;
+				wahoo$collisionHeartbeat = 0;
+			}
 		}
+		
 		if (this.wahoo$ticksLeftToWallJump > 0) {
 			--this.wahoo$ticksLeftToWallJump;
 		}
@@ -272,6 +244,29 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			return;
 		}
 		super.updatePose();
+	}
+	
+	/**
+	 * Similar to {@link ClientPlayerEntityMixin#updatePose}, allows for special handling of block collisions
+	 */
+	@Override
+	protected void onBlockCollision(BlockState state) {
+		wahoo$colliding = true;
+		wahoo$collisionHeartbeat++;
+		// start
+		if (wahoo$collisionHeartbeat == 1) {
+			wahoo$ticksLeftToWallJump = 3;
+		}
+		
+		// bonking
+		if (wahoo$ticksLeftToWallJump == -1) {
+			bonk();
+		}
+		
+		// the actual wall jump
+		if (wahoo$ticksLeftToWallJump > 0 && (wahoo$previousJumpType.canWallJumpFrom() || !isOnGround()) && !wahoo$isDiving) {
+			wallJump();
+		}
 	}
 	
 	/**
@@ -401,8 +396,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	
 	private void wallJump() {
 		setRotation(-getYaw(), getPitch());
-//		addVelocity(0, 0.5, 0);
-		setVelocity(getVelocity().getX(), 0.5, getVelocity().getZ());
+		setVelocity(-getVelocity().getX(), 0.5, -getVelocity().getZ());
 		wahoo$ticksLeftToWallJump = 0;
 		wahoo$previousJumpType = JumpTypes.WALL;
 		

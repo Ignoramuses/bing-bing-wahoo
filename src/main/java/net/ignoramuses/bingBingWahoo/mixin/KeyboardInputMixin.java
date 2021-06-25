@@ -37,9 +37,4 @@ public abstract class KeyboardInputMixin extends Input implements KeyboardInputE
 	public void enableControl() {
 		wahoo$disableControl = false;
 	}
-	
-	@Override
-	public boolean controlEnabled() {
-		return wahoo$disableControl;
-	}
 }

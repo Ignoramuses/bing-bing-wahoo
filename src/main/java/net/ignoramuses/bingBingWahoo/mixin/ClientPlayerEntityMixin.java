@@ -7,11 +7,14 @@ import net.ignoramuses.bingBingWahoo.KeyboardInputExtensions;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.input.Input;
+import net.minecraft.client.input.KeyboardInput;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.option.Perspective;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
@@ -27,11 +30,11 @@ import static net.ignoramuses.bingBingWahoo.BingBingWahooClient.MAX_LONG_JUMP_SP
 @Mixin(ClientPlayerEntity.class)
 public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity {
 	@Unique
-	private final boolean wahoo$jumpHeldSinceLastJump = false;
+	private boolean wahoo$jumpHeldSinceLastJump = false;
 	@Unique
-	private final long wahoo$ticksSinceLaunch = 0;
+	private long wahoo$ticksSinceStart = 0;
 	@Unique
-	private final long wahoo$tickJumpedAt = 0;
+	private long wahoo$tickJumpedAt = 0;
 	@Shadow
 	public Input input;
 	@Shadow
@@ -90,6 +93,12 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private boolean wahoo$hasGroundPounded = false;
 	@Unique
 	private long wahoo$blockBreakBuffer = 0;
+	@Unique
+	private boolean wahoo$ledgeGrabbing = false;
+	@Unique
+	private long wahoo$ledgeGrabCooldown = 0;
+	@Unique
+	private long wahoo$ledgeGrabExitCooldown = 0;
 	
 	private ClientPlayerEntityMixin(ClientWorld world, GameProfile profile) {
 		super(world, profile);
@@ -109,6 +118,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	 */
 	@Inject(at = @At("RETURN"), method = "tickMovement()V")
 	public void wahoo$tickMovement(CallbackInfo ci) {
+		wahoo$ticksSinceStart++;
 		updateJumpTicks();
 		// Triple Jump Shenanigans
 		if (wahoo$midTripleJump) {
@@ -141,7 +151,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				exitDive();
 			}
 			
-			if (horizontalCollision) {
+			if (horizontalCollision && !wahoo$ledgeGrabbing) {
 				bonk();
 			}
 		}
@@ -164,18 +174,43 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			}
 		}
 		
-		if (horizontalCollision) {
-			if (wahoo$ticksLeftToWallJump <= 0 && wahoo$previousJumpType.canWallJumpFrom() && !wahoo$isDiving && !isOnGround()) {
-				wahoo$ticksLeftToWallJump = 20;
-			}
+		// ledge grabbing
+		// checks block above and block adjacent to it in look direction
+		if (world.getBlockState(getBlockPos().up().up()).isAir() &&
+				world.getBlockState(getBlockPos().up().up().offset(getHorizontalFacing())).isAir() &&
+				// checks that the top of the block in front is solid
+				world.getBlockState(getBlockPos().up().offset(getHorizontalFacing()))
+						.isSideSolidFullSquare(world, getBlockPos().up().offset(getHorizontalFacing()), Direction.UP) &&
+				// checks distance to block in front of eyes
+				getPos().distanceTo(Vec3d.ofCenter(getBlockPos().offset(getHorizontalFacing()))) < 1.2 &&
+				!wahoo$ledgeGrabbing &&
+				wahoo$ledgeGrabCooldown == 0) {
+			ledgeGrab();
 		}
 		
+		// runs on the first tick a player collides with a wall
+		if (horizontalCollision) {
+			
+			// wall jump triggering
+			if (wahoo$ticksLeftToWallJump <= 0 && wahoo$previousJumpType.canWallJumpFrom() && !wahoo$isDiving && !isOnGround()) {
+				wahoo$ticksLeftToWallJump = 4;
+			}
+		}
 		if (wahoo$ticksLeftToWallJump > 0 && wahoo$previousJumpType.canWallJumpFrom() && !wahoo$isDiving && input.jumping) {
 			wallJump();
 		}
 		
 		if (wahoo$walljumping && isOnGround()) {
 			exitWallJump();
+		}
+		
+		if (wahoo$ledgeGrabbing) {
+			setVelocity(0, 0, 0);
+			if ((input.jumping || input.pressingForward) && wahoo$ledgeGrabExitCooldown == 0) {
+				exitLedgeGrab(false);
+			} else if ((isSneaking() || input.pressingLeft || input.pressingRight || input.pressingBack) && wahoo$ledgeGrabExitCooldown == 0) {
+				exitLedgeGrab(true);
+			}
 		}
 		
 		// Ground Pound Shenanigans
@@ -292,9 +327,17 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		if (wahoo$ticksLeftToWallJump > 0) {
 			wahoo$ticksLeftToWallJump--;
 			
-			if (wahoo$ticksLeftToWallJump == 0 && wahoo$previousJumpType != JumpTypes.NORMAL && !wahoo$walljumping) {
+			if (wahoo$ticksLeftToWallJump == 0 && wahoo$previousJumpType != JumpTypes.NORMAL && !wahoo$walljumping && !wahoo$ledgeGrabbing) {
 				bonk();
 			}
+		}
+		
+		// ledge grab
+		if (wahoo$ledgeGrabCooldown > 0) {
+			wahoo$ledgeGrabCooldown--;
+		}
+		if (wahoo$ledgeGrabExitCooldown > 0) {
+			wahoo$ledgeGrabExitCooldown--;
 		}
 	}
 	
@@ -318,7 +361,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	 */
 	@Override
 	public void setPitch(float pitch) {
-		if (wahoo$midTripleJump) {
+		if (wahoo$midTripleJump && MinecraftClient.getInstance().options.getPerspective().isFirstPerson()) {
 			((EntityAccessor) this).setPitchRaw(getPitch() + 3);
 			if (wahoo$isDiving || wahoo$isGroundPounding) {
 				exitTripleJump();
@@ -331,7 +374,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				exitDive();
 			}
 			
-			((EntityAccessor) this).setPitchRaw(getPitch() + 3);
+			if (MinecraftClient.getInstance().options.getPerspective().isFirstPerson()) {
+				((EntityAccessor) this).setPitchRaw(getPitch() + 3);
+			}
 			wahoo$flipDegrees += 3;
 			return;
 		}
@@ -353,7 +398,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	 * Similar to {@link ClientPlayerEntityMixin#updatePose}, allows for special handling of yaw changes
 	 */
 	public void setYaw(float yaw) {
-		if (wahoo$bonked) {
+		if (wahoo$bonked || wahoo$ledgeGrabbing) {
 			return;
 		}
 		super.setYaw(yaw);
@@ -368,6 +413,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		
 		double cosOfVecs = (rotation.dot(velocity)) / (rotation.length() * velocity.length());
 		double degreesDiff = Math.toDegrees(Math.acos(cosOfVecs));
+		// ----------- end of black magic wizardry -----------
 		
 		if (degreesDiff > 85 && degreesDiff < 95) { // don't long jump for moving straight left or right
 			wahoo$ticksLeftToLongJump = 0;
@@ -388,7 +434,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		
 		double newVelX = Math.copySign(newVelXAbs, getVelocity().getX());
 		double newVelZ = Math.copySign(newVelZAbs, getVelocity().getZ());
-		// ----------- end of black magic wizardry -----------
+		
 		setVelocity(newVelX, Math.min(getVelocity().getY() * 1.25, 1), newVelZ);
 		wahoo$ticksLeftToLongJump = 0;
 		wahoo$previousJumpType = JumpTypes.LONG;
@@ -449,7 +495,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	
 	private void wallJump() {
 		exitTripleJump();
-		setRotation(-getYaw(), getPitch());
 		setVelocity(-getVelocity().getX(), 0.5, -getVelocity().getZ());
 		wahoo$walljumping = true;
 		wahoo$ticksLeftToWallJump = 0;
@@ -458,6 +503,20 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	
 	private void exitWallJump() {
 		wahoo$walljumping = false;
+	}
+	
+	private void ledgeGrab() {
+		setYaw(getHorizontalFacing().asRotation());
+		wahoo$ledgeGrabbing = true;
+		wahoo$ledgeGrabExitCooldown = 10;
+	}
+	
+	private void exitLedgeGrab(boolean fall) {
+		wahoo$ledgeGrabbing = false;
+		wahoo$ledgeGrabCooldown = 40;
+		if (!fall) {
+			setVelocity(0, 0.75, 0);
+		}
 	}
 	
 	private void groundPound() {

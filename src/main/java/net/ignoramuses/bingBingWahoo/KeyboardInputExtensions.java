@@ -4,6 +4,4 @@ public interface KeyboardInputExtensions {
 	void disableControl();
 	
 	void enableControl();
-	
-	boolean controlEnabled();
 }

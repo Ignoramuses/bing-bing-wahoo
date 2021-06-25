@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import net.ignoramuses.bingBingWahoo.BingBingWahooClient;
 import net.ignoramuses.bingBingWahoo.BingBingWahooClient.JumpTypes;
 import net.ignoramuses.bingBingWahoo.KeyboardInputExtensions;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.input.Input;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
@@ -66,7 +67,29 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Unique
 	private long wahoo$ticksLeftToWallJump = 0;
 	@Unique
+	private boolean wahoo$colliding = false;
+	@Unique
+	private long wahoo$collisionHeartbeat = 0;
+	@Unique
+	private long wahoo$tickCollisionHeartbeat = 0;
+	@Unique
+	private boolean wahoo$hasCrouched = false;
+	@Unique
+	private boolean wahoo$incipientGroundPound = false;
+	@Unique
+	private long wahoo$ticksInAirDuringGroundPound = 0;
+	@Unique
+	private double wahoo$groundPoundSpeedMultiplier = 1.0;
+	@Unique
 	private boolean wahoo$walljumping = false;
+	@Unique
+	private boolean wahoo$isGroundPounding = false;
+	@Unique
+	private long wahoo$timeOnGround = 0;
+	@Unique
+	private boolean wahoo$hasGroundPounded = false;
+	@Unique
+	private long wahoo$blockBreakBuffer = 0;
 	
 	private ClientPlayerEntityMixin(ClientWorld world, GameProfile profile) {
 		super(world, profile);
@@ -154,6 +177,50 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		if (wahoo$walljumping && isOnGround()) {
 			exitWallJump();
 		}
+		
+		// Ground Pound Shenanigans
+		if (isSneaking()) {
+			wahoo$hasCrouched = true;
+		}
+		
+		if (isOnGround() && !isSneaking()) {
+			wahoo$hasCrouched = false;
+		}
+		
+		if (!isOnGround() && wahoo$hasCrouched) {
+			groundPound();
+		}
+		
+		if (wahoo$isGroundPounding) {
+			wahoo$hasGroundPounded = true;
+			wahoo$ticksInAirDuringGroundPound++;
+			if (wahoo$incipientGroundPound) {
+				setVelocity(0, 0, 0);
+			}
+			
+			if (wahoo$flipDegrees > 360) {
+				wahoo$incipientGroundPound = false;
+			}
+			
+			if (!wahoo$incipientGroundPound) {
+				if (wahoo$ticksInAirDuringGroundPound > 6) {
+					setVelocity(0, -0.5  * wahoo$groundPoundSpeedMultiplier , 0);
+					if (wahoo$groundPoundSpeedMultiplier < 4) {
+						wahoo$groundPoundSpeedMultiplier = wahoo$groundPoundSpeedMultiplier + 0.5;
+					}
+				}
+			}
+			
+			if (world.getBlockState(getBlockPos().down()).getHardness(world, getBlockPos().down()) <= 0.5) {
+				wahoo$blockBreakBuffer++;
+				if (wahoo$blockBreakBuffer >= 2) {
+					world.setBlockState(getBlockPos().down(), Blocks.AIR.getDefaultState());
+					wahoo$blockBreakBuffer = 0;
+				}
+			} else if (isOnGround() && wahoo$hasGroundPounded) {
+				exitGroundPound();
+			}
+		}
 	}
 	
 	/**
@@ -236,10 +303,14 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	 */
 	@Override
 	protected void updatePose() {
-		if (wahoo$isDiving || wahoo$bonked) {
+		if (wahoo$isDiving || wahoo$bonked || wahoo$isGroundPounding) {
 			return;
 		}
 		super.updatePose();
+	}
+	
+	public void stackVelocity(double deltaX, double deltaY, double deltaZ) {
+		setVelocity(Math.copySign(Math.abs(getVelocity().getX()) + deltaX, getVelocity().getX()), Math.copySign(Math.abs(getVelocity().getY()) + deltaY, getVelocity().getY()), Math.copySign(Math.abs(getVelocity().getZ()) + deltaZ, getVelocity().getZ()));
 	}
 	
 	/**
@@ -249,7 +320,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	public void setPitch(float pitch) {
 		if (wahoo$midTripleJump) {
 			((EntityAccessor) this).setPitchRaw(getPitch() + 3);
-			if (wahoo$isDiving) {
+			if (wahoo$isDiving || wahoo$isGroundPounding) {
 				exitTripleJump();
 			}
 			return;
@@ -266,6 +337,12 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		}
 		
 		if (wahoo$bonked) {
+			return;
+		}
+		
+		if (wahoo$isGroundPounding && wahoo$incipientGroundPound) {
+			((EntityAccessor) this).setPitchRaw(getPitch() + 3);
+			wahoo$flipDegrees += 3;
 			return;
 		}
 		
@@ -381,5 +458,19 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	
 	private void exitWallJump() {
 		wahoo$walljumping = false;
+	}
+	
+	private void groundPound() {
+		wahoo$isGroundPounding = true;
+		wahoo$incipientGroundPound = true;
+	}
+	
+	private void exitGroundPound() {
+		wahoo$isGroundPounding = false;
+		wahoo$hasCrouched = false;
+		wahoo$hasGroundPounded = false;
+		wahoo$ticksInAirDuringGroundPound = 0;
+		wahoo$flipDegrees = 0;
+		wahoo$timeOnGround = 0; // might need to delete this variable
 	}
 }

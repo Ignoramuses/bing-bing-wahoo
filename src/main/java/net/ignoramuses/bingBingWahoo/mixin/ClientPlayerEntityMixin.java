@@ -14,7 +14,6 @@ import net.minecraft.entity.EntityPose;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.ScheduledTick;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -66,13 +65,13 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Unique
 	private long wahoo$ticksLeftToWallJump = 0;
 	@Unique
-	private boolean wahoo$incipientGroundPound = false;
+	private boolean wahoo$incipientGroundPound = false; // variables are not the place to show off your vocabulary 
 	@Unique
 	private long wahoo$ticksInAirDuringGroundPound = 0;
 	@Unique
 	private double wahoo$groundPoundSpeedMultiplier = 1.0;
 	@Unique
-	private boolean wahoo$walljumping = false;
+	private boolean wahoo$wallJumping = false;
 	@Unique
 	private boolean wahoo$isGroundPounding = false;
 	@Unique
@@ -200,7 +199,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			wallJump();
 		}
 		
-		if (wahoo$walljumping && isOnGround()) {
+		if (wahoo$wallJumping && isOnGround()) {
 			exitWallJump();
 		}
 		
@@ -214,7 +213,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		}
 		
 		// Ground Pound Shenanigans
-		if (!isOnGround() && isSneaking()) {
+		if (!isOnGround() && isSneaking() && !lastSneaking) {
 			groundPound();
 		}
 		
@@ -322,7 +321,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		if (wahoo$ticksLeftToWallJump > 0) {
 			wahoo$ticksLeftToWallJump--;
 			
-			if (wahoo$ticksLeftToWallJump == 0 && wahoo$previousJumpType != JumpTypes.NORMAL && !wahoo$walljumping && !wahoo$ledgeGrabbing) {
+			if (wahoo$ticksLeftToWallJump == 0 && wahoo$previousJumpType != JumpTypes.NORMAL && !wahoo$wallJumping && !wahoo$ledgeGrabbing) {
 				bonk();
 			}
 		}
@@ -489,13 +488,13 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private void wallJump() {
 		exitTripleJump();
 		setVelocity(-getVelocity().getX(), 0.5, -getVelocity().getZ());
-		wahoo$walljumping = true;
+		wahoo$wallJumping = true;
 		wahoo$ticksLeftToWallJump = 0;
 		wahoo$previousJumpType = JumpTypes.WALL;
 	}
 	
 	private void exitWallJump() {
-		wahoo$walljumping = false;
+		wahoo$wallJumping = false;
 	}
 	
 	private void ledgeGrab() {

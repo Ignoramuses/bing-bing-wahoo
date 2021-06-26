@@ -7,16 +7,14 @@ import net.ignoramuses.bingBingWahoo.KeyboardInputExtensions;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.input.Input;
-import net.minecraft.client.input.KeyboardInput;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.option.Perspective;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.ScheduledTick;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -29,14 +27,12 @@ import static net.ignoramuses.bingBingWahoo.BingBingWahooClient.MAX_LONG_JUMP_SP
 
 @Mixin(ClientPlayerEntity.class)
 public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity {
+	@Shadow
+	public Input input;
 	@Unique
 	private boolean wahoo$jumpHeldSinceLastJump = false;
 	@Unique
-	private long wahoo$ticksSinceStart = 0;
-	@Unique
-	private long wahoo$tickJumpedAt = 0;
-	@Shadow
-	public Input input;
+	private boolean wahoo$lastJumping = false;
 	@Shadow
 	private boolean lastOnGround;
 	@Shadow
@@ -70,14 +66,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Unique
 	private long wahoo$ticksLeftToWallJump = 0;
 	@Unique
-	private boolean wahoo$colliding = false;
-	@Unique
-	private long wahoo$collisionHeartbeat = 0;
-	@Unique
-	private long wahoo$tickCollisionHeartbeat = 0;
-	@Unique
-	private boolean wahoo$hasCrouched = false;
-	@Unique
 	private boolean wahoo$incipientGroundPound = false;
 	@Unique
 	private long wahoo$ticksInAirDuringGroundPound = 0;
@@ -87,8 +75,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private boolean wahoo$walljumping = false;
 	@Unique
 	private boolean wahoo$isGroundPounding = false;
-	@Unique
-	private long wahoo$timeOnGround = 0;
 	@Unique
 	private boolean wahoo$hasGroundPounded = false;
 	@Unique
@@ -112,14 +98,28 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	
 	@Shadow
 	protected abstract boolean isWalking();
-
+	
+	@Inject(at = @At("HEAD"), method = "tickMovement()V")
+	public void wahoo$tickMovementHEAD(CallbackInfo ci) {
+		wahoo$lastJumping = input.jumping;
+	}
+	
 	/**
 	 * Handles most tick-based physics, and when stuff should happen
 	 */
 	@Inject(at = @At("RETURN"), method = "tickMovement()V")
 	public void wahoo$tickMovement(CallbackInfo ci) {
-		wahoo$ticksSinceStart++;
 		updateJumpTicks();
+		
+		// I think this can be simplified but I'm too scared it will catastrophically fail if I try to
+		if (wahoo$jumpHeldSinceLastJump) {
+			if (wahoo$lastJumping) {
+				if (!jumping) {
+					wahoo$jumpHeldSinceLastJump = false;
+				}
+			}
+		}
+		
 		// Triple Jump Shenanigans
 		if (wahoo$midTripleJump) {
 			wahoo$tripleJumpTicks++;
@@ -214,15 +214,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		}
 		
 		// Ground Pound Shenanigans
-		if (isSneaking()) {
-			wahoo$hasCrouched = true;
-		}
-		
-		if (isOnGround() && !isSneaking()) {
-			wahoo$hasCrouched = false;
-		}
-		
-		if (!isOnGround() && wahoo$hasCrouched) {
+		if (!isOnGround() && isSneaking()) {
 			groundPound();
 		}
 		
@@ -233,13 +225,14 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				setVelocity(0, 0, 0);
 			}
 			
-			if (wahoo$flipDegrees > 360) {
+			if (wahoo$incipientGroundPound && wahoo$flipDegrees > 360) {
 				wahoo$incipientGroundPound = false;
+				setPitch(0);
 			}
 			
 			if (!wahoo$incipientGroundPound) {
 				if (wahoo$ticksInAirDuringGroundPound > 6) {
-					setVelocity(0, -0.5  * wahoo$groundPoundSpeedMultiplier , 0);
+					setVelocity(0, -0.5 * wahoo$groundPoundSpeedMultiplier, 0);
 					if (wahoo$groundPoundSpeedMultiplier < 4) {
 						wahoo$groundPoundSpeedMultiplier = wahoo$groundPoundSpeedMultiplier + 0.5;
 					}
@@ -280,7 +273,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			if ((isOnGround())) {
 				if ((isSneaking() || lastSneaking) && (BingBingWahooClient.rapidFire || wahoo$ticksLeftToLongJump > 0) && (wahoo$previousJumpType == JumpTypes.NORMAL || wahoo$previousJumpType == JumpTypes.LONG)) {
 					longJump();
-				} else if (wahoo$ticksLeftToDoubleJump > 0 && wahoo$ticksLeftToDoubleJump < 5 && wahoo$previousJumpType == JumpTypes.NORMAL) {
+				} else if (wahoo$ticksLeftToDoubleJump > 0 && !wahoo$jumpHeldSinceLastJump && wahoo$previousJumpType == JumpTypes.NORMAL) {
 					doubleJump();
 				} else if (wahoo$ticksLeftToTripleJump > 0 && wahoo$ticksLeftToTripleJump < 5 && wahoo$previousJumpType == JumpTypes.DOUBLE && (isSprinting() || isWalking())) {
 					tripleJump();
@@ -289,6 +282,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				}
 			}
 		}
+		wahoo$lastJumping = true;
+		wahoo$jumpHeldSinceLastJump = true;
 	}
 	
 	/**
@@ -352,10 +347,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		super.updatePose();
 	}
 	
-	public void stackVelocity(double deltaX, double deltaY, double deltaZ) {
-		setVelocity(Math.copySign(Math.abs(getVelocity().getX()) + deltaX, getVelocity().getX()), Math.copySign(Math.abs(getVelocity().getY()) + deltaY, getVelocity().getY()), Math.copySign(Math.abs(getVelocity().getZ()) + deltaZ, getVelocity().getZ()));
-	}
-	
 	/**
 	 * Similar to {@link ClientPlayerEntityMixin#updatePose}, allows for special handling of pitch changes
 	 */
@@ -386,7 +377,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		}
 		
 		if (wahoo$isGroundPounding && wahoo$incipientGroundPound) {
-			((EntityAccessor) this).setPitchRaw(getPitch() + 3);
+			if (MinecraftClient.getInstance().options.getPerspective().isFirstPerson()) {
+				((EntityAccessor) this).setPitchRaw(getPitch() + 3);
+			}
 			wahoo$flipDegrees += 3;
 			return;
 		}
@@ -526,10 +519,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	
 	private void exitGroundPound() {
 		wahoo$isGroundPounding = false;
-		wahoo$hasCrouched = false;
 		wahoo$hasGroundPounded = false;
 		wahoo$ticksInAirDuringGroundPound = 0;
 		wahoo$flipDegrees = 0;
-		wahoo$timeOnGround = 0; // might need to delete this variable
 	}
 }

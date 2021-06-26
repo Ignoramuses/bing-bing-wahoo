@@ -84,6 +84,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private long wahoo$ledgeGrabCooldown = 0;
 	@Unique
 	private long wahoo$ledgeGrabExitCooldown = 0;
+	@Unique
+	private boolean wahoo$longJumping = false;
 	
 	private ClientPlayerEntityMixin(ClientWorld world, GameProfile profile) {
 		super(world, profile);
@@ -119,7 +121,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			}
 		}
 		
-		// Triple Jump Shenanigans
+		// ----- TRIPLE JUMPS -----
+		
 		if (wahoo$midTripleJump) {
 			wahoo$tripleJumpTicks++;
 			// number is actually irrelevant, is handled in our override
@@ -129,7 +132,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			setPitch(0);
 		}
 		
-		// Diving Shenanigans
+		// ----- DIVING -----
+		
 		if (wahoo$isDiving) {
 			if (wahoo$diveFlip) {
 				setPitch(0);
@@ -161,6 +165,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			wahoo$previousJumpType = JumpTypes.DIVE;
 		}
 		
+		// ----- BONKING -----
+		
+		// keep you bonked
 		if (wahoo$bonked) {
 			if (getPose() != EntityPose.SLEEPING) {
 				setPose(EntityPose.SLEEPING);
@@ -173,7 +180,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			}
 		}
 		
-		// ledge grabbing
+		// ----- LEDGE GRABS -----
+		
 		// checks block above and block adjacent to it in look direction
 		if (world.getBlockState(getBlockPos().up().up()).isAir() &&
 				world.getBlockState(getBlockPos().up().up().offset(getHorizontalFacing())).isAir() &&
@@ -187,22 +195,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			ledgeGrab();
 		}
 		
-		// runs on the first tick a player collides with a wall
-		if (horizontalCollision) {
-			
-			// wall jump triggering
-			if (wahoo$ticksLeftToWallJump <= 0 && wahoo$previousJumpType.canWallJumpFrom() && !wahoo$isDiving && !isOnGround()) {
-				wahoo$ticksLeftToWallJump = 4;
-			}
-		}
-		if (wahoo$ticksLeftToWallJump > 0 && wahoo$previousJumpType.canWallJumpFrom() && !wahoo$isDiving && input.jumping) {
-			wallJump();
-		}
-		
-		if (wahoo$wallJumping && isOnGround()) {
-			exitWallJump();
-		}
-		
 		if (wahoo$ledgeGrabbing) {
 			setVelocity(0, 0, 0);
 			if ((input.jumping || input.pressingForward) && wahoo$ledgeGrabExitCooldown == 0) {
@@ -212,8 +204,29 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			}
 		}
 		
-		// Ground Pound Shenanigans
-		if (!isOnGround() && isSneaking() && !lastSneaking) {
+		// ----- WALL JUMPS -----
+		
+		// runs on the first tick a player collides with a wall
+		if (horizontalCollision) {
+			if (wahoo$ticksLeftToWallJump <= 0 && wahoo$previousJumpType.canWallJumpFrom() && !wahoo$isDiving && !isOnGround()) {
+				wahoo$ticksLeftToWallJump = 4;
+			}
+		}
+		
+		if (wahoo$ticksLeftToWallJump > 0 && wahoo$previousJumpType.canWallJumpFrom() && !wahoo$isDiving && input.jumping) {
+			wallJump();
+		}
+		
+		if (wahoo$wallJumping && isOnGround()) {
+			exitWallJump();
+		}
+		
+		
+		
+		// ----- GROUND POUND -----
+		
+		
+		if (!isOnGround() && isSneaking() && !lastSneaking && !wahoo$longJumping) {
 			groundPound();
 		}
 		
@@ -247,6 +260,12 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			} else if (isOnGround() && wahoo$hasGroundPounded) {
 				exitGroundPound();
 			}
+		}
+		
+		// ----- LONG JUMPS -----
+		
+		if (wahoo$longJumping && isOnGround()) {
+			exitLongJump();
 		}
 	}
 	
@@ -399,6 +418,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	// ---------- JUMPS ----------
 	
 	public void longJump() {
+		wahoo$longJumping = true;
 		// ------- warning: black magic wizardry below -------
 		Vec2f velocity = new Vec2f((float) getVelocity().getX(), (float) getVelocity().getZ());
 		Vec2f rotation = new Vec2f((float) getRotationVector().getX(), (float) getRotationVector().getZ());
@@ -430,6 +450,10 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		setVelocity(newVelX, Math.min(getVelocity().getY() * 1.25, 1), newVelZ);
 		wahoo$ticksLeftToLongJump = 0;
 		wahoo$previousJumpType = JumpTypes.LONG;
+	}
+	
+	private void exitLongJump() {
+		wahoo$longJumping = false;
 	}
 	
 	private void doubleJump() {

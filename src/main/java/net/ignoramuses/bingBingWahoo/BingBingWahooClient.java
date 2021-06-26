@@ -7,6 +7,10 @@ import net.minecraft.util.math.Direction;
 
 @Environment(EnvType.CLIENT)
 public class BingBingWahooClient implements ClientModInitializer {
+	public static boolean rapidFire = false; // to be implemented
+	public static final double MAX_LONG_JUMP_SPEED = 1.5;
+	public static final double LONG_JUMP_SPEED_MULTIPLIER = 10;
+	
 	@Override
 	public void onInitializeClient() {
 	

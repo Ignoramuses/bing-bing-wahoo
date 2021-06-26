@@ -20,9 +20,6 @@
   "entrypoints": {
     "client": [
       "net.ignoramuses.bingBingWahoo.BingBingWahooClient"
-    ],
-    "config": [
-      "net.ignoramuses.bingBingWahoo.BingBingWahooConfig"
     ]
   },
   "mixins": [

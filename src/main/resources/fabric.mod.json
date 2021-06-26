@@ -4,7 +4,7 @@
   "version": "${version}",
 
   "name": "Bing Bing Wahoo",
-  "description": "Bringing the physics of Super Mario 64 to Minecraft, one yahoo at a time.",
+  "description": "Bringing the physics of Super Mario 64 to Minecraft, one yahoo at a time.\nMade for ModFest 1.17.",
   "authors": [
     "Tropheus Jay",
     "InsaneASockJr"
@@ -20,6 +20,9 @@
   "entrypoints": {
     "client": [
       "net.ignoramuses.bingBingWahoo.BingBingWahooClient"
+    ],
+    "modmenu": [
+      "net.ignoramuses.bingBingWahoo.BingBingWahooIntegration"
     ]
   },
   "mixins": [

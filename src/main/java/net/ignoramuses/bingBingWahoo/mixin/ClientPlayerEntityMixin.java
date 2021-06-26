@@ -4,7 +4,6 @@ import com.mojang.authlib.GameProfile;
 import net.ignoramuses.bingBingWahoo.BingBingWahooClient;
 import net.ignoramuses.bingBingWahoo.BingBingWahooClient.JumpTypes;
 import net.ignoramuses.bingBingWahoo.KeyboardInputExtensions;
-import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.input.Input;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
@@ -20,9 +19,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import static net.ignoramuses.bingBingWahoo.BingBingWahooClient.LONG_JUMP_SPEED_MULTIPLIER;
-import static net.ignoramuses.bingBingWahoo.BingBingWahooClient.MAX_LONG_JUMP_SPEED;
 
 @Mixin(ClientPlayerEntity.class)
 public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity {
@@ -226,7 +222,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		// ----- GROUND POUND -----
 		
 		
-		if (!isOnGround() && isSneaking() && !lastSneaking && !wahoo$longJumping) {
+		if (!isOnGround() && isSneaking() && !lastSneaking && !wahoo$longJumping && !getAbilities().flying) {
 			groundPound();
 		}
 		
@@ -251,13 +247,13 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				}
 			}
 			
-			if (world.getBlockState(getBlockPos().down()).getHardness(world, getBlockPos().down()) <= 0.5) {
+			/*if (world.getBlockState(getBlockPos().down()).getHardness(world, getBlockPos().down()) <= 0.5) {
 				wahoo$blockBreakBuffer++;
 				if (wahoo$blockBreakBuffer >= 2) {
 					world.setBlockState(getBlockPos().down(), Blocks.AIR.getDefaultState());
 					wahoo$blockBreakBuffer = 0;
 				}
-			} else if (isOnGround() && wahoo$hasGroundPounded) {
+			} else*/ if (isOnGround() && wahoo$hasGroundPounded) {
 				exitGroundPound();
 			}
 		}
@@ -289,7 +285,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		super.jump();
 		if (input.jumping) {
 			if ((isOnGround())) {
-				if ((isSneaking() || lastSneaking) && (BingBingWahooClient.rapidFire || wahoo$ticksLeftToLongJump > 0) && (wahoo$previousJumpType == JumpTypes.NORMAL || wahoo$previousJumpType == JumpTypes.LONG)) {
+				if ((isSneaking() || lastSneaking) && (BingBingWahooClient.CONFIG.bljType == BingBingWahooClient.BLJTypes.RAPID_FIRE || wahoo$ticksLeftToLongJump > 0) && (wahoo$previousJumpType == JumpTypes.NORMAL || wahoo$previousJumpType == JumpTypes.LONG)) {
 					longJump();
 				} else if (wahoo$ticksLeftToDoubleJump > 0 && !wahoo$jumpHeldSinceLastJump && wahoo$previousJumpType == JumpTypes.NORMAL) {
 					doubleJump();
@@ -371,7 +367,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Override
 	public void setPitch(float pitch) {
 		if (wahoo$midTripleJump && MinecraftClient.getInstance().options.getPerspective().isFirstPerson()) {
-			((EntityAccessor) this).setPitchRaw(getPitch() + 3);
+			((EntityAccessor) this).setPitchRaw(getPitch() + BingBingWahooClient.CONFIG.degreesPerFlipFrame);
 			if (wahoo$isDiving || wahoo$isGroundPounding) {
 				exitTripleJump();
 			}
@@ -384,9 +380,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			}
 			
 			if (MinecraftClient.getInstance().options.getPerspective().isFirstPerson()) {
-				((EntityAccessor) this).setPitchRaw(getPitch() + 3);
+				((EntityAccessor) this).setPitchRaw(getPitch() + BingBingWahooClient.CONFIG.degreesPerFlipFrame);
 			}
-			wahoo$flipDegrees += 3;
+			wahoo$flipDegrees += BingBingWahooClient.CONFIG.degreesPerFlipFrame != 0 ? BingBingWahooClient.CONFIG.degreesPerFlipFrame : 6;
 			return;
 		}
 		
@@ -396,9 +392,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		
 		if (wahoo$isGroundPounding && wahoo$incipientGroundPound) {
 			if (MinecraftClient.getInstance().options.getPerspective().isFirstPerson()) {
-				((EntityAccessor) this).setPitchRaw(getPitch() + 3);
+				((EntityAccessor) this).setPitchRaw(getPitch() + BingBingWahooClient.CONFIG.degreesPerFlipFrame);
 			}
-			wahoo$flipDegrees += 3;
+			wahoo$flipDegrees += BingBingWahooClient.CONFIG.degreesPerFlipFrame != 0 ? BingBingWahooClient.CONFIG.degreesPerFlipFrame : 6;
 			return;
 		}
 		
@@ -436,12 +432,12 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		double newVelXAbs;
 		double newVelZAbs;
 		
-		if (degreesDiff > 170) { //BLJ
-			newVelXAbs = Math.abs(getVelocity().getX()) * LONG_JUMP_SPEED_MULTIPLIER;
-			newVelZAbs = Math.abs(getVelocity().getZ()) * LONG_JUMP_SPEED_MULTIPLIER;
+		if (degreesDiff > 170 && BingBingWahooClient.CONFIG.bljType != BingBingWahooClient.BLJTypes.DISABLED) { //BLJ
+			newVelXAbs = Math.abs(getVelocity().getX()) * BingBingWahooClient.CONFIG.longJumpSpeedMultiplier;
+			newVelZAbs = Math.abs(getVelocity().getZ()) * BingBingWahooClient.CONFIG.longJumpSpeedMultiplier;
 		} else {
-			newVelXAbs = Math.min(Math.abs(getVelocity().getX()) * LONG_JUMP_SPEED_MULTIPLIER, MAX_LONG_JUMP_SPEED);
-			newVelZAbs = Math.min(Math.abs(getVelocity().getZ()) * LONG_JUMP_SPEED_MULTIPLIER, MAX_LONG_JUMP_SPEED);
+			newVelXAbs = Math.min(Math.abs(getVelocity().getX()) * BingBingWahooClient.CONFIG.longJumpSpeedMultiplier, BingBingWahooClient.CONFIG.maxLongJumpSpeed);
+			newVelZAbs = Math.min(Math.abs(getVelocity().getZ()) * BingBingWahooClient.CONFIG.longJumpSpeedMultiplier, BingBingWahooClient.CONFIG.maxLongJumpSpeed);
 		}
 		
 		double newVelX = Math.copySign(newVelXAbs, getVelocity().getX());

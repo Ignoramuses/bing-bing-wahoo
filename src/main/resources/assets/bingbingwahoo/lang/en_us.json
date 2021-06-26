@@ -1,0 +1,17 @@
+{
+  "text.autoconfig.bingbingwahoo.title": "Bing Bing Wahoo Config",
+  "text.autoconfig.bingbingwahoo.option.bljType": "Backwards Long Jump mode",
+  "text.autoconfig.bingbingwahoo.option.bljType.@Tooltip[0]": "How the Backwards Long Jump should behave.",
+  "text.autoconfig.bingbingwahoo.option.bljType.@Tooltip[1]": "ENABLED - Normal behavior.",
+  "text.autoconfig.bingbingwahoo.option.bljType.@Tooltip[2]": "DISABLED - BLJ is disabled, cannot be used.",
+  "text.autoconfig.bingbingwahoo.option.bljType.@Tooltip[3]": "RAPID_FIRE - Allows for long jumps and BLJs",
+  "text.autoconfig.bingbingwahoo.option.bljType.@Tooltip[4]": "without releasing jump or crouch in between jumps.",
+  "text.autoconfig.bingbingwahoo.option.maxLongJumpSpeed": "Max long jump speed",
+  "text.autoconfig.bingbingwahoo.option.maxLongJumpSpeed.@Tooltip": "Maximum velocity of a long jump.",
+  "text.autoconfig.bingbingwahoo.option.longJumpSpeedMultiplier": "Long jump speed multiplier",
+  "text.autoconfig.bingbingwahoo.option.longJumpSpeedMultiplier.@Tooltip": "Multiplier used for speed of long jumps.",
+  "text.autoconfig.bingbingwahoo.option.degreesPerFlipFrame": "Degrees per frame",
+  "text.autoconfig.bingbingwahoo.option.degreesPerFlipFrame.@Tooltip[0]": "Some moves make the player do a flip.",
+  "text.autoconfig.bingbingwahoo.option.degreesPerFlipFrame.@Tooltip[1]": "This is the number of degrees the camera",
+  "text.autoconfig.bingbingwahoo.option.degreesPerFlipFrame.@Tooltip[2]": "moves per frame. Set to 0 to disable."
+}

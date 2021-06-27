@@ -551,7 +551,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private void backFlip() {
 		wahoo$isBackFlipping = true;
 		float x = -MathHelper.sin(getYaw() * (float) (Math.PI / 180.0)) * MathHelper.cos(getPitch() * (float) (Math.PI / 180.0));
-		//float y = -MathHelper.sin((getPitch() + roll) * (float) (Math.PI / 180.0));
 		float z = MathHelper.cos(getYaw() * (float) (Math.PI / 180.0)) * MathHelper.cos(getPitch() * (float) (Math.PI / 180.0));
 		this.setVelocity(-x * 0.5, 1, -z * 0.5);
 		wahoo$previousJumpType = JumpTypes.BACK_FLIP;

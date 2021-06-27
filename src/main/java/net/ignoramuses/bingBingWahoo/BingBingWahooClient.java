@@ -23,7 +23,8 @@ public class BingBingWahooClient implements ClientModInitializer {
 		DOUBLE,
 		TRIPLE,
 		DIVE,
-		WALL
+		WALL,
+		BACK_FLIP
 		
 		;
 		

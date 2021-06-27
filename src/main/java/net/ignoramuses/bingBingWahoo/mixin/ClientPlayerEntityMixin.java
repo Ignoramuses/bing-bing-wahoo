@@ -11,6 +11,7 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
@@ -61,7 +62,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Unique
 	private long wahoo$ticksLeftToWallJump = 0;
 	@Unique
-	private boolean wahoo$incipientGroundPound = false; // variables are not the place to show off your vocabulary 
+	private boolean wahoo$incipientGroundPound = false; // variables are not the place to show off your vocabulary
 	@Unique
 	private long wahoo$ticksInAirDuringGroundPound = 0;
 	@Unique
@@ -82,6 +83,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private long wahoo$ledgeGrabExitCooldown = 0;
 	@Unique
 	private boolean wahoo$longJumping = false;
+	@Unique
+	private boolean wahoo$isBackFlipping = false;
 	
 	private ClientPlayerEntityMixin(ClientWorld world, GameProfile profile) {
 		super(world, profile);
@@ -247,15 +250,15 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				}
 			}
 			
-			/*if (world.getBlockState(getBlockPos().down()).getHardness(world, getBlockPos().down()) <= 0.5) {
-				wahoo$blockBreakBuffer++;
-				if (wahoo$blockBreakBuffer >= 2) {
-					world.setBlockState(getBlockPos().down(), Blocks.AIR.getDefaultState());
-					wahoo$blockBreakBuffer = 0;
-				}
-			} else*/ if (isOnGround() && wahoo$hasGroundPounded) {
+			if (isOnGround() && wahoo$hasGroundPounded) {
 				exitGroundPound();
 			}
+		}
+		
+		// ----- BACK FLIPS -----
+		
+		if (isOnGround()) {
+			exitBackFlip();
 		}
 		
 		// ----- LONG JUMPS -----
@@ -291,6 +294,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 					doubleJump();
 				} else if (wahoo$ticksLeftToTripleJump > 0 && wahoo$ticksLeftToTripleJump < 5 && wahoo$previousJumpType == JumpTypes.DOUBLE && (isSprinting() || isWalking())) {
 					tripleJump();
+				} else if (isSneaking() && !isSprinting() && !isWalking() && !wahoo$jumpHeldSinceLastJump) {
+					backFlip();
 				} else {
 					wahoo$previousJumpType = JumpTypes.NORMAL;
 				}
@@ -541,5 +546,18 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		wahoo$hasGroundPounded = false;
 		wahoo$ticksInAirDuringGroundPound = 0;
 		wahoo$flipDegrees = 0;
+	}
+	
+	private void backFlip() {
+		wahoo$isBackFlipping = true;
+		float x = -MathHelper.sin(getYaw() * (float) (Math.PI / 180.0)) * MathHelper.cos(getPitch() * (float) (Math.PI / 180.0));
+		//float y = -MathHelper.sin((getPitch() + roll) * (float) (Math.PI / 180.0));
+		float z = MathHelper.cos(getYaw() * (float) (Math.PI / 180.0)) * MathHelper.cos(getPitch() * (float) (Math.PI / 180.0));
+		this.setVelocity(-x * 0.5, 1, -z * 0.5);
+		wahoo$previousJumpType = JumpTypes.BACK_FLIP;
+	}
+	
+	private void exitBackFlip() {
+		wahoo$isBackFlipping = false;
 	}
 }

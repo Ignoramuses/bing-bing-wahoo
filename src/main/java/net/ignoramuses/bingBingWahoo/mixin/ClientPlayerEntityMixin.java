@@ -159,9 +159,11 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		}
 		
 		// Initiates Diving
-		if ((isSprinting()) && MinecraftClient.getInstance().options.keyAttack.isPressed() && !wahoo$isDiving && wahoo$previousJumpType != JumpTypes.LONG) {
+		if ((isSprinting()) && MinecraftClient.getInstance().options.keyAttack.isPressed() && !wahoo$isDiving && wahoo$previousJumpType != JumpTypes.LONG && wahoo$previousJumpType != JumpTypes.DIVE) {
 			dive();
 			wahoo$previousJumpType = JumpTypes.DIVE;
+		} else if (wahoo$previousJumpType == JumpTypes.DIVE && isOnGround()) {
+			wahoo$previousJumpType = JumpTypes.NORMAL;
 		}
 		
 		// ----- BONKING -----
@@ -294,7 +296,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 					doubleJump();
 				} else if (wahoo$ticksLeftToTripleJump > 0 && wahoo$ticksLeftToTripleJump < 5 && wahoo$previousJumpType == JumpTypes.DOUBLE && (isSprinting() || isWalking())) {
 					tripleJump();
-				} else if (isSneaking() && !isSprinting() && !isWalking() && !wahoo$jumpHeldSinceLastJump) {
+				} else if (isSneaking() && getVelocity().getX() == 0 && getVelocity().getZ() == 0 && !wahoo$jumpHeldSinceLastJump) {
 					backFlip();
 				} else {
 					wahoo$previousJumpType = JumpTypes.NORMAL;
@@ -353,6 +355,18 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		if (wahoo$ledgeGrabExitCooldown > 0) {
 			wahoo$ledgeGrabExitCooldown--;
 		}
+	}
+	
+	@Override
+	protected int computeFallDamage(float fallDistance, float damageMultiplier) {
+		float newFallDistance = fallDistance;
+		if (wahoo$previousJumpType == JumpTypes.DOUBLE) {
+			newFallDistance = 30;
+		}
+		else if (wahoo$previousJumpType == JumpTypes.TRIPLE) {
+			newFallDistance = 100;
+		}
+		return super.computeFallDamage(newFallDistance, damageMultiplier);
 	}
 	
 	/**
@@ -516,6 +530,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		wahoo$wallJumping = true;
 		wahoo$ticksLeftToWallJump = 0;
 		wahoo$previousJumpType = JumpTypes.WALL;
+		float x = -MathHelper.sin(getYaw() * (float) (Math.PI / 180.0)) * MathHelper.cos(getPitch() * (float) (Math.PI / 180.0));
+		float z = MathHelper.cos(getYaw() * (float) (Math.PI / 180.0)) * MathHelper.cos(getPitch() * (float) (Math.PI / 180.0));
+		this.setVelocity(-x * 0.5, 0.75, -z * 0.5);
 	}
 	
 	private void exitWallJump() {

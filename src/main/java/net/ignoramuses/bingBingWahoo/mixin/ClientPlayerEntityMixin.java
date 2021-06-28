@@ -1,6 +1,8 @@
 package net.ignoramuses.bingBingWahoo.mixin;
 
 import com.mojang.authlib.GameProfile;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.ignoramuses.bingBingWahoo.BingBingWahooClient;
 import net.ignoramuses.bingBingWahoo.BingBingWahooClient.JumpTypes;
 import net.ignoramuses.bingBingWahoo.KeyboardInputExtensions;
@@ -21,6 +23,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+@Environment(EnvType.CLIENT)
 @Mixin(ClientPlayerEntity.class)
 public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity {
 	@Shadow
@@ -159,7 +162,10 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		}
 		
 		// Initiates Diving
-		if ((isSprinting()) && MinecraftClient.getInstance().options.keyAttack.isPressed() && !wahoo$isDiving && wahoo$previousJumpType != JumpTypes.LONG && wahoo$previousJumpType != JumpTypes.DIVE) {
+		// ugly but it works
+		if (isSprinting() && !wahoo$isDiving && wahoo$previousJumpType != JumpTypes.LONG && wahoo$previousJumpType != JumpTypes.DIVE && (isOnGround()
+				? BingBingWahooClient.CONFIG.groundedDives && MinecraftClient.getInstance().options.keyAttack.isPressed()
+				: MinecraftClient.getInstance().options.keyAttack.isPressed())) {
 			dive();
 			wahoo$previousJumpType = JumpTypes.DIVE;
 		} else if (wahoo$previousJumpType == JumpTypes.DIVE && isOnGround()) {
@@ -214,7 +220,11 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			}
 		}
 		
-		if (wahoo$ticksLeftToWallJump > 0 && wahoo$previousJumpType.canWallJumpFrom() && !wahoo$isDiving && input.jumping) {
+		// this is ugly but it works
+		if (wahoo$ticksLeftToWallJump > 0 && !wahoo$isDiving && input.jumping && (
+				BingBingWahooClient.CONFIG.allowNormalWallJumps
+				? wahoo$previousJumpType.canWallJumpFrom() || wahoo$previousJumpType == JumpTypes.NORMAL
+				: wahoo$previousJumpType.canWallJumpFrom())) {
 			wallJump();
 		}
 		
@@ -296,7 +306,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 					doubleJump();
 				} else if (wahoo$ticksLeftToTripleJump > 0 && wahoo$ticksLeftToTripleJump < 5 && wahoo$previousJumpType == JumpTypes.DOUBLE && (isSprinting() || isWalking())) {
 					tripleJump();
-				} else if (isSneaking() && getVelocity().getX() == 0 && getVelocity().getZ() == 0 && !wahoo$jumpHeldSinceLastJump) {
+				} else if (isSneaking() && getVelocity().getX() == 0 && getVelocity().getZ() == 0 && !wahoo$jumpHeldSinceLastJump && BingBingWahooClient.CONFIG.backFlips) {
 					backFlip();
 				} else {
 					wahoo$previousJumpType = JumpTypes.NORMAL;

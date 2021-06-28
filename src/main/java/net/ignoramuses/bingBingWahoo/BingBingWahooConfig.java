@@ -15,4 +15,10 @@ public class BingBingWahooConfig implements ConfigData {
 	@ConfigEntry.Gui.Tooltip(count = 3)
 	@ConfigEntry.BoundedDiscrete(max = 360, min = 0)
 	public int degreesPerFlipFrame = 6;
+	@ConfigEntry.Gui.Tooltip
+	public boolean allowNormalWallJumps = false;
+	@ConfigEntry.Gui.Tooltip
+	public boolean backFlips = true;
+	@ConfigEntry.Gui.Tooltip
+	public boolean groundedDives = true;
 }

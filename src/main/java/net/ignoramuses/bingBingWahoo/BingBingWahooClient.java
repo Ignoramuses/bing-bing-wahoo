@@ -7,6 +7,8 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.util.math.Direction;
 
+import java.lang.reflect.Field;
+
 @Environment(EnvType.CLIENT)
 public class BingBingWahooClient implements ClientModInitializer {
 	public static BingBingWahooConfig CONFIG;

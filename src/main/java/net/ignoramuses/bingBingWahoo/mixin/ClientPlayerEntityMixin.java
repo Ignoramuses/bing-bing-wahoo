@@ -472,7 +472,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		double newVelX = Math.copySign(newVelXAbs, getVelocity().getX());
 		double newVelZ = Math.copySign(newVelZAbs, getVelocity().getZ());
 		
-		setVelocity(newVelX, Math.min(getVelocity().getY() * 1.25, 1), newVelZ);
+		setVelocity(newVelX, Math.min(getVelocity().getY() * (newVelX * newVelZ), 1), newVelZ);
 		wahoo$ticksLeftToLongJump = 0;
 		wahoo$previousJumpType = JumpTypes.LONG;
 	}

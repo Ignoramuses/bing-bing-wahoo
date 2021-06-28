@@ -13,5 +13,11 @@
   "text.autoconfig.bingbingwahoo.option.degreesPerFlipFrame": "Degrees per frame",
   "text.autoconfig.bingbingwahoo.option.degreesPerFlipFrame.@Tooltip[0]": "Some moves make the player do a flip.",
   "text.autoconfig.bingbingwahoo.option.degreesPerFlipFrame.@Tooltip[1]": "This is the number of degrees the camera",
-  "text.autoconfig.bingbingwahoo.option.degreesPerFlipFrame.@Tooltip[2]": "moves per frame. Set to 0 to disable."
+  "text.autoconfig.bingbingwahoo.option.degreesPerFlipFrame.@Tooltip[2]": "moves per frame. Set to 0 to disable.",
+  "text.autoconfig.bingbingwahoo.option.allowNormalWallJumps": "Allow wall jumping from normal jumps",
+  "text.autoconfig.bingbingwahoo.option.allowNormalWallJumps.@Tooltip": "Enable wall jumping out of a normal jump.",
+  "text.autoconfig.bingbingwahoo.option.backFlips": "Allow back flipping",
+  "text.autoconfig.bingbingwahoo.option.backFlips.@Tooltip": "Enables back flipping.",
+  "text.autoconfig.bingbingwahoo.option.groundedDives": "Allow diving while grounded",
+  "text.autoconfig.bingbingwahoo.option.groundedDives.@Tooltip": "Enable diving while on the ground."
 }

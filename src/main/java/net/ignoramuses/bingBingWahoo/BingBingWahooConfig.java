@@ -7,7 +7,7 @@ import me.shedaniel.autoconfig.annotation.ConfigEntry;
 @Config(name = "bingbingwahoo")
 public class BingBingWahooConfig implements ConfigData {
 	@ConfigEntry.Gui.Tooltip(count = 5)
-	public BingBingWahooClient.BLJTypes bljType = BingBingWahooClient.BLJTypes.ENABLED;
+	public BLJTypes bljType = BLJTypes.ENABLED;
 	@ConfigEntry.Gui.Tooltip
 	public double maxLongJumpSpeed = 1.5;
 	@ConfigEntry.Gui.Tooltip

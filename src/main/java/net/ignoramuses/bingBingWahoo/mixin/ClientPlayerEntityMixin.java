@@ -3,8 +3,11 @@ package net.ignoramuses.bingBingWahoo.mixin;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.ignoramuses.bingBingWahoo.BLJTypes;
 import net.ignoramuses.bingBingWahoo.BingBingWahooClient;
-import net.ignoramuses.bingBingWahoo.BingBingWahooClient.JumpTypes;
+import net.ignoramuses.bingBingWahoo.JumpTypes;
 import net.ignoramuses.bingBingWahoo.KeyboardInputExtensions;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.input.Input;
@@ -12,16 +15,16 @@ import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.EntityPose;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec2f;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.*;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import static net.ignoramuses.bingBingWahoo.BingBingWahoo.GROUND_POUND_PACKET;
+import static net.ignoramuses.bingBingWahoo.BingBingWahoo.JUMP_TYPE_PACKET;
 
 @Environment(EnvType.CLIENT)
 @Mixin(ClientPlayerEntity.class)
@@ -77,8 +80,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Unique
 	private boolean wahoo$hasGroundPounded = false;
 	@Unique
-	private long wahoo$blockBreakBuffer = 0;
-	@Unique
 	private boolean wahoo$ledgeGrabbing = false;
 	@Unique
 	private long wahoo$ledgeGrabCooldown = 0;
@@ -88,6 +89,10 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private boolean wahoo$longJumping = false;
 	@Unique
 	private boolean wahoo$isBackFlipping = false;
+	@Unique
+	private long wahoo$ticksGroundPounded = 0;
+	@Unique
+	private BlockPos.Mutable wahoo$lastPos = new BlockPos.Mutable();
 	
 	private ClientPlayerEntityMixin(ClientWorld world, GameProfile profile) {
 		super(world, profile);
@@ -105,6 +110,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Inject(at = @At("HEAD"), method = "tickMovement()V")
 	public void wahoo$tickMovementHEAD(CallbackInfo ci) {
 		wahoo$lastJumping = input.jumping;
+		wahoo$lastPos.set(getBlockPos());
 	}
 	
 	/**
@@ -128,10 +134,11 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		if (wahoo$midTripleJump) {
 			wahoo$tripleJumpTicks++;
 			// number is actually irrelevant, is handled in our override
+			setPitch(0);
 			if ((isOnGround() || !world.getFluidState(getBlockPos()).isEmpty()) && wahoo$tripleJumpTicks > 3) {
 				exitTripleJump();
 			}
-			setPitch(0);
+			
 		}
 		
 		// ----- DIVING -----
@@ -197,7 +204,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 						.isSideSolidFullSquare(world, getBlockPos().up().offset(getHorizontalFacing()), Direction.UP) &&
 				// checks distance to block in front of eyes
 				getPos().distanceTo(Vec3d.ofCenter(getBlockPos().offset(getHorizontalFacing()))) < 1.2 &&
-				!wahoo$ledgeGrabbing &&
+				!wahoo$ledgeGrabbing && !wahoo$isGroundPounding &&
 				wahoo$ledgeGrabCooldown == 0) {
 			ledgeGrab();
 		}
@@ -223,15 +230,14 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		// this is ugly but it works
 		if (wahoo$ticksLeftToWallJump > 0 && !wahoo$isDiving && input.jumping && (
 				BingBingWahooClient.CONFIG.allowNormalWallJumps
-				? wahoo$previousJumpType.canWallJumpFrom() || wahoo$previousJumpType == JumpTypes.NORMAL
-				: wahoo$previousJumpType.canWallJumpFrom())) {
+						? wahoo$previousJumpType.canWallJumpFrom() || wahoo$previousJumpType == JumpTypes.NORMAL
+						: wahoo$previousJumpType.canWallJumpFrom())) {
 			wallJump();
 		}
 		
 		if (wahoo$wallJumping && isOnGround()) {
 			exitWallJump();
 		}
-		
 		
 		
 		// ----- GROUND POUND -----
@@ -250,7 +256,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			
 			if (wahoo$incipientGroundPound && wahoo$flipDegrees > 360) {
 				wahoo$incipientGroundPound = false;
-				setPitch(0);
+				if (BingBingWahooClient.CONFIG.degreesPerFlipFrame != 0) {
+					setPitch(0);
+				}
 			}
 			
 			if (!wahoo$incipientGroundPound) {
@@ -262,8 +270,15 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				}
 			}
 			
-			if (isOnGround() && wahoo$hasGroundPounded) {
-				exitGroundPound();
+			if (wahoo$hasGroundPounded && !wahoo$incipientGroundPound && wahoo$lastPos.equals(getBlockPos())) {
+				wahoo$ticksGroundPounded++;
+				if (wahoo$ticksGroundPounded > 10) {
+					exitGroundPound();
+				}
+			}
+			
+			if (wahoo$hasGroundPounded && !wahoo$incipientGroundPound && wahoo$ticksGroundPounded > 0 && !wahoo$lastPos.equals(getBlockPos())) {
+				wahoo$ticksGroundPounded = 0;
 			}
 		}
 		
@@ -293,14 +308,14 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			return;
 		}
 		
-		if (wahoo$bonked) {
+		if (wahoo$bonked && wahoo$isGroundPounding) {
 			return;
 		}
 		
 		super.jump();
 		if (input.jumping) {
 			if ((isOnGround())) {
-				if ((isSneaking() || lastSneaking) && (BingBingWahooClient.CONFIG.bljType == BingBingWahooClient.BLJTypes.RAPID_FIRE || wahoo$ticksLeftToLongJump > 0) && (wahoo$previousJumpType == JumpTypes.NORMAL || wahoo$previousJumpType == JumpTypes.LONG)) {
+				if ((isSneaking() || lastSneaking) && (BingBingWahooClient.CONFIG.bljType == BLJTypes.RAPID_FIRE || wahoo$ticksLeftToLongJump > 0) && (wahoo$previousJumpType == JumpTypes.NORMAL || wahoo$previousJumpType == JumpTypes.LONG)) {
 					longJump();
 				} else if (wahoo$ticksLeftToDoubleJump > 0 && !wahoo$jumpHeldSinceLastJump && wahoo$previousJumpType == JumpTypes.NORMAL) {
 					doubleJump();
@@ -315,6 +330,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		}
 		wahoo$lastJumping = true;
 		wahoo$jumpHeldSinceLastJump = true;
+		ClientPlayNetworking.send(JUMP_TYPE_PACKET, wahoo$previousJumpType.toBuf());
 	}
 	
 	/**
@@ -367,18 +383,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		}
 	}
 	
-	@Override
-	protected int computeFallDamage(float fallDistance, float damageMultiplier) {
-		float newFallDistance = fallDistance;
-		if (wahoo$previousJumpType == JumpTypes.DOUBLE) {
-			newFallDistance = 30;
-		}
-		else if (wahoo$previousJumpType == JumpTypes.TRIPLE) {
-			newFallDistance = 100;
-		}
-		return super.computeFallDamage(newFallDistance, damageMultiplier);
-	}
-	
 	/**
 	 * An override of updatePose to allow for custom handling, sleeping for bonking and swimming for diving, etc.
 	 */
@@ -396,7 +400,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Override
 	public void setPitch(float pitch) {
 		if (wahoo$midTripleJump && MinecraftClient.getInstance().options.getPerspective().isFirstPerson()) {
-			((EntityAccessor) this).setPitchRaw(getPitch() + BingBingWahooClient.CONFIG.degreesPerFlipFrame);
+			if (BingBingWahooClient.CONFIG.degreesPerFlipFrame != 0) {
+				((EntityAccessor) this).setPitchRaw(getPitch() + BingBingWahooClient.CONFIG.degreesPerFlipFrame);
+			}
 			if (wahoo$isDiving || wahoo$isGroundPounding) {
 				exitTripleJump();
 			}
@@ -408,7 +414,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				exitDive();
 			}
 			
-			if (MinecraftClient.getInstance().options.getPerspective().isFirstPerson()) {
+			if (MinecraftClient.getInstance().options.getPerspective().isFirstPerson() && BingBingWahooClient.CONFIG.degreesPerFlipFrame != 0) {
 				((EntityAccessor) this).setPitchRaw(getPitch() + BingBingWahooClient.CONFIG.degreesPerFlipFrame);
 			}
 			wahoo$flipDegrees += BingBingWahooClient.CONFIG.degreesPerFlipFrame != 0 ? BingBingWahooClient.CONFIG.degreesPerFlipFrame : 6;
@@ -420,7 +426,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		}
 		
 		if (wahoo$isGroundPounding && wahoo$incipientGroundPound) {
-			if (MinecraftClient.getInstance().options.getPerspective().isFirstPerson()) {
+			if (MinecraftClient.getInstance().options.getPerspective().isFirstPerson() && BingBingWahooClient.CONFIG.degreesPerFlipFrame != 0) {
 				((EntityAccessor) this).setPitchRaw(getPitch() + BingBingWahooClient.CONFIG.degreesPerFlipFrame);
 			}
 			wahoo$flipDegrees += BingBingWahooClient.CONFIG.degreesPerFlipFrame != 0 ? BingBingWahooClient.CONFIG.degreesPerFlipFrame : 6;
@@ -461,7 +467,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		double newVelXAbs;
 		double newVelZAbs;
 		
-		if (degreesDiff > 170 && BingBingWahooClient.CONFIG.bljType != BingBingWahooClient.BLJTypes.DISABLED) { //BLJ
+		if (degreesDiff > 170 && BingBingWahooClient.CONFIG.bljType != BLJTypes.DISABLED) { //BLJ
 			newVelXAbs = Math.abs(getVelocity().getX()) * BingBingWahooClient.CONFIG.longJumpSpeedMultiplier;
 			newVelZAbs = Math.abs(getVelocity().getZ()) * BingBingWahooClient.CONFIG.longJumpSpeedMultiplier;
 		} else {
@@ -497,6 +503,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	public void exitTripleJump() {
 		wahoo$midTripleJump = false;
 		wahoo$tripleJumpTicks = 0;
+		if (BingBingWahooClient.CONFIG.degreesPerFlipFrame != 0) {
+			setPitch(0);
+		}
 	}
 	
 	private void dive() {
@@ -513,7 +522,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		wahoo$isDiving = false;
 		wahoo$diveFlip = false;
 		wahoo$flipDegrees = 0;
-		setPitch(0);
+		if (BingBingWahooClient.CONFIG.degreesPerFlipFrame != 0) {
+			setPitch(0);
+		}
 	}
 	
 	public void bonk() {
@@ -557,7 +568,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	
 	private void exitLedgeGrab(boolean fall) {
 		wahoo$ledgeGrabbing = false;
-		wahoo$ledgeGrabCooldown = 40;
+		wahoo$ledgeGrabCooldown = 20;
 		if (!fall) {
 			setVelocity(0, 0.75, 0);
 		}
@@ -566,6 +577,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private void groundPound() {
 		wahoo$isGroundPounding = true;
 		wahoo$incipientGroundPound = true;
+		ClientPlayNetworking.send(GROUND_POUND_PACKET, PacketByteBufs.duplicate(PacketByteBufs.create().writeBoolean(true)));
 	}
 	
 	private void exitGroundPound() {
@@ -573,6 +585,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		wahoo$hasGroundPounded = false;
 		wahoo$ticksInAirDuringGroundPound = 0;
 		wahoo$flipDegrees = 0;
+		wahoo$ticksGroundPounded = 0;
+		ClientPlayNetworking.send(GROUND_POUND_PACKET, PacketByteBufs.duplicate(PacketByteBufs.create().writeBoolean(false)));
 	}
 	
 	private void backFlip() {

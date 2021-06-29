@@ -36,7 +36,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 				for (int z = (int) Math.floor(getBoundingBox().minZ); z <= Math.floor(getBoundingBox().maxZ); z++) {
 					wahoo$groundPoundPos.set(x, getBlockPos().down().getY(), z);
 					BlockState state = world.getBlockState(wahoo$groundPoundPos);
-					if (state.getHardness(world, wahoo$groundPoundPos) <= 0.5 && !state.isOf(Blocks.NETHERRACK)) {
+					if ((state.getHardness(world, wahoo$groundPoundPos) <= 0.5 && !state.isOf(Blocks.NETHERRACK)) || state.isOf(Blocks.BRICKS)) {
 						world.breakBlock(wahoo$groundPoundPos, true, this);
 					}
 				}

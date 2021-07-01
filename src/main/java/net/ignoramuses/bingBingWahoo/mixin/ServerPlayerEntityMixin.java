@@ -86,10 +86,10 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 				Box box = new Box(getPos().getX() - 1, getPos().getY() - 1, getPos().getZ() - 1, getPos().getX() + 1, getPos().getY() + 1, getPos().getZ() + 1);
 				int damage = wahoo$ticksGroundPoundingFor >= 15
 						? wahoo$ticksGroundPoundingFor >= 30
-						? wahoo$ticksGroundPoundingFor >= 45
-						? 20
-						: 10
-						: 5
+							? wahoo$ticksGroundPoundingFor >= 45
+								? 20
+								: 10
+							: 5
 						: 0;
 				
 				if (wahoo$ticksGroundPoundingFor >= 15) {

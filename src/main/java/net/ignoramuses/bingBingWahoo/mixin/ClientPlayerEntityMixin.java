@@ -13,10 +13,8 @@ import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.EntityPose;
-import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.*;
-import net.minecraft.world.BlockStateRaycastContext;
-import net.minecraft.world.RaycastContext;
+import net.minecraft.util.shape.VoxelShape;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -93,7 +91,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Unique
 	private long wahoo$ticksGroundPounded = 0;
 	@Unique
-	private BlockPos.Mutable wahoo$lastPos = new BlockPos.Mutable();
+	private final BlockPos.Mutable wahoo$lastPos = new BlockPos.Mutable();
 	
 	private ClientPlayerEntityMixin(ClientWorld world, GameProfile profile) {
 		super(world, profile);
@@ -135,7 +133,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		if (wahoo$midTripleJump) {
 			wahoo$tripleJumpTicks++;
 			// number is actually irrelevant, is handled in our override
-			setPitch(0);
 			if ((isOnGround() || !world.getFluidState(getBlockPos()).isEmpty()) && wahoo$tripleJumpTicks > 3) {
 				exitTripleJump();
 			}
@@ -205,7 +202,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 						.isSideSolidFullSquare(world, getBlockPos().up().offset(getHorizontalFacing()), Direction.UP) &&
 				// checks distance to block in front of eyes
 				getPos().distanceTo(Vec3d.ofCenter(getBlockPos().offset(getHorizontalFacing()))) < 1.2 &&
-				!wahoo$ledgeGrabbing && !wahoo$isGroundPounding && !getAbilities().flying &&
+				!wahoo$ledgeGrabbing && !wahoo$isGroundPounding && !isOnGround() &&
 				wahoo$ledgeGrabCooldown == 0) {
 			ledgeGrab();
 		}
@@ -232,7 +229,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		}
 		
 		// this is ugly but it works
-		if (wahoo$ticksLeftToWallJump > 0 && !wahoo$isDiving && input.jumping && (
+		if (wahoo$ticksLeftToWallJump > 0 && !wahoo$isDiving && input.jumping && !wahoo$jumpHeldSinceLastJump && (
 				BingBingWahooClient.CONFIG.allowNormalWallJumps
 						? wahoo$previousJumpType.canWallJumpFrom() || wahoo$previousJumpType == JumpTypes.NORMAL
 						: wahoo$previousJumpType.canWallJumpFrom())) {
@@ -252,6 +249,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		}
 		
 		if (wahoo$isGroundPounding) {
+			setPose(EntityPose.CROUCHING);
 			wahoo$hasGroundPounded = true;
 			wahoo$ticksInAirDuringGroundPound++;
 			if (wahoo$incipientGroundPound) {
@@ -297,6 +295,10 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		if (wahoo$longJumping && isOnGround()) {
 			exitLongJump();
 		}
+	}
+	
+	public boolean voxelShapeEligibleForGrab(VoxelShape shape) {
+		return false;
 	}
 	
 	/**
@@ -398,6 +400,14 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		super.updatePose();
 	}
 	
+	@Override
+	public void setPose(EntityPose pose) {
+		if (wahoo$isGroundPounding) {
+			return;
+		}
+		super.setPose(pose);
+	}
+	
 	/**
 	 * Similar to {@link ClientPlayerEntityMixin#updatePose}, allows for special handling of pitch changes
 	 */
@@ -406,6 +416,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		if (wahoo$midTripleJump && MinecraftClient.getInstance().options.getPerspective().isFirstPerson()) {
 			if (BingBingWahooClient.CONFIG.degreesPerFlipFrame != 0) {
 				((EntityAccessor) this).setPitchRaw(getPitch() + BingBingWahooClient.CONFIG.degreesPerFlipFrame);
+			} else {
+				super.setPitch(pitch);
 			}
 			if (wahoo$isDiving || wahoo$isGroundPounding) {
 				exitTripleJump();
@@ -487,7 +499,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		double newVelX = Math.copySign(newVelXAbs, getVelocity().getX());
 		double newVelZ = Math.copySign(newVelZAbs, getVelocity().getZ());
 		
-		setVelocity(newVelX, Math.min(getVelocity().getY() * (newVelX * newVelZ), 1), newVelZ);
+		// todo: see https://github.com/n64decomp/sm64/blob/ecd3d152fb7c6f658d18543c0f4e8147b50d5dde/src/game/mario.c#L863
+		
+		setVelocity(newVelX, Math.min(getVelocity().getY() * 1.5, 1), newVelZ);
 		wahoo$ticksLeftToLongJump = 0;
 		wahoo$previousJumpType = JumpTypes.LONG;
 	}
@@ -555,7 +569,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	}
 	
 	private void wallJump() {
-		exitTripleJump();
+		if (wahoo$midTripleJump) {
+			exitTripleJump();
+		}
 		wahoo$wallJumping = true;
 		wahoo$ticksLeftToWallJump = 0;
 		wahoo$previousJumpType = JumpTypes.WALL;
@@ -581,6 +597,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	}
 	
 	private void ledgeGrab() {
+		if (wahoo$midTripleJump) {
+			exitTripleJump();
+		}
 		setYaw(getHorizontalFacing().asRotation());
 		wahoo$ledgeGrabbing = true;
 		wahoo$ledgeGrabExitCooldown = 10;

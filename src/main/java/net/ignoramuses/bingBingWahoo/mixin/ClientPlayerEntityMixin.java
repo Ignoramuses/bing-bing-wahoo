@@ -202,7 +202,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				voxelShapeEligibleForGrab(world.getBlockState(getBlockPos().up().offset(getHorizontalFacing())).getCollisionShape(world, getBlockPos().up().offset(getHorizontalFacing()))) &&
 				// checks distance to block in front of eyes
 				getPos().distanceTo(Vec3d.ofCenter(getBlockPos().offset(getHorizontalFacing()))) < 1.2 &&
-				!wahoo$ledgeGrabbing && !wahoo$isGroundPounding && !isOnGround() && !getAbilities().flying &&
+				!wahoo$ledgeGrabbing && !wahoo$isGroundPounding && !isOnGround() && !getAbilities().flying && !isClimbing() &&
 				wahoo$ledgeGrabCooldown == 0) {
 			ledgeGrab();
 		}

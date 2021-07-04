@@ -11,7 +11,7 @@ public class BingBingWahoo implements ModInitializer {
 	public static final String ID = "bingbingwahoo";
 	public static final Identifier JUMP_TYPE_PACKET = new Identifier(ID, "jump_type_packet");
 	public static final Identifier GROUND_POUND_PACKET = new Identifier(ID, "ground_pound_packet");
-	public static final Identifier DIVE_PACKET = new Identifier(ID, "ground_pound_packet");
+	public static final Identifier DIVE_PACKET = new Identifier(ID, "dive_packet");
 	
 	@Override
 	public void onInitialize() {

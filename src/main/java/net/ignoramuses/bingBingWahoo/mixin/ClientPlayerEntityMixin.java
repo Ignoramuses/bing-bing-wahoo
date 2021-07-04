@@ -11,6 +11,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.input.Input;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.util.math.Vector3d;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.util.math.*;
@@ -110,6 +111,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Shadow
 	protected abstract boolean isWalking();
 	
+	@Shadow public abstract float getYaw(float tickDelta);
+	
 	@Inject(at = @At("HEAD"), method = "tickMovement()V")
 	public void wahoo$tickMovementHEAD(CallbackInfo ci) {
 		wahoo$lastJumping = input.jumping;
@@ -165,8 +168,15 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				exitDive();
 			}
 			
-			if (horizontalCollision && !wahoo$ledgeGrabbing && !isCreative() && wahoo$bonkCooldown == 0 && !(Math.abs(getVelocity().getX()) < 0.07 && Math.abs(getVelocity().getY()) < 0.07)) {
-				bonk();
+			if (horizontalCollision) {
+				exitDive();
+				if (!wahoo$ledgeGrabbing && !isCreative() && wahoo$bonkCooldown == 0 && !(Math.abs(getVelocity().getX()) < 0.07 && Math.abs(getVelocity().getY()) < 0.07)) {
+					Direction looking = Direction.fromRotation(getYaw());
+					if (world.getBlockState(getBlockPos().offset(looking)).isSolidBlock(world, getBlockPos().offset(looking)) &&
+							world.getBlockState(getBlockPos().offset(looking).up()).isSolidBlock(world, getBlockPos().offset(looking).up())) {
+						bonk();
+					}
+				}
 			}
 		}
 		
@@ -465,7 +475,11 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			wahoo$ticksLeftToWallJump--;
 			
 			if (wahoo$ticksLeftToWallJump == 0 && wahoo$previousJumpType != JumpTypes.NORMAL && !wahoo$wallJumping && !wahoo$ledgeGrabbing && !isCreative() && wahoo$bonkCooldown == 0 && !(Math.abs(getVelocity().getX()) < 0.07 && Math.abs(getVelocity().getY()) < 0.07)) {
-				bonk();
+				Direction looking = Direction.fromRotation(getYaw());
+				if (world.getBlockState(getBlockPos().offset(looking)).isSolidBlock(world, getBlockPos().offset(looking)) &&
+						world.getBlockState(getBlockPos().offset(looking).up()).isSolidBlock(world, getBlockPos().offset(looking).up())) {
+					bonk();
+				}
 			}
 		}
 		
@@ -640,7 +654,9 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	}
 	
 	private void dive() {
-		exitTripleJump();
+		if (wahoo$midTripleJump) {
+			exitTripleJump();
+		}
 		setPos(getPos().getX(), getPos().getY() + 1, getPos().getZ());
 		wahoo$isDiving = true;
 		setPose(EntityPose.SWIMMING);
@@ -666,8 +682,14 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	
 	public void bonk() {
 		((KeyboardInputExtensions) input).disableControl();
-		exitDive();
-		exitTripleJump();
+		if (wahoo$isDiving) {
+			exitDive();
+		}
+		
+		if (wahoo$midTripleJump) {
+			exitTripleJump();
+		}
+		
 		setVelocity(-getVelocity().getX(), getVelocity().getY(), -getVelocity().getZ());
 		setPose(EntityPose.SLEEPING);
 		setPitch(-90);
@@ -687,6 +709,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		if (wahoo$midTripleJump) {
 			exitTripleJump();
 		}
+		
 		wahoo$wallJumping = true;
 		wahoo$ticksLeftToWallJump = 0;
 		wahoo$previousJumpType = JumpTypes.WALL;
@@ -721,6 +744,11 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		if (wahoo$midTripleJump) {
 			exitTripleJump();
 		}
+		
+		if (wahoo$isDiving) {
+			exitDive();
+		}
+		
 		setYaw(getHorizontalFacing().asRotation());
 		wahoo$ledgeGrabbing = true;
 		wahoo$ledgeGrabExitCooldown = 10;

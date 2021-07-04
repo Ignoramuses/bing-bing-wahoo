@@ -4,7 +4,7 @@
   "version": "${version}",
 
   "name": "Bing Bing Wahoo",
-  "description": "Bringing the physics of Super Mario 64 to Minecraft, one yahoo at a time.\nMade for ModFest 1.17.",
+  "description": "Bringing the physics of Super Mario 64 to Minecraft, one wahoo at a time.\nMade for ModFest 1.17.",
   "authors": [
     "Tropheus Jay",
     "InsaneASockJr"
@@ -37,5 +37,8 @@
     "fabric": "*",
     "minecraft": ">=1.17",
     "java": ">=16"
+  },
+  "suggests": {
+    "modmenu": "*"
   }
 }

@@ -13,6 +13,7 @@ import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.util.math.Vector3d;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.util.math.*;
 import net.minecraft.util.shape.VoxelShape;
@@ -97,6 +98,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private long wahoo$diveCooldown = 0;
 	@Unique
 	private long wahoo$bonkCooldown = 0;
+	@Unique
+	private boolean wahoo$lastRiding = false;
 	
 	private ClientPlayerEntityMixin(ClientWorld world, GameProfile profile) {
 		super(world, profile);
@@ -113,8 +116,11 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	
 	@Shadow public abstract float getYaw(float tickDelta);
 	
+	@Shadow private boolean riding;
+	
 	@Inject(at = @At("HEAD"), method = "tickMovement()V")
 	public void wahoo$tickMovementHEAD(CallbackInfo ci) {
+		wahoo$lastRiding = riding;
 		wahoo$lastJumping = input.jumping;
 		wahoo$lastPos.set(getBlockPos());
 	}
@@ -254,8 +260,18 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		// ----- GROUND POUND -----
 		
 		
-		if (!isOnGround() && isSneaking() && !lastSneaking && !wahoo$longJumping && !getAbilities().flying) {
-			groundPound();
+		if (!isOnGround() && isSneaking() && !lastSneaking && !wahoo$longJumping && !getAbilities().flying && !riding && !wahoo$lastRiding) {
+			boolean canPound = true;
+			for (Entity entity : world.getOtherEntities(this, new Box(getBlockPos().south().west().down(), getBlockPos().north().east().up()))) {
+				// if standing on an automobility car, don't ground pound
+				if (entity.getClass().getPackage().getName().contains("automobility")) {
+					canPound = false;
+					break;
+				}
+			}
+			if (canPound) {
+				groundPound();
+			}
 		}
 		
 		if (wahoo$isGroundPounding) {

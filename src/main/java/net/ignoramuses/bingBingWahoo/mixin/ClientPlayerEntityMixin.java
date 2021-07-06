@@ -24,6 +24,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.List;
+
 import static net.ignoramuses.bingBingWahoo.BingBingWahoo.GROUND_POUND_PACKET;
 import static net.ignoramuses.bingBingWahoo.BingBingWahoo.JUMP_TYPE_PACKET;
 
@@ -256,19 +258,11 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			exitWallJump();
 		}
 		
-		
 		// ----- GROUND POUND -----
 		
-		
 		if (!isOnGround() && isSneaking() && !lastSneaking && !wahoo$longJumping && !getAbilities().flying && !riding && !wahoo$lastRiding) {
-			boolean canPound = true;
-			for (Entity entity : world.getOtherEntities(this, new Box(getBlockPos().south().west().down(), getBlockPos().north().east().up()))) {
-				// if standing on an automobility car, don't ground pound
-				if (entity.getClass().getPackage().getName().contains("automobility")) {
-					canPound = false;
-					break;
-				}
-			}
+			List<Entity> entities = world.getOtherEntities(this, new Box(getBlockPos().add(-1, -1, -1), getBlockPos().add(1, 1, 1)));
+			boolean canPound = entities.size() == 0;
 			if (canPound) {
 				groundPound();
 			}
@@ -349,7 +343,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 							} else {
 								solidPixelsInARow = 0;
 							}
-							if (solidPixelsInARow == 9) {
+							if (solidPixelsInARow == 16) {
 								yield true;
 							}
 						}
@@ -367,7 +361,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 							} else {
 								solidPixelsInARow = 0;
 							}
-							if (solidPixelsInARow == 9) {
+							if (solidPixelsInARow == 16) {
 								yield true;
 							}
 						}
@@ -385,7 +379,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 							} else {
 								solidPixelsInARow = 0;
 							}
-							if (solidPixelsInARow == 9) {
+							if (solidPixelsInARow == 16) {
 								yield true;
 							}
 						}
@@ -403,7 +397,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 							} else {
 								solidPixelsInARow = 0;
 							}
-							if (solidPixelsInARow == 9) {
+							if (solidPixelsInARow == 16) {
 								yield true;
 							}
 						}

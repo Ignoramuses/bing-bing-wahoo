@@ -362,82 +362,81 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		// this is unholy
 		// iterate over each pixel of a 16x16x16 block, checking for a solid row across which can be grabbed.
 		int solidPixelsInARow = 0;
-//		return switch (getHorizontalFacing()) {
-//			case NORTH -> {
-//				// x+, z-
-//				for (double y = yMax; y > yMin; y -= sixteenth) {
-//					for (double x = xMin; x < xMax; x += sixteenth) {
-//						for (double z = zMax; z >= zMin; z -= sixteenth) {
-//							if (shape.getBoundingBox().contains(xMin + x, yMin + y, zMin + z)) {
-//								solidPixelsInARow++;
-//							} else {
-//								solidPixelsInARow = 0;
-//							}
-//							if (solidPixelsInARow == 16) {
-//								yield true;
-//							}
-//						}
-//					}
-//				}
-//				yield false;
-//			}
-//			case EAST -> {
-//				// x+, z+
-//				for (double y = yMax; y > yMin; y -= sixteenth) {
-//					for (double x = xMin; x < xMax; x += sixteenth) {
-//						for (double z = zMin; z < zMax; z += sixteenth) {
-//							if (shape.getBoundingBox().contains(xMin + x, yMin + y, zMin + z)) {
-//								solidPixelsInARow++;
-//							} else {
-//								solidPixelsInARow = 0;
-//							}
-//							if (solidPixelsInARow == 16) {
-//								yield true;
-//							}
-//						}
-//					}
-//				}
-//				yield false;
-//			}
-//			case SOUTH -> {
-//				// x-, z+
-//				for (double y = yMax; y > yMin; y -= sixteenth) {
-//					for (double x = xMax; x >= xMin; x -= sixteenth) {
-//						for (double z = zMin; z < zMax; z += sixteenth) {
-//							if (shape.getBoundingBox().contains(xMin + x, yMin + y, zMin + z)) {
-//								solidPixelsInARow++;
-//							} else {
-//								solidPixelsInARow = 0;
-//							}
-//							if (solidPixelsInARow == 16) {
-//								yield true;
-//							}
-//						}
-//					}
-//				}
-//				yield false;
-//			}
-//			case WEST -> {
-//				// x-, z-
-//				for (double y = yMax; y > yMin; y -= sixteenth) {
-//					for (double x = xMax; x >= xMin; x -= sixteenth) {
-//						for (double z = zMax; z >= zMin; z -= sixteenth) {
-//							if (shape.getBoundingBox().contains(xMin + x, yMin + y, zMin + z)) {
-//								solidPixelsInARow++;
-//							} else {
-//								solidPixelsInARow = 0;
-//							}
-//							if (solidPixelsInARow == 16) {
-//								yield true;
-//							}
-//						}
-//					}
-//				}
-//				yield false;
-//			}
-//			default -> throw new RuntimeException("this should never be called, if it did something has gone catastrophically wrong");
-//		};
-		return false;
+		return switch (getHorizontalFacing()) {
+			case NORTH -> {
+				// x+, z-
+				for (double y = yMax; y > yMin; y -= sixteenth) {
+					for (double x = xMin; x < xMax; x += sixteenth) {
+						for (double z = zMax; z >= zMin; z -= sixteenth) {
+							if (shape.getBoundingBox().contains(xMin + x, yMin + y, zMin + z)) {
+								solidPixelsInARow++;
+							} else {
+								solidPixelsInARow = 0;
+							}
+							if (solidPixelsInARow == 16) {
+								yield true;
+							}
+						}
+					}
+				}
+				yield false;
+			}
+			case EAST -> {
+				// x+, z+
+				for (double y = yMax; y > yMin; y -= sixteenth) {
+					for (double x = xMin; x < xMax; x += sixteenth) {
+						for (double z = zMin; z < zMax; z += sixteenth) {
+							if (shape.getBoundingBox().contains(xMin + x, yMin + y, zMin + z)) {
+								solidPixelsInARow++;
+							} else {
+								solidPixelsInARow = 0;
+							}
+							if (solidPixelsInARow == 16) {
+								yield true;
+							}
+						}
+					}
+				}
+				yield false;
+			}
+			case SOUTH -> {
+				// x-, z+
+				for (double y = yMax; y > yMin; y -= sixteenth) {
+					for (double x = xMax; x >= xMin; x -= sixteenth) {
+						for (double z = zMin; z < zMax; z += sixteenth) {
+							if (shape.getBoundingBox().contains(xMin + x, yMin + y, zMin + z)) {
+								solidPixelsInARow++;
+							} else {
+								solidPixelsInARow = 0;
+							}
+							if (solidPixelsInARow == 16) {
+								yield true;
+							}
+						}
+					}
+				}
+				yield false;
+			}
+			case WEST -> {
+				// x-, z-
+				for (double y = yMax; y > yMin; y -= sixteenth) {
+					for (double x = xMax; x >= xMin; x -= sixteenth) {
+						for (double z = zMax; z >= zMin; z -= sixteenth) {
+							if (shape.getBoundingBox().contains(xMin + x, yMin + y, zMin + z)) {
+								solidPixelsInARow++;
+							} else {
+								solidPixelsInARow = 0;
+							}
+							if (solidPixelsInARow == 16) {
+								yield true;
+							}
+						}
+					}
+				}
+				yield false;
+			}
+			default -> throw new RuntimeException("this should never be called, if it did something has gone catastrophically wrong");
+		};
 	}
 	
 	/**

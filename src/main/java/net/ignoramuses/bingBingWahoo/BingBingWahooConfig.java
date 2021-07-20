@@ -8,13 +8,14 @@ import me.shedaniel.autoconfig.annotation.ConfigEntry;
 public class BingBingWahooConfig implements ConfigData {
 	@ConfigEntry.Gui.Tooltip(count = 5)
 	public BLJTypes bljType = BLJTypes.ENABLED;
+	@ConfigEntry.Gui.Tooltip(count = 4)
+	public GroundPoundTypes groundPoundType = GroundPoundTypes.DESTRUCTIVE;
 	@ConfigEntry.Gui.Tooltip
 	public double maxLongJumpSpeed = 1.5;
 	@ConfigEntry.Gui.Tooltip
 	public double longJumpSpeedMultiplier = 10;
-	@ConfigEntry.Gui.Tooltip(count = 3)
-	@ConfigEntry.BoundedDiscrete(max = 360, min = 0)
-	public int degreesPerFlipFrame = 6;
+	@ConfigEntry.Gui.Tooltip
+	public float flipSpeedMultiplier = 1;
 	@ConfigEntry.Gui.Tooltip
 	public boolean allowNormalWallJumps = false;
 	@ConfigEntry.Gui.Tooltip

@@ -4,14 +4,18 @@
   "package": "net.ignoramuses.bingBingWahoo.mixin",
   "compatibilityLevel": "JAVA_16",
   "client": [
+    "ArmorFeatureRendererMixin",
     "ClientPlayerEntityMixin",
     "EntityAccessor",
-    "KeyboardInputMixin"
+    "KeyboardInputMixin",
+    "LivingEntityRendererMixin",
+    "ModelPartAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "mixins": [
+    "PlayerEntityMixin",
     "ServerPlayerEntityMixin"
   ]
 }

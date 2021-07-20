@@ -1,16 +1,26 @@
 package net.ignoramuses.bingBingWahoo.mixin;
 
 import com.mojang.authlib.GameProfile;
+import net.ignoramuses.bingBingWahoo.BingBingWahoo;
 import net.ignoramuses.bingBingWahoo.JumpTypes;
 import net.ignoramuses.bingBingWahoo.ServerPlayerEntityExtensions;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityPose;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ArmorItem;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import net.minecraft.world.explosion.Explosion;
 import org.jetbrains.annotations.Nullable;
@@ -25,17 +35,23 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 	@Unique
 	private final BlockPos.Mutable wahoo$groundPoundBlockBreakPos = new BlockPos.Mutable();
 	@Unique
+	private final BlockPos.Mutable wahoo$groundPoundStartPos = new BlockPos.Mutable();
+	@Unique
+	private final BlockPos.Mutable wahoo$divingStartPos = new BlockPos.Mutable();
+	@Unique
 	private JumpTypes wahoo$previousJumpType = JumpTypes.NORMAL;
 	@Unique
 	private boolean wahoo$groundPounding = false;
 	@Unique
 	private long wahoo$ticksGroundPoundingFor = 0;
 	@Unique
-	private final BlockPos.Mutable wahoo$groundPoundStartPos = new BlockPos.Mutable();
+	private boolean wahoo$destructiveGroundPound = true;
 	@Unique
 	private boolean wahoo$diving = false;
 	@Unique
-	private final BlockPos.Mutable wahoo$divingStartPos = new BlockPos.Mutable();
+	private boolean wahoo$wearingGreenCap = false;
+	@Unique
+	private long wahoo$ticksUntilAbilityApplies = 1;
 	
 	public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile profile) {
 		super(world, pos, yaw, profile);
@@ -43,15 +59,32 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 	
 	@Inject(at = @At("HEAD"), method = "tick()V")
 	public void wahoo$tick(CallbackInfo ci) {
+		if (getEquippedStack(EquipmentSlot.HEAD).isOf(BingBingWahoo.MYSTERIOUS_CAP)) {
+			wahoo$wearingGreenCap = BingBingWahoo.MYSTERIOUS_CAP.getColor(getEquippedStack(EquipmentSlot.HEAD)) == 0x80C71F; // luigi number 1!
+		} else {
+			wahoo$wearingGreenCap = false;
+		}
+		
+		
+		if (wahoo$ticksUntilAbilityApplies > 0) wahoo$ticksUntilAbilityApplies--;
+		if (wahoo$wearingGreenCap) {
+			if (wahoo$ticksUntilAbilityApplies == 0) {
+				addStatusEffect(new StatusEffectInstance(StatusEffects.JUMP_BOOST, 200, 0, false, false, true));
+				wahoo$ticksUntilAbilityApplies = 199;
+			}
+		}
+
 		if (wahoo$groundPounding) {
 			wahoo$ticksGroundPoundingFor++;
-			if (isOnGround()) {
+			if (isOnGround() && wahoo$destructiveGroundPound) {
 				for (int x = (int) Math.floor(getBoundingBox().minX); x <= Math.floor(getBoundingBox().maxX); x++) {
 					for (int z = (int) Math.floor(getBoundingBox().minZ); z <= Math.floor(getBoundingBox().maxZ); z++) {
 						wahoo$groundPoundBlockBreakPos.set(x, getBlockPos().down().getY(), z);
-						BlockState state = world.getBlockState(wahoo$groundPoundBlockBreakPos);
-						if ((state.getHardness(world, wahoo$groundPoundBlockBreakPos) <= 0.5 && !state.isOf(Blocks.NETHERRACK) && !state.isOf(Blocks.BEDROCK)) || state.isOf(Blocks.BRICKS) || state.isOf(Blocks.GRASS_BLOCK)) {
-							world.breakBlock(wahoo$groundPoundBlockBreakPos, true, this);
+						if (world.canPlayerModifyAt(this, wahoo$groundPoundBlockBreakPos)) {
+							BlockState state = world.getBlockState(wahoo$groundPoundBlockBreakPos);
+							if ((state.getHardness(world, wahoo$groundPoundBlockBreakPos) <= 0.5 && !state.isOf(Blocks.NETHERRACK) && !state.isOf(Blocks.BEDROCK)) || state.isOf(Blocks.BRICKS) || state.isOf(Blocks.GRASS_BLOCK)) {
+								world.breakBlock(wahoo$groundPoundBlockBreakPos, true, this);
+							}
 						}
 					}
 				}
@@ -89,26 +122,31 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 	}
 	
 	@Override
-	public void setGroundPounding(boolean value) {
+	public void setGroundPounding(boolean value, boolean destruction) {
+		wahoo$destructiveGroundPound = destruction;
 		wahoo$groundPounding = value;
 		if (value) {
 			wahoo$groundPoundStartPos.set(getBlockPos());
 		} else {
-			if (wahoo$ticksGroundPoundingFor > 60) {
-				world.createExplosion(this, getPos().getX(), getPos().getY(), getPos().getZ(), 2, Explosion.DestructionType.NONE);
-			} else {
-				Box box = new Box(getPos().getX() - 1, getPos().getY() - 1, getPos().getZ() - 1, getPos().getX() + 1, getPos().getY() + 1, getPos().getZ() + 1);
-				int damage = wahoo$ticksGroundPoundingFor >= 15
-						? wahoo$ticksGroundPoundingFor >= 30
+			if (destruction) {
+				if (wahoo$ticksGroundPoundingFor > 60) {
+					world.createExplosion(this, getPos().getX(), getPos().getY(), getPos().getZ(), 2, Explosion.DestructionType.NONE);
+				} else {
+					Box box = new Box(getPos().getX() - 1, getPos().getY() - 1, getPos().getZ() - 1, getPos().getX() + 1, getPos().getY() + 1, getPos().getZ() + 1);
+					int damage = wahoo$ticksGroundPoundingFor >= 15
+							? wahoo$ticksGroundPoundingFor >= 30
 							? wahoo$ticksGroundPoundingFor >= 45
-								? 20
-								: 10
+							? 20
+							: 10
 							: 5
-						: 0;
-				
-				if (wahoo$ticksGroundPoundingFor >= 15) {
-					for (Entity entity : world.getOtherEntities(this, box)) {
-						entity.damage(DamageSource.ANVIL, damage);
+							: 0;
+					
+					if (wahoo$ticksGroundPoundingFor >= 15) {
+						for (Entity entity : world.getOtherEntities(this, box)) {
+							if (!(entity instanceof ItemEntity)) {
+								entity.damage(DamageSource.ANVIL, damage);
+							}
+						}
 					}
 				}
 			}
@@ -117,9 +155,26 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 	}
 	
 	public void setDiving(boolean value, @Nullable BlockPos startPos) {
-		wahoo$diving = value;
 		if (value) {
+			setPose(EntityPose.SWIMMING);
 			wahoo$divingStartPos.set(startPos);
 		}
+		wahoo$diving = value;
+	}
+	
+	@Override
+	protected void updatePose() {
+		if (wahoo$diving) {
+			return;
+		}
+		super.updatePose();
+	}
+	
+	@Override
+	public void setPose(EntityPose pose) {
+		if (wahoo$diving) {
+			return;
+		}
+		super.setPose(pose);
 	}
 }

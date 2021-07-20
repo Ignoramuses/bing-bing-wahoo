@@ -2,7 +2,7 @@
 Bringing the physics of Super Mario 64 to Minecraft, one wahoo at a time.<br>
 Made for ModFest 1.17.
 # Features
-Bing Bing Wahoo has a variety of features designed to fill your wahooing needs. <br>
+Bing Bing Wahoo has a variety of features designed to fill your wahooing needs. To get started, craft yourself a Mysterious Cap with 5 wool in the helmet formation.<br>
 - Double / Triple Jump
     - After jumping, jump again shortly after you land to jump higher!
     - The 3rd jump in a row (Triple Jump) will make you do a flip!
@@ -39,7 +39,8 @@ Bing Bing Wahoo has a variety of features designed to fill your wahooing needs. 
     - If you jump up to the edge of a flat block, you'll grab onto it!
     - Disables looking left and right.
     - Pressing forwards or jump will boost you up!
-    - Pressing other movement keys or sneak will drop you down.
+    - Pressing back or sneak will drop you down.
+    - You can move slowly left and right across ledges.
     
 - Backflip
     - If you jump while sneaking and standing still, you will do a backflip 
@@ -48,7 +49,6 @@ Bing Bing Wahoo has a variety of features designed to fill your wahooing needs. 
 
 # Photosensitivity warning
 The flips caused by some moves may be too much for some people. If 
-this is the case for you, you can lower `Degrees per frame` in the 
+this is the case for you, you can lower the Flip Speed Multiplier in the 
 mod's config menu, accessed through Mod Menu. Setting it to 0 will 
-disable flips completely. `6`, the default, works best on 60 FPS. `2`
-works well for 250 FPS. 
+disable flips completely.

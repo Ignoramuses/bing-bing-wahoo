@@ -3,6 +3,7 @@ Bringing the physics of Super Mario 64 to Minecraft, one wahoo at a time.<br>
 Made for ModFest 1.17.
 # Features
 Bing Bing Wahoo has a variety of features designed to fill your wahooing needs. To get started, craft yourself a Mysterious Cap with 5 wool in the helmet formation.<br>
+The Mysterious Cap can also be worn in the hat slot when using Trinkets.
 - Double / Triple Jump
     - After jumping, jump again shortly after you land to jump higher!
     - The 3rd jump in a row (Triple Jump) will make you do a flip!

@@ -1,7 +1,7 @@
 plugins {
 	id 'fabric-loom' version '0.8-SNAPSHOT'
 	id 'maven-publish'
-	id 'io.github.juuxel.loom-quiltflower' version '1.1.1'
+	id 'io.github.juuxel.loom-quiltflower' version '1.1.3'
 }
 
 sourceCompatibility = JavaVersion.VERSION_16
@@ -33,7 +33,9 @@ repositories {
 	maven { url "https://maven.shedaniel.me/" }
 	maven { url getTerraformersMCMaven() }
 	maven { url "https://aperlambda.github.io/maven" }
-//	maven { url "https://maven.gegy.dev" }
+	maven { url "https://ladysnake.jfrog.io/artifactory/mods" }
+	maven { url "https://maven.kotlindiscord.com/repository/terraformers/" }
+//	maven { url "https://maven.gegy.dev" }"
 }
 
 dependencies {
@@ -48,7 +50,7 @@ dependencies {
 	}
 
 //	modApi("dev.lambdaurora:lambdacontrols:${project.lambdacontrols_version}")
-
+	modImplementation "dev.emi:trinkets:${trinkets_version}"
 	modImplementation("com.terraformersmc:modmenu:2.0.2")
 }
 

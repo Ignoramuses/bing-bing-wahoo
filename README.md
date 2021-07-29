@@ -47,6 +47,17 @@ Bing Bing Wahoo has a variety of features designed to fill your wahooing needs. 
       and be sent backwards!
     - Could be annoying, so it can be disabled through Mod Menu.
 
+# Moderation
+Some of Bing Bing Wahoo's features are controllable from the server side by Gamerules. These include:
+- Destructive ground pounds - `destructiveGroundPounds`
+- Backwards long jumps - `backwardsLongJumps`
+- Rapid Fire long jumps - `rapidFireLongJumps`
+- Maximum long jump speed - `longJumpMaxSpeed`
+- Long jump speed multiplier - `longJumpSpeedMultiplier`
+- Mysterious Cap needed for abilities - `mysteriousCapRequired`
+
+On top of this, destructiveGroundPounds can be overridden on a per-player basis using the command `/bingbingwahoo:setDestructionPerms`. However, this is not persistent and will be lost on world reload.
+
 # Photosensitivity warning
 The flips caused by some moves may be too much for some people. If 
 this is the case for you, you can lower the Flip Speed Multiplier in the 

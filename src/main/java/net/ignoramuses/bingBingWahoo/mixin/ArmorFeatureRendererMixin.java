@@ -28,7 +28,7 @@ public abstract class ArmorFeatureRendererMixin<T extends LivingEntity, M extend
 	private void renderArmor(MatrixStack matrices, VertexConsumerProvider vertexConsumers, T entity, EquipmentSlot armorSlot, int light, A model, CallbackInfo ci) {
 		if (armorSlot == EquipmentSlot.HEAD) {
 			ItemStack itemStack = entity.getEquippedStack(armorSlot);
-			if (itemStack.getItem().equals(BingBingWahoo.MYSTERIOUS_CAP)) {
+			if (itemStack.isOf(BingBingWahoo.MYSTERIOUS_CAP)) {
 				ci.cancel();
 			}
 		}

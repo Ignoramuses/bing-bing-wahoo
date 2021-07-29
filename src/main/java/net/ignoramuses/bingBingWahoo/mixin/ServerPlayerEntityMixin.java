@@ -4,9 +4,9 @@ import com.mojang.authlib.GameProfile;
 import net.ignoramuses.bingBingWahoo.BingBingWahoo;
 import net.ignoramuses.bingBingWahoo.JumpTypes;
 import net.ignoramuses.bingBingWahoo.ServerPlayerEntityExtensions;
+import net.ignoramuses.bingBingWahoo.TrinketsHandler;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.EquipmentSlot;
@@ -15,12 +15,10 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import net.minecraft.world.explosion.Explosion;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +27,9 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import static net.ignoramuses.bingBingWahoo.BingBingWahoo.MYSTERIOUS_CAP;
+import static net.ignoramuses.bingBingWahoo.BingBingWahoo.TRINKETS_LOADED;
 
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin extends PlayerEntity implements ServerPlayerEntityExtensions {
@@ -52,6 +53,8 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 	private boolean wahoo$wearingGreenCap = false;
 	@Unique
 	private long wahoo$ticksUntilAbilityApplies = 1;
+	@Unique
+	private boolean wahoo$destructionPermOverride = false;
 	
 	public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile profile) {
 		super(world, pos, yaw, profile);
@@ -59,12 +62,15 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 	
 	@Inject(at = @At("HEAD"), method = "tick()V")
 	public void wahoo$tick(CallbackInfo ci) {
-		if (getEquippedStack(EquipmentSlot.HEAD).isOf(BingBingWahoo.MYSTERIOUS_CAP)) {
-			wahoo$wearingGreenCap = BingBingWahoo.MYSTERIOUS_CAP.getColor(getEquippedStack(EquipmentSlot.HEAD)) == 0x80C71F; // luigi number 1!
-		} else {
-			wahoo$wearingGreenCap = false;
+		wahoo$wearingGreenCap = false;
+		if (getEquippedStack(EquipmentSlot.HEAD).isOf(MYSTERIOUS_CAP)) {
+			wahoo$wearingGreenCap = BingBingWahoo.MYSTERIOUS_CAP.getColor(getEquippedStack(EquipmentSlot.HEAD)) == 0x80C71F;
+		} else if (TRINKETS_LOADED) {
+			ItemStack hatStack = TrinketsHandler.getHatStack(this);
+			if (hatStack != null) {
+				wahoo$wearingGreenCap = BingBingWahoo.MYSTERIOUS_CAP.getColor(hatStack) == 0x80C71F; // luigi number 1!
+			}
 		}
-		
 		
 		if (wahoo$ticksUntilAbilityApplies > 0) wahoo$ticksUntilAbilityApplies--;
 		if (wahoo$wearingGreenCap) {
@@ -73,10 +79,10 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 				wahoo$ticksUntilAbilityApplies = 199;
 			}
 		}
-
+		
 		if (wahoo$groundPounding) {
 			wahoo$ticksGroundPoundingFor++;
-			if (isOnGround() && wahoo$destructiveGroundPound) {
+			if (isOnGround() && wahoo$destructiveGroundPound && (world.getGameRules().getBoolean(BingBingWahoo.DESTRUCTIVE_GROUND_POUND_RULE) || wahoo$destructionPermOverride)) {
 				for (int x = (int) Math.floor(getBoundingBox().minX); x <= Math.floor(getBoundingBox().maxX); x++) {
 					for (int z = (int) Math.floor(getBoundingBox().minZ); z <= Math.floor(getBoundingBox().maxZ); z++) {
 						wahoo$groundPoundBlockBreakPos.set(x, getBlockPos().down().getY(), z);
@@ -176,5 +182,10 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 			return;
 		}
 		super.setPose(pose);
+	}
+	
+	@Override
+	public void setDestructionPermOverride(boolean value) {
+		wahoo$destructionPermOverride = value;
 	}
 }

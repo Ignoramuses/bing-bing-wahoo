@@ -9,22 +9,31 @@ import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
-import net.minecraft.client.color.item.ItemColorProvider;
-import net.minecraft.entity.EntityPose;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.DyeableArmorItem;
 import net.minecraft.text.TranslatableText;
 
-import java.util.UUID;
+import java.util.HashMap;
+import java.util.Map;
 
 @Environment(EnvType.CLIENT)
 public class BingBingWahooClient implements ClientModInitializer {
+	public static final Map<String, Object> GAME_RULES = new HashMap<>();
 	public static BingBingWahooConfig CONFIG;
 	
 	@Override
 	public void onInitializeClient() {
 		AutoConfig.register(BingBingWahooConfig.class, GsonConfigSerializer::new);
 		CONFIG = AutoConfig.getConfigHolder(BingBingWahooConfig.class).getConfig();
+		
+		ClientPlayNetworking.registerGlobalReceiver(BingBingWahoo.UPDATE_BOOLEAN_GAMERULE_PACKET, (client, handler, buf, responseSender) -> {
+			String gameRuleName = buf.readString();
+			boolean value = buf.readBoolean();
+			client.execute(() -> GAME_RULES.put(gameRuleName, value));
+		});
+		ClientPlayNetworking.registerGlobalReceiver(BingBingWahoo.UPDATE_DOUBLE_GAMERULE_PACKET, (client, handler, buf, responseSender) -> {
+			String gameRuleName = buf.readString();
+			double value = buf.readDouble();
+			client.execute(() -> GAME_RULES.put(gameRuleName, value));
+		});
 //		ClientPlayNetworking.registerGlobalReceiver(BingBingWahoo.BONK_PACKET, (client, handler, buf, sender) -> {
 //			boolean start = buf.readBoolean();
 //			UUID bonked = buf.readUuid();

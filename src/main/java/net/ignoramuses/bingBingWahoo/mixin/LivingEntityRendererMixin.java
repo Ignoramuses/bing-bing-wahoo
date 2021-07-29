@@ -20,13 +20,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Environment(EnvType.CLIENT)
 @Mixin(LivingEntityRenderer.class)
 public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extends EntityModel<T>> extends EntityRenderer<T> implements FeatureRendererContext<T, M> {
-	@Shadow protected abstract boolean addFeature(FeatureRenderer<T, M> feature);
-	
-	@Shadow protected M model;
+	@Shadow
+	protected M model;
 	
 	protected LivingEntityRendererMixin(EntityRendererFactory.Context ctx) {
 		super(ctx);
 	}
+	
+	@Shadow
+	protected abstract boolean addFeature(FeatureRenderer<T, M> feature);
 	
 	@Inject(at = @At("RETURN"), method = "<init>")
 	public void wahoo$PlayerEntityRenderer(EntityRendererFactory.Context ctx, M model, float shadowRadius, CallbackInfo ci) {

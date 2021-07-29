@@ -9,4 +9,6 @@ public interface ServerPlayerEntityExtensions {
 	void setGroundPounding(boolean value, boolean breakBlocks);
 	
 	void setDiving(boolean value, @Nullable BlockPos startPos);
+	
+	void setDestructionPermOverride(boolean value);
 }

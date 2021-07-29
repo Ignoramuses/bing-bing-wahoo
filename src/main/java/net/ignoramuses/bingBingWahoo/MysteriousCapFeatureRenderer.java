@@ -6,13 +6,17 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.feature.FeatureRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
-import net.minecraft.client.render.entity.model.ArmorStandArmorEntityModel;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.Vec3f;
+
+import static net.ignoramuses.bingBingWahoo.BingBingWahoo.MYSTERIOUS_CAP;
+import static net.ignoramuses.bingBingWahoo.BingBingWahoo.TRINKETS_LOADED;
 
 @Environment(EnvType.CLIENT)
 public class MysteriousCapFeatureRenderer<T extends LivingEntity, M extends BipedEntityModel<T>, A extends BipedEntityModel<T>> extends FeatureRenderer<T, M> {
@@ -27,14 +31,21 @@ public class MysteriousCapFeatureRenderer<T extends LivingEntity, M extends Bipe
 	public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, T entity, float limbAngle, float limbDistance, float tickDelta, float animationProgress, float headYaw, float headPitch) {
 		boolean wearingHat = false;
 		ItemStack hatStack = null;
-		for (ItemStack stack : entity.getArmorItems()) {
-			if (stack.getItem().equals(BingBingWahoo.MYSTERIOUS_CAP)) {
+		
+		ItemStack headStack = entity.getEquippedStack(EquipmentSlot.HEAD);
+		if (headStack.isOf(MYSTERIOUS_CAP)) {
+			wearingHat = true;
+			hatStack = headStack;
+		} else if (TRINKETS_LOADED) {
+			ItemStack hatStack2 = TrinketsHandler.getHatStack(entity);
+			if (hatStack2 != null) {
 				wearingHat = true;
-				hatStack = stack;
+				hatStack = hatStack2;
 			}
 		}
+		
 		if (wearingHat) {
-			int color = BingBingWahoo.MYSTERIOUS_CAP.getColor(hatStack);
+			int color = MYSTERIOUS_CAP.getColor(hatStack);
 			if (color == 10511680) { // don't want leather color
 				color = 0xFFFFFF;
 			}

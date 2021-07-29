@@ -24,7 +24,11 @@ public enum JumpTypes {
 		return (isRegularJump() || this == WALL) && this != NORMAL;
 	}
 	
+	public boolean canLongJumpFrom() {
+		return isRegularJump() && this != TRIPLE && this != DIVE;
+	}
+	
 	public PacketByteBuf toBuf() {
-		return PacketByteBufs.duplicate(PacketByteBufs.create().writeByte(ordinal()));
+		return new PacketByteBuf(PacketByteBufs.create().writeByte(ordinal()));
 	}
 }

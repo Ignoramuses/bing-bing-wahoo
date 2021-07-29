@@ -40,6 +40,7 @@
     "cloth-config2": ">=5.0.34"
   },
   "suggests": {
-    "modmenu": "*"
+    "modmenu": "*",
+    "trinkets": ">=3.0.1"
   }
 }

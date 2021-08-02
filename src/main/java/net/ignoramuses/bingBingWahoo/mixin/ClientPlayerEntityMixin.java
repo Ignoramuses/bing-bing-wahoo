@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.ignoramuses.bingBingWahoo.*;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.HorizontalFacingBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.input.Input;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
@@ -17,6 +18,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.state.property.Properties;
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.*;
 import net.minecraft.util.shape.VoxelShape;
 import org.spongepowered.asm.mixin.Mixin;
@@ -27,12 +30,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
+import java.util.UUID;
 
 import static net.ignoramuses.bingBingWahoo.BingBingWahoo.*;
 
 @Environment(EnvType.CLIENT)
 @Mixin(ClientPlayerEntity.class)
-public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity {
+public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity implements PlayerEntityExtensions {
 	@Unique
 	private final BlockPos.Mutable wahoo$lastPos = new BlockPos.Mutable();
 	@Shadow
@@ -104,9 +108,17 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	@Unique
 	private boolean wahoo$lastRiding = false;
 	@Unique
+	private Vec3d wahoo$lastVelocity = new Vec3d(0, 0, 0);
+	@Unique
 	private boolean wahoo$wasRiding = false;
 	@Unique
 	private boolean wahoo$canWahoo = false;
+	@Unique
+	private float wahoo$yawVelocity = 0;
+	@Unique
+	private float wahoo$yawVelocityDecay = 0.5f;
+	@Unique
+	private long wahoo$ticksStillInDive = 0;
 	@Shadow
 	private boolean riding;
 	
@@ -131,6 +143,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		wahoo$lastRiding = riding;
 		wahoo$lastJumping = input.jumping;
 		wahoo$lastPos.set(getBlockPos());
+		wahoo$lastVelocity = getVelocity();
 	}
 	
 	/**
@@ -174,7 +187,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		
 		if (wahoo$midTripleJump) {
 			wahoo$tripleJumpTicks++;
-			// number is actually irrelevant, is handled in our override
 			if ((isOnGround() || !world.getFluidState(getBlockPos()).isEmpty()) && wahoo$tripleJumpTicks > 3 || wahoo$isDiving || wahoo$isGroundPounding || getAbilities().flying) {
 				exitTripleJump();
 			}
@@ -184,32 +196,71 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		// ----- DIVING -----
 		
 		if (wahoo$isDiving) {
-			if (wahoo$diveFlip) {
-				setPitch(0);
-			}
-			
+			BlockState floor = world.getBlockState(getBlockPos().down());
 			if (isOnGround()) {
-				Vec3d divingVelocity = new Vec3d(wahoo$currentDivingVelocity.getX() * 0.9, 0, wahoo$currentDivingVelocity.getZ() * 0.9);
-				setVelocity(divingVelocity);
-				wahoo$currentDivingVelocity = divingVelocity;
-				if ((divingVelocity.getX() < 0.01 && divingVelocity.getX() > -0.01) && (divingVelocity.getZ() < 0.01 && divingVelocity.getZ() > -0.01)) {
-					exitDive();
+				if (floor.isAir()) {
+					floor = world.getBlockState(getBlockPos());
+				}
+				if (floor.isIn(SLIDES)) {
+					if (floor.getBlock() instanceof HorizontalFacingBlock) {
+						Direction facing = floor.get(HorizontalFacingBlock.FACING);
+						if (WahooUtils.blockIsAutomobilitySlope(floor)) {
+							facing = facing.getOpposite();
+						}
+						double velocityToAdd = WahooUtils.getVelocityForSlopeDirection(facing);
+						Vec3d currentVelocity = getVelocity();
+						Vec3d newVelocity;
+						if (facing.getAxis().equals(Direction.Axis.Z)) {
+							// north and south
+							newVelocity = new Vec3d(currentVelocity.getX(), currentVelocity.getY() - 1, currentVelocity.getZ() + velocityToAdd);
+						} else if (facing.getAxis().equals(Direction.Axis.X)) {
+							// east and west
+							newVelocity = new Vec3d(currentVelocity.getX() + velocityToAdd, currentVelocity.getY() - 1, currentVelocity.getZ());
+						} else {
+							// up and down? how did this happen?
+							throw new RuntimeException("what");
+						}
+						setVelocity(newVelocity);
+					}
+				} else {
+					Vec3d divingVelocity = new Vec3d(wahoo$currentDivingVelocity.getX() * 0.9, 0, wahoo$currentDivingVelocity.getZ() * 0.9);
+					setVelocity(divingVelocity);
+					wahoo$currentDivingVelocity = divingVelocity;
 				}
 			} else {
 				setVelocity(wahoo$currentDivingVelocity.getX(), getVelocity().getY() - 0.05, wahoo$currentDivingVelocity.getZ());
 			}
 			
-			if (!world.getFluidState(getBlockPos()).isEmpty()) {
+			if (WahooUtils.approximately(wahoo$currentDivingVelocity.getX(), 0, 0.01) &&
+					WahooUtils.approximately(wahoo$currentDivingVelocity.getZ(), 0, 0.01)) {
+				wahoo$ticksStillInDive++;
+			} else {
+				wahoo$ticksStillInDive = 0;
+			}
+			
+			if (wahoo$ticksStillInDive > 20) {
+				exitDive();
+			}
+			
+			if (!world.getFluidState(getBlockPos()).isEmpty() || getAbilities().flying) {
 				exitDive();
 			}
 			
 			if (horizontalCollision) {
-				exitDive();
-				if (!wahoo$ledgeGrabbing && !isCreative() && wahoo$bonkCooldown == 0 && !(Math.abs(getVelocity().getX()) < 0.07 && Math.abs(getVelocity().getY()) < 0.07)) {
-					Direction looking = Direction.fromRotation(getYaw());
-					if (world.getBlockState(getBlockPos().offset(looking)).isSolidBlock(world, getBlockPos().offset(looking)) &&
-							world.getBlockState(getBlockPos().offset(looking).up()).isSolidBlock(world, getBlockPos().offset(looking).up())) {
-						bonk();
+				Direction moving = WahooUtils.getHorizontalDirectionFromVector(getVelocity());
+				BlockState collisionTest = world.getBlockState(getBlockPos().offset(moving));
+				if (collisionTest.isAir()) {
+					collisionTest = world.getBlockState(getBlockPos());
+				}
+				if (!WahooUtils.canGoUpSlope(collisionTest, moving)) {
+					exitDive();
+					if (!wahoo$ledgeGrabbing && !isCreative() && wahoo$bonkCooldown == 0 && !(Math.abs(getVelocity().getX()) < 0.07 && Math.abs(getVelocity().getY()) < 0.07)) {
+						Direction looking = Direction.fromRotation(getYaw());
+						BlockPos offset = getBlockPos().offset(looking);
+						if (world.getBlockState(offset).isSolidBlock(world, offset) &&
+								world.getBlockState(offset.up()).isSolidBlock(world, offset.up())) {
+							bonk();
+						}
 					}
 				}
 			}
@@ -244,21 +295,33 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		
 		// ----- LEDGE GRABS -----
 		
+		Direction facing = getHorizontalFacing();
+		BlockPos head = getBlockPos().up();
+		BlockPos aboveHead = getBlockPos().up(2);
+		BlockPos inFrontOfHead = head.offset(facing);
 		// checks block above and block adjacent to it in look direction
-		if (world.getBlockState(getBlockPos().up().up()).isAir() &&
-				world.getBlockState(getBlockPos().up().up().offset(getHorizontalFacing())).isAir() &&
-				!world.getBlockState(getBlockPos().up().up().offset(getHorizontalFacing())).getBlock().equals(Blocks.LADDER) &&
-				voxelShapeEligibleForGrab(world.getBlockState(getBlockPos().up().offset(getHorizontalFacing())).getCollisionShape(world, getBlockPos().up().offset(getHorizontalFacing()))) &&
+		if (world.getBlockState(head).isAir() &&
+				world.getBlockState(aboveHead).isAir() &&
+				world.getBlockState(aboveHead.offset(facing)).isAir() &&
+				!world.getBlockState(aboveHead.offset(facing)).isOf(Blocks.LADDER) &&
 				// checks distance to block in front of eyes
-				getPos().distanceTo(Vec3d.ofCenter(getBlockPos().offset(getHorizontalFacing()))) < 1.2 &&
-				!wahoo$ledgeGrabbing && !wahoo$isGroundPounding && !isOnGround() && !getAbilities().flying && !isClimbing() && !isSwimming() &&
-				wahoo$ledgeGrabCooldown == 0) {
-			ledgeGrab();
+				getPos().distanceTo(Vec3d.ofCenter(getBlockPos().offset(facing))) < 1.2 &&
+				!wahoo$ledgeGrabbing && !wahoo$isGroundPounding && !isOnGround() && !getAbilities().flying && !isClimbing() && !isSwimming() && wahoo$ledgeGrabCooldown == 0 &&
+				WahooUtils.voxelShapeEligibleForGrab(world.getBlockState(inFrontOfHead).getCollisionShape(world, inFrontOfHead), facing)) {
+			// slopes are kinda funky
+			if (WahooUtils.blockIsAutomobilitySlope(world.getBlockState(inFrontOfHead).getBlock())) {
+				Direction blockFacing = world.getBlockState(inFrontOfHead).get(HorizontalFacingBlock.FACING);
+				if (!blockFacing.getOpposite().equals(facing)) {
+					ledgeGrab();
+				}
+			} else {
+				ledgeGrab();
+			}
 		}
 		
 		if (wahoo$ledgeGrabbing) {
-			if (!world.getBlockState(getBlockPos().up().offset(getHorizontalFacing()).up()).isAir() ||
-					!voxelShapeEligibleForGrab(world.getBlockState(getBlockPos().up().offset(getHorizontalFacing())).getCollisionShape(world, getBlockPos().up().offset(getHorizontalFacing())))) {
+			if (!world.getBlockState(inFrontOfHead.up()).isAir() ||
+					!WahooUtils.voxelShapeEligibleForGrab(world.getBlockState(inFrontOfHead).getCollisionShape(world, inFrontOfHead), facing)) {
 				exitLedgeGrab(true);
 			}
 			
@@ -314,7 +377,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			
 			if (wahoo$incipientGroundPound && wahoo$flipTimer == 0) {
 				wahoo$incipientGroundPound = false;
-				if (BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0) {
+				if (BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0 && MinecraftClient.getInstance().options.getPerspective().isFirstPerson()) {
 					setPitch(0);
 				}
 			}
@@ -351,98 +414,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		if (wahoo$longJumping && isOnGround()) {
 			exitLongJump();
 		}
-	}
-	
-	public boolean voxelShapeEligibleForGrab(VoxelShape shape) {
-		double xMin = shape.getMin(Direction.Axis.X);
-		double xMax = shape.getMax(Direction.Axis.X);
-		
-		double yMin = shape.getMin(Direction.Axis.Y);
-		double yMax = shape.getMax(Direction.Axis.Y);
-		
-		double zMin = shape.getMin(Direction.Axis.Z);
-		double zMax = shape.getMax(Direction.Axis.Z);
-		
-		double sixteenth = 1f / 16;
-		
-		// this is unholy
-		// iterate over each pixel of a 16x16x16 block, checking for a solid row across which can be grabbed.
-		int solidPixelsInARow = 0;
-		return switch (getHorizontalFacing()) {
-			case NORTH -> {
-				// x+, z-
-				for (double y = yMax; y > yMin; y -= sixteenth) {
-					for (double x = xMin; x < xMax; x += sixteenth) {
-						for (double z = zMax; z >= zMin; z -= sixteenth) {
-							if (shape.getBoundingBox().contains(xMin + x, yMin + y, zMin + z)) {
-								solidPixelsInARow++;
-							} else {
-								solidPixelsInARow = 0;
-							}
-							if (solidPixelsInARow == 16) {
-								yield true;
-							}
-						}
-					}
-				}
-				yield false;
-			}
-			case EAST -> {
-				// x+, z+
-				for (double y = yMax; y > yMin; y -= sixteenth) {
-					for (double x = xMin; x < xMax; x += sixteenth) {
-						for (double z = zMin; z < zMax; z += sixteenth) {
-							if (shape.getBoundingBox().contains(xMin + x, yMin + y, zMin + z)) {
-								solidPixelsInARow++;
-							} else {
-								solidPixelsInARow = 0;
-							}
-							if (solidPixelsInARow == 16) {
-								yield true;
-							}
-						}
-					}
-				}
-				yield false;
-			}
-			case SOUTH -> {
-				// x-, z+
-				for (double y = yMax; y > yMin; y -= sixteenth) {
-					for (double x = xMax; x >= xMin; x -= sixteenth) {
-						for (double z = zMin; z < zMax; z += sixteenth) {
-							if (shape.getBoundingBox().contains(xMin + x, yMin + y, zMin + z)) {
-								solidPixelsInARow++;
-							} else {
-								solidPixelsInARow = 0;
-							}
-							if (solidPixelsInARow == 16) {
-								yield true;
-							}
-						}
-					}
-				}
-				yield false;
-			}
-			case WEST -> {
-				// x-, z-
-				for (double y = yMax; y > yMin; y -= sixteenth) {
-					for (double x = xMax; x >= xMin; x -= sixteenth) {
-						for (double z = zMax; z >= zMin; z -= sixteenth) {
-							if (shape.getBoundingBox().contains(xMin + x, yMin + y, zMin + z)) {
-								solidPixelsInARow++;
-							} else {
-								solidPixelsInARow = 0;
-							}
-							if (solidPixelsInARow == 16) {
-								yield true;
-							}
-						}
-					}
-				}
-				yield false;
-			}
-			default -> throw new RuntimeException("this should never be called, if it did something has gone catastrophically wrong");
-		};
 	}
 	
 	/**
@@ -631,7 +602,15 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		if (wahoo$bonked || wahoo$ledgeGrabbing) {
 			return;
 		}
+		
 		super.setYaw(yaw);
+	}
+	
+	public void setBonked(boolean value, UUID bonked) {
+	}
+	
+	public boolean getDiving() {
+		return wahoo$isDiving;
 	}
 	
 	// ---------- JUMPS ----------
@@ -738,9 +717,10 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	public void exitDive() {
 		wahoo$isDiving = false;
 		wahoo$diveFlip = false;
+		wahoo$yawVelocity = 0;
 		wahoo$flipTimer = 0;
+		wahoo$ticksStillInDive = 0;
 		if (BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0) setPitch(0);
-		
 		ClientPlayNetworking.send(BingBingWahoo.DIVE_PACKET, new PacketByteBuf(PacketByteBufs.create().writeBoolean(false)));
 	}
 	
@@ -828,9 +808,10 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	}
 	
 	private void groundPound() {
-		if (!wahoo$canWahoo || wahoo$wasRiding) return;
+		if (!wahoo$canWahoo || wahoo$wasRiding || wahoo$isGroundPounding) return;
 		if (wahoo$midTripleJump) exitTripleJump();
 		if (wahoo$wallJumping) exitWallJump();
+		if (wahoo$isDiving) exitDive();
 		
 		wahoo$isGroundPounding = true;
 		wahoo$incipientGroundPound = true;

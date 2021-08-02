@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "automobility:orange_terracotta_slope",
+    "automobility:steep_orange_terracotta_slope",
+    "minecraft:orange_terracotta",
+    "#minecraft:ice",
+    "#minecraft:stairs"
+  ]
+}

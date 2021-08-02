@@ -1,8 +1,6 @@
 package net.ignoramuses.bingBingWahoo;
 
-import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
@@ -12,16 +10,17 @@ import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.tag.TagRegistry;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.command.argument.ArgumentTypes;
+import net.minecraft.block.Block;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ArmorMaterial;
 import net.minecraft.item.DyeableArmorItem;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.tag.Tag;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 import net.minecraft.util.math.BlockPos;
@@ -38,6 +37,7 @@ public class BingBingWahoo implements ModInitializer {
 	public static final Direction[] CARDINAL_DIRECTIONS = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
 	public static final String ID = "bingbingwahoo";
 	public static final boolean TRINKETS_LOADED = FabricLoader.getInstance().isModLoaded("trinkets");
+	public static final Tag<Block> SLIDES = TagRegistry.block(new Identifier(ID, "slides"));
 	public static final Identifier JUMP_TYPE_PACKET = new Identifier(ID, "jump_type_packet");
 	public static final Identifier GROUND_POUND_PACKET = new Identifier(ID, "ground_pound_packet");
 	public static final Identifier DIVE_PACKET = new Identifier(ID, "dive_packet");

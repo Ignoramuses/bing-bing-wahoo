@@ -1,10 +1,7 @@
 package net.ignoramuses.bingBingWahoo.mixin;
 
 import com.mojang.authlib.GameProfile;
-import net.ignoramuses.bingBingWahoo.BingBingWahoo;
-import net.ignoramuses.bingBingWahoo.JumpTypes;
-import net.ignoramuses.bingBingWahoo.ServerPlayerEntityExtensions;
-import net.ignoramuses.bingBingWahoo.TrinketsHandler;
+import net.ignoramuses.bingBingWahoo.*;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
@@ -28,11 +25,13 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.UUID;
+
 import static net.ignoramuses.bingBingWahoo.BingBingWahoo.MYSTERIOUS_CAP;
 import static net.ignoramuses.bingBingWahoo.BingBingWahoo.TRINKETS_LOADED;
 
 @Mixin(ServerPlayerEntity.class)
-public abstract class ServerPlayerEntityMixin extends PlayerEntity implements ServerPlayerEntityExtensions {
+public abstract class ServerPlayerEntityMixin extends PlayerEntity implements ServerPlayerEntityExtensions, PlayerEntityExtensions {
 	@Unique
 	private final BlockPos.Mutable wahoo$groundPoundBlockBreakPos = new BlockPos.Mutable();
 	@Unique
@@ -58,6 +57,13 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 	
 	public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile profile) {
 		super(world, pos, yaw, profile);
+	}
+	
+	public void setBonked(boolean value, UUID bonked) {
+	}
+	
+	public boolean getDiving() {
+		return false;
 	}
 	
 	@Inject(at = @At("HEAD"), method = "tick()V")

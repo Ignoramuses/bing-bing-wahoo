@@ -8,4 +8,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface EntityAccessor {
 	@Accessor("pitch")
 	void setPitchRaw(float pitch);
+	
+	@Accessor("yaw")
+	void setYawRaw(float yaw);
 }

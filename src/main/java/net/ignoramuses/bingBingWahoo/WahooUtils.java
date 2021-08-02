@@ -21,6 +21,20 @@ public class WahooUtils {
 		};
 	}
 	
+	public static double getVelocityForSlidingOnGround(Direction looking) {
+		return switch (looking) {
+			case NORTH, WEST -> -0.07;
+			case SOUTH, EAST -> 0.07;
+			default -> throw new IllegalStateException("Unexpected value: " + looking);
+		};
+	}
+	
+	public static double getMaxWithSign(double value, double max) {
+		double valueAbs = Math.abs(value);
+		double newValue = Math.min(valueAbs, max);
+		return Math.copySign(newValue, value);
+	}
+	
 	public static Direction getHorizontalDirectionFromVector(Vec3d vector) {
 		double x = vector.getX();
 		double z = vector.getZ();
@@ -49,16 +63,22 @@ public class WahooUtils {
 			Direction blockFacing = state.get(HorizontalFacingBlock.FACING);
 			StairShape shape = state.get(Properties.STAIR_SHAPE);
 			Direction secondaryDirection = switch (shape) {
-				case INNER_LEFT, OUTER_LEFT -> blockFacing.rotateYCounterclockwise();
+				case INNER_LEFT, OUTER_LEFT, STRAIGHT -> blockFacing.rotateYCounterclockwise();
 				case INNER_RIGHT, OUTER_RIGHT -> blockFacing.rotateYClockwise();
-				case STRAIGHT -> null;
 			};
-			return playerMoving == blockFacing || playerMoving == secondaryDirection;
-		} else if (blockIsAutomobilitySlope(state.getBlock())) {
-			Direction blockFacing = state.get(HorizontalFacingBlock.FACING);
-			return blockFacing == playerMoving;
+			Direction tertiaryDirection = shape == StairShape.STRAIGHT ? secondaryDirection.getOpposite() : null;
+			return playerMoving == blockFacing || playerMoving == secondaryDirection || playerMoving == tertiaryDirection;
+		} else if (blockIsAutomobilitySlope(state)) {
+			Direction blockFacing = state.get(HorizontalFacingBlock.FACING).getOpposite();
+			Direction left = blockFacing.rotateYCounterclockwise();
+			Direction right = blockFacing.rotateYClockwise();
+			return blockFacing == playerMoving || left == playerMoving || right == playerMoving;
 		}
 		return false;
+	}
+	
+	public static boolean blockIsSlope(BlockState state) {
+		return state.getBlock() instanceof StairsBlock || blockIsAutomobilitySlope(state);
 	}
 	
 	public static boolean blockIsAutomobilitySlope(BlockState state) {
@@ -82,11 +102,13 @@ public class WahooUtils {
 	 */
 	public static boolean approximately(double number, double target, double range) {
 		if (number == target) return true;
+		double difference;
 		if (number > target) {
-			return number - target <= range;
+			difference = number - target;
 		} else {
-			return target - number <= range;
+			difference = target - number;
 		}
+		return difference <= range;
 	}
 	
 	public static boolean voxelShapeEligibleForGrab(VoxelShape shape, Direction facing) {

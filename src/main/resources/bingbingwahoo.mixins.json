@@ -9,7 +9,8 @@
     "EntityAccessor",
     "KeyboardInputMixin",
     "LivingEntityRendererMixin",
-    "ModelPartAccessor"
+    "ModelPartAccessor",
+    "PlayerEntityRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

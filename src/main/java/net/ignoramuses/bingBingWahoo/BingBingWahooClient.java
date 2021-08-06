@@ -10,6 +10,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.minecraft.text.TranslatableText;
+import net.minecraft.util.Formatting;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,11 +52,13 @@ public class BingBingWahooClient implements ClientModInitializer {
 		EntityModelLayerRegistry.registerModelLayer(MysteriousCapModel.MODEL_LAYER, MysteriousCapModel::getTexturedModelData);
 		ColorProviderRegistry.ITEM.register((stack, tintIndex) -> BingBingWahoo.MYSTERIOUS_CAP.getColor(stack) == 10511680 ? 0xFFFFFF : BingBingWahoo.MYSTERIOUS_CAP.getColor(stack), BingBingWahoo.MYSTERIOUS_CAP);
 		ItemTooltipCallback.EVENT.register(((stack, context, lines) -> {
-			if (stack.getItem().equals(BingBingWahoo.MYSTERIOUS_CAP)) {
+			if (stack.isOf(BingBingWahoo.MYSTERIOUS_CAP)) {
 				if (BingBingWahoo.MYSTERIOUS_CAP.getColor(stack) == 0x80C71F) {
 					lines.remove(1);
 					lines.add(1, new TranslatableText("bingbingwahoo.luigiNumberOne"));
 				}
+			} else if (stack.isOf(BingBingWahoo.MUSIC_DISC_SLIDER)) {
+				lines.add(2, new TranslatableText("item.bingbingwahoo.music_disc_slider.desc2").formatted(Formatting.GRAY));
 			}
 		}));
 	}

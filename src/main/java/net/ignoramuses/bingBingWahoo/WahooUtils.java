@@ -21,15 +21,15 @@ public class WahooUtils {
 		};
 	}
 	
-	public static double getVelocityForSlidingOnGround(Direction looking) {
-		return switch (looking) {
-			case NORTH, WEST -> -0.07;
-			case SOUTH, EAST -> 0.07;
-			default -> throw new IllegalStateException("Unexpected value: " + looking);
+	public static double getVelocityForSlidingOnGround(Direction direction) {
+		return switch (direction) {
+			case NORTH, WEST -> -0.035;
+			case SOUTH, EAST -> 0.035;
+			default -> throw new IllegalStateException("Unexpected value: " + direction);
 		};
 	}
 	
-	public static double getMaxWithSign(double value, double max) {
+	public static double capWithSign(double value, double max) {
 		double valueAbs = Math.abs(value);
 		double newValue = Math.min(valueAbs, max);
 		return Math.copySign(newValue, value);

@@ -10,5 +10,7 @@ public interface ServerPlayerEntityExtensions {
 	
 	void setDiving(boolean value, @Nullable BlockPos startPos);
 	
+	void setSliding(boolean value);
+	
 	void setDestructionPermOverride(boolean value);
 }

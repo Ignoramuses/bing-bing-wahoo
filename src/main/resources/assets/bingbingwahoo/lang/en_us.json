@@ -31,5 +31,9 @@
   "text.autoconfig.bingbingwahoo.option.bonking": "Bonking",
   "text.autoconfig.bingbingwahoo.option.bonking.@Tooltip": "Whether bonks should happen or not.",
   "item.bingbingwahoo.mysterious_cap": "Mysterious Cap",
-  "bingbingwahoo.luigiNumberOne": "§a§oLuigi Number One!"
+  "item.bingbingwahoo.music_disc_slider": "Music Disc",
+  "item.bingbingwahoo.music_disc_slider.desc": "Koji Kondo - Slider",
+  "item.bingbingwahoo.music_disc_slider.desc2": "...but in the Minecraft soundfont",
+  "bingbingwahoo.luigiNumberOne": "§a§oLuigi Number One!",
+  "argument.entity.options.sliding.description": "Players sliding"
 }

@@ -49,11 +49,11 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 	@Unique
 	private boolean wahoo$diving = false;
 	@Unique
-	private boolean wahoo$wearingGreenCap = false;
-	@Unique
 	private long wahoo$ticksUntilAbilityApplies = 1;
 	@Unique
 	private boolean wahoo$destructionPermOverride = false;
+	@Unique
+	private boolean wahoo$sliding = false;
 	
 	public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile profile) {
 		super(world, pos, yaw, profile);
@@ -62,24 +62,24 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 	public void setBonked(boolean value, UUID bonked) {
 	}
 	
-	public boolean getDiving() {
-		return false;
+	public boolean getSliding() {
+		return wahoo$diving || wahoo$sliding;
 	}
 	
 	@Inject(at = @At("HEAD"), method = "tick()V")
 	public void wahoo$tick(CallbackInfo ci) {
-		wahoo$wearingGreenCap = false;
+		boolean wearingGreenCap = false;
 		if (getEquippedStack(EquipmentSlot.HEAD).isOf(MYSTERIOUS_CAP)) {
-			wahoo$wearingGreenCap = BingBingWahoo.MYSTERIOUS_CAP.getColor(getEquippedStack(EquipmentSlot.HEAD)) == 0x80C71F;
+			wearingGreenCap = BingBingWahoo.MYSTERIOUS_CAP.getColor(getEquippedStack(EquipmentSlot.HEAD)) == 0x80C71F;
 		} else if (TRINKETS_LOADED) {
 			ItemStack hatStack = TrinketsHandler.getHatStack(this);
 			if (hatStack != null) {
-				wahoo$wearingGreenCap = BingBingWahoo.MYSTERIOUS_CAP.getColor(hatStack) == 0x80C71F; // luigi number 1!
+				wearingGreenCap = BingBingWahoo.MYSTERIOUS_CAP.getColor(hatStack) == 0x80C71F; // luigi number 1!
 			}
 		}
 		
 		if (wahoo$ticksUntilAbilityApplies > 0) wahoo$ticksUntilAbilityApplies--;
-		if (wahoo$wearingGreenCap) {
+		if (wearingGreenCap) {
 			if (wahoo$ticksUntilAbilityApplies == 0) {
 				addStatusEffect(new StatusEffectInstance(StatusEffects.JUMP_BOOST, 200, 0, false, false, true));
 				wahoo$ticksUntilAbilityApplies = 199;
@@ -110,6 +110,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 			fallDistance = wahoo$groundPoundStartPos.subtract(getBlockPos()).getY();
 		} else if (wahoo$diving) {
 			fallDistance = wahoo$divingStartPos.subtract(getBlockPos()).getY();
+			wahoo$divingStartPos.set(getBlockPos());
 		} else {
 			fallDistance -= switch (wahoo$previousJumpType) {
 				case DOUBLE, LONG -> 4;
@@ -172,6 +173,10 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 			wahoo$divingStartPos.set(startPos);
 		}
 		wahoo$diving = value;
+	}
+	
+	public void setSliding(boolean value) {
+		wahoo$sliding = value;
 	}
 	
 	@Override

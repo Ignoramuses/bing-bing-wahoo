@@ -18,6 +18,13 @@ The Mysterious Cap can also be worn in the hat slot when using Trinkets.
     - Triggered by clicking the attack button while sprinting. Works midair and on 
       the ground, however ground activation may be annoying, so it is configurable 
       through Mod Menu.
+    - Once you land, you begin sliding on your stomach.
+
+- Sliding
+  - By diving or sneaking on a slope, you will begin to slide.
+  - Both stairs and slopes from [Automobility](https://github.com/FoundationGames/Automobility) count as slopes.
+  - Once you're sliding on flat ground, you can control your movement by looking around.
+  - If the floor you're sliding on is in the `#bingbingwahoo:slides` tag, sliding mechanics are changed slightly, such as being able to go a longer distance.
     
 - Bonking
     - Hitting a wall too hard will knock you over for a bit!
@@ -47,6 +54,9 @@ The Mysterious Cap can also be worn in the hat slot when using Trinkets.
     - If you jump while sneaking and standing still, you will do a backflip 
       and be sent backwards!
     - Could be annoying, so it can be disabled through Mod Menu.
+
+- Slider music disc
+  - A music disc which plays a version of Slider. This version has been modified to be in the Minecraft soundfont.
 
 # Moderation
 Some of Bing Bing Wahoo's features are controllable from the server side by Gamerules. These include:

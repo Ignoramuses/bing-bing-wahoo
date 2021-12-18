@@ -11,5 +11,5 @@ import java.util.function.Predicate;
 @Mixin(EntitySelectorOptions.class)
 public interface EntitySelectorOptionsAccessor {
 	@Invoker("putOption")
-	static void invokePutOption(String id, EntitySelectorOptions.SelectorHandler handler, Predicate<EntitySelectorReader> condition, Text description) {}
+	static void wahoo$invokePutOption(String id, EntitySelectorOptions.SelectorHandler handler, Predicate<EntitySelectorReader> condition, Text description) {}
 }

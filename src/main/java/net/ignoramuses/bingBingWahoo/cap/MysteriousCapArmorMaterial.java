@@ -1,14 +1,15 @@
-package net.ignoramuses.bingBingWahoo;
+package net.ignoramuses.bingBingWahoo.cap;
 
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ArmorMaterial;
-import net.minecraft.item.Items;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.tag.ItemTags;
 
 public class MysteriousCapArmorMaterial implements ArmorMaterial {
+	public static final Ingredient REPAIR = Ingredient.fromTag(ItemTags.WOOL);
+	
 	@Override
 	public int getDurability(EquipmentSlot slot) {
 		return 128;
@@ -31,7 +32,7 @@ public class MysteriousCapArmorMaterial implements ArmorMaterial {
 	
 	@Override
 	public Ingredient getRepairIngredient() {
-		return Ingredient.fromTag(ItemTags.WOOL);
+		return REPAIR;
 	}
 	
 	@Override

@@ -1,4 +1,4 @@
-package net.ignoramuses.bingBingWahoo;
+package net.ignoramuses.bingBingWahoo.movement;
 
 public enum GroundPoundTypes {
 	DISABLED,

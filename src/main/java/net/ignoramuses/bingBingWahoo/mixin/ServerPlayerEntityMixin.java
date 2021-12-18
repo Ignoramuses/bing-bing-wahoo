@@ -2,6 +2,8 @@ package net.ignoramuses.bingBingWahoo.mixin;
 
 import com.mojang.authlib.GameProfile;
 import net.ignoramuses.bingBingWahoo.*;
+import net.ignoramuses.bingBingWahoo.compat.TrinketsHandler;
+import net.ignoramuses.bingBingWahoo.movement.JumpTypes;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
@@ -29,9 +31,10 @@ import java.util.UUID;
 
 import static net.ignoramuses.bingBingWahoo.BingBingWahoo.MYSTERIOUS_CAP;
 import static net.ignoramuses.bingBingWahoo.BingBingWahoo.TRINKETS_LOADED;
+import static net.ignoramuses.bingBingWahoo.WahooCommands.DESTRUCTIVE_GROUND_POUND_RULE;
 
 @Mixin(ServerPlayerEntity.class)
-public abstract class ServerPlayerEntityMixin extends PlayerEntity implements ServerPlayerEntityExtensions, PlayerEntityExtensions {
+public abstract class ServerPlayerEntityMixin extends PlayerEntity implements WahooUtils.ServerPlayerEntityExtensions, WahooUtils.PlayerEntityExtensions {
 	@Unique
 	private final BlockPos.Mutable wahoo$groundPoundBlockBreakPos = new BlockPos.Mutable();
 	@Unique
@@ -88,7 +91,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 		
 		if (wahoo$groundPounding) {
 			wahoo$ticksGroundPoundingFor++;
-			if (isOnGround() && wahoo$destructiveGroundPound && (world.getGameRules().getBoolean(BingBingWahoo.DESTRUCTIVE_GROUND_POUND_RULE) || wahoo$destructionPermOverride)) {
+			if (isOnGround() && wahoo$destructiveGroundPound && (world.getGameRules().getBoolean(DESTRUCTIVE_GROUND_POUND_RULE) || wahoo$destructionPermOverride)) {
 				for (int x = (int) Math.floor(getBoundingBox().minX); x <= Math.floor(getBoundingBox().maxX); x++) {
 					for (int z = (int) Math.floor(getBoundingBox().minZ); z <= Math.floor(getBoundingBox().maxZ); z++) {
 						wahoo$groundPoundBlockBreakPos.set(x, getBlockPos().down().getY(), z);

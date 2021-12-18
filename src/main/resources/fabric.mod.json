@@ -25,7 +25,7 @@
       "net.ignoramuses.bingBingWahoo.BingBingWahooClient"
     ],
     "modmenu": [
-      "net.ignoramuses.bingBingWahoo.BingBingWahooIntegration"
+      "net.ignoramuses.bingBingWahoo.compat.BingBingWahooIntegration"
     ]
   },
   "mixins": [

@@ -10,13 +10,16 @@
     "KeyboardInputMixin",
     "LivingEntityRendererMixin",
     "ModelPartAccessor",
-    "PlayerEntityRendererMixin"
+    "PlayerEntityRendererMixin",
+    "modelAccessors.EntityModelWithHeadAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "mixins": [
     "EntitySelectorOptionsAccessor",
+    "LivingEntityMixin",
+    "ModelPartMixin",
     "PlayerEntityMixin",
     "ServerPlayerEntityMixin"
   ]

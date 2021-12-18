@@ -1,18 +1,48 @@
 package net.ignoramuses.bingBingWahoo;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.ignoramuses.bingBingWahoo.cap.MysteriousCapModel;
+import net.ignoramuses.bingBingWahoo.mixin.modelAccessors.EntityModelWithHeadAccessor;
+import net.ignoramuses.bingBingWahoo.movement.JumpTypes;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HorizontalFacingBlock;
 import net.minecraft.block.StairsBlock;
 import net.minecraft.block.enums.BlockHalf;
 import net.minecraft.block.enums.StairShape;
+import net.minecraft.client.model.Model;
+import net.minecraft.client.model.ModelPart;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.entity.model.BipedEntityModel;
+import net.minecraft.client.render.entity.model.ModelWithHead;
+import net.minecraft.entity.Entity;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
 
 public class WahooUtils {
-	public static final double SIXTEENTH = 1D / 16;
+	public static final double SIXTEENTH = 1 / 16f;
+	
+	@Nullable
+	@Environment(EnvType.CLIENT)
+	public static ModelPart getHeadModel(Model base) {
+		if (base instanceof BipedEntityModel biped) {
+			return biped.head;
+		} else if (base instanceof ModelWithHead model) {
+			return model.getHead();
+		} else if (base instanceof EntityModelWithHeadAccessor model) {
+			return model.wahoo$getHead();
+		}
+		
+		return null;
+	}
+	
 	public static double getVelocityForSlopeDirection(Direction directionOfSlope) {
 		return switch (directionOfSlope) {
 			case NORTH, WEST -> 0.1;
@@ -100,7 +130,7 @@ public class WahooUtils {
 	 * @param range The range in which the numbers are approximately the same, inclusive
 	 * @return Whether the difference between number and target is less than or equal to range.
 	 */
-	public static boolean approximately(double number, double target, double range) {
+	public static boolean aprox(double number, double target, double range) {
 		if (number == target) return true;
 		double difference;
 		if (number > target) {
@@ -199,5 +229,36 @@ public class WahooUtils {
 			}
 			default -> throw new RuntimeException("this should never be called, if it did something has gone catastrophically wrong");
 		};
+	}
+	
+	public interface PlayerEntityExtensions {
+		void setBonked(boolean value, UUID bonked);
+		boolean getSliding();
+	}
+	
+	public interface ServerPlayerEntityExtensions {
+		void setPreviousJumpType(JumpTypes type);
+		void setGroundPounding(boolean value, boolean breakBlocks);
+		void setDiving(boolean value, @Nullable BlockPos startPos);
+		void setSliding(boolean value);
+		void setDestructionPermOverride(boolean value);
+	}
+	
+	public interface ClientPlayerEntityExtensions {
+		boolean groundPounding();
+		boolean slidingOnSlope();
+		boolean slidingOnGround();
+	}
+	
+	public interface KeyboardInputExtensions {
+		void disableControl();
+		void enableControl();
+	}
+	
+	@Environment(EnvType.CLIENT)
+	public interface ModelPartExtensions {
+		void setCapRenderer(MysteriousCapModel model);
+		void setEntity(Entity entity);
+		void setVertexConsumerProvider(VertexConsumerProvider provider);
 	}
 }

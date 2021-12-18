@@ -6,6 +6,11 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.ignoramuses.bingBingWahoo.*;
+import net.ignoramuses.bingBingWahoo.WahooUtils.ClientPlayerEntityExtensions;
+import net.ignoramuses.bingBingWahoo.WahooUtils.PlayerEntityExtensions;
+import net.ignoramuses.bingBingWahoo.compat.TrinketsHandler;
+import net.ignoramuses.bingBingWahoo.movement.GroundPoundTypes;
+import net.ignoramuses.bingBingWahoo.movement.JumpTypes;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.HorizontalFacingBlock;
@@ -31,6 +36,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static net.ignoramuses.bingBingWahoo.BingBingWahoo.*;
+import static net.ignoramuses.bingBingWahoo.WahooCommands.*;
+import static net.ignoramuses.bingBingWahoo.WahooNetworking.*;
 
 @Environment(EnvType.CLIENT)
 @Mixin(ClientPlayerEntity.class)
@@ -150,7 +157,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	/**
 	 * Handles most tick-based physics, and when stuff should happen
 	 */
-	@SuppressWarnings("ConstantConditions")
 	@Inject(at = @At("RETURN"), method = "tickMovement()V")
 	public void wahoo$tickMovement(CallbackInfo ci) {
 		updateJumpTicks();
@@ -226,8 +232,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 				}
 			}
 			
-			if (WahooUtils.approximately(wahoo$currentDivingVelocity.getX(), 0, 0.07) &&
-					WahooUtils.approximately(wahoo$currentDivingVelocity.getZ(), 0, 0.07)) {
+			if (WahooUtils.aprox(wahoo$currentDivingVelocity.getX(), 0, 0.07) &&
+					WahooUtils.aprox(wahoo$currentDivingVelocity.getZ(), 0, 0.07)) {
 				wahoo$ticksStillInDive++;
 			} else {
 				wahoo$ticksStillInDive = 0;
@@ -816,7 +822,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		);
 		setVelocity(wahoo$currentDivingVelocity.add(0, 0.5, 0));
 		wahoo$diveCooldown = 20;
-		ClientPlayNetworking.send(BingBingWahoo.DIVE_PACKET, new PacketByteBuf(PacketByteBufs.create().writeBoolean(true)).writeBlockPos(getBlockPos()));
+		ClientPlayNetworking.send(DIVE_PACKET, new PacketByteBuf(PacketByteBufs.create().writeBoolean(true)).writeBlockPos(getBlockPos()));
 	}
 	
 	public void exitDive() {
@@ -828,12 +834,12 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		wahoo$ticksStillInDive = 0;
 		if (BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0 && wahoo$diveFlip) setPitch(0);
 		wahoo$diveFlip = false;
-		ClientPlayNetworking.send(BingBingWahoo.DIVE_PACKET, new PacketByteBuf(PacketByteBufs.create().writeBoolean(false)));
+		ClientPlayNetworking.send(DIVE_PACKET, new PacketByteBuf(PacketByteBufs.create().writeBoolean(false)));
 	}
 	
 	public void bonk() {
 		if (!wahoo$canWahoo || wahoo$wasRiding || !BingBingWahooClient.CONFIG.bonking) return;
-		((KeyboardInputExtensions) input).disableControl();
+		((WahooUtils.KeyboardInputExtensions) input).disableControl();
 		if (wahoo$isDiving) exitDive();
 		if (wahoo$midTripleJump) {
 			exitTripleJump();
@@ -853,7 +859,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	}
 	
 	public void exitBonk() {
-		((KeyboardInputExtensions) input).enableControl();
+		((WahooUtils.KeyboardInputExtensions) input).enableControl();
 		wahoo$bonked = false;
 		wahoo$bonkTime = 0;
 		setPitch(0);

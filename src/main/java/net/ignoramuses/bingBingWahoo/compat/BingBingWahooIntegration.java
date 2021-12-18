@@ -1,8 +1,9 @@
-package net.ignoramuses.bingBingWahoo;
+package net.ignoramuses.bingBingWahoo.compat;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
 import me.shedaniel.autoconfig.AutoConfig;
+import net.ignoramuses.bingBingWahoo.BingBingWahooConfig;
 
 public class BingBingWahooIntegration implements ModMenuApi {
 	@Override

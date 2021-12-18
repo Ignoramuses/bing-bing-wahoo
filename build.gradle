@@ -11,47 +11,22 @@ archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
 
-String getTerraformersMCMaven() { // thanks LambdAurora
-	def terraformersUrl = 'https://maven.terraformersmc.com/'
-	if (pingUrl(terraformersUrl))
-		return terraformersUrl
-	else
-		return 'https://maven.kotlindiscord.com/repository/terraformers/'
-}
-
-boolean pingUrl(String address) {
-	try {
-		def conn = (HttpURLConnection) new URL(address).openConnection()
-		int responseCode = conn.getResponseCode()
-		return (200 <= responseCode && responseCode <= 399)
-	} catch (IOException ignored) {
-		return false
-	}
-}
-
 repositories {
-	maven { url "https://maven.shedaniel.me/" }
-	maven { url getTerraformersMCMaven() }
-	maven { url "https://aperlambda.github.io/maven" }
-	maven { url "https://ladysnake.jfrog.io/artifactory/mods" }
-	maven { url "https://maven.kotlindiscord.com/repository/terraformers/" }
-//	maven { url "https://maven.gegy.dev" }"
+	maven { url = "https://maven.shedaniel.me/" }
+	maven { url = "https://maven.terraformersmc.com/" }
+	maven { url = "https://aperlambda.github.io/maven" }
+	maven { url = "https://ladysnake.jfrog.io/artifactory/mods" }
+	maven { url = "https://maven.kotlindiscord.com/repository/terraformers/" }
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-
-	modImplementation("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
-		exclude(group: "net.fabricmc.fabric-api")
-	}
-
-//	modApi("dev.lambdaurora:lambdacontrols:${project.lambdacontrols_version}")
-//	modImplementation "dev.emi:trinkets:${trinkets_version}"
-	modImplementation("com.terraformersmc:modmenu:3.0.0")
+	minecraft("com.mojang:minecraft:${project.minecraft_version}")
+	mappings("net.fabricmc:yarn:${project.minecraft_version}+build.${project.mappings_version}:v2")
+	modImplementation("net.fabricmc:fabric-loader:${project.loader_version}")
+	modImplementation("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
+	modImplementation("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") { exclude(group: "net.fabricmc.fabric-api")}
+	modImplementation("dev.emi:trinkets:${project.trinkets_version}")
+	modImplementation("com.terraformersmc:modmenu:${project.mod_menu_version}")
 }
 
 processResources {
@@ -78,25 +53,26 @@ jar {
 	}
 }
 
-// configure the maven publication
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
-			// add all the jars that should be included when publishing to maven
-			artifact(remapJar) {
-				builtBy remapJar
-			}
-			artifact(sourcesJar) {
-				builtBy remapSourcesJar
-			}
+			from components.java
 		}
 	}
 
-	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
 	repositories {
-		// Add repositories to publish to here.
-		// Notice: This block does NOT have the same function as the block in the top level.
-		// The repositories here will be used for publishing your artifact, not for
-		// retrieving dependencies.
+		String suffix = System.getenv().PUBLISH_SUFFIX // 'releases' or 'snapshots'
+		if (suffix == null || suffix.isEmpty()) {
+			System.out.println("Failed to publish to maven!")
+			return
+		}
+		maven {
+			url = "https://maven.devos.community/${suffix}/"
+			credentials {
+				username = System.getenv().MAVEN_USER
+				password = System.getenv().MAVEN_PASS
+			}
+			authentication { basic(BasicAuthentication) }
+		}
 	}
 }

@@ -1,6 +1,6 @@
 package net.ignoramuses.bingBingWahoo.mixin;
 
-import net.ignoramuses.bingBingWahoo.PlayerEntityExtensions;
+import net.ignoramuses.bingBingWahoo.WahooUtils;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.UUID;
 
 @Mixin(PlayerEntity.class)
-public abstract class PlayerEntityMixin extends LivingEntity implements PlayerEntityExtensions {
+public abstract class PlayerEntityMixin extends LivingEntity implements WahooUtils.PlayerEntityExtensions {
 	@Unique
 	private boolean wahoo$isBonked = false;
 	

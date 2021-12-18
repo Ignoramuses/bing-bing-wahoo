@@ -7,13 +7,17 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
+import net.ignoramuses.bingBingWahoo.cap.MysteriousCapModel;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static net.ignoramuses.bingBingWahoo.WahooCommands.UPDATE_DOUBLE_GAMERULE_PACKET;
+import static net.ignoramuses.bingBingWahoo.WahooNetworking.UPDATE_BOOLEAN_GAMERULE_PACKET;
 
 @Environment(EnvType.CLIENT)
 public class BingBingWahooClient implements ClientModInitializer {
@@ -25,12 +29,12 @@ public class BingBingWahooClient implements ClientModInitializer {
 		AutoConfig.register(BingBingWahooConfig.class, GsonConfigSerializer::new);
 		CONFIG = AutoConfig.getConfigHolder(BingBingWahooConfig.class).getConfig();
 		
-		ClientPlayNetworking.registerGlobalReceiver(BingBingWahoo.UPDATE_BOOLEAN_GAMERULE_PACKET, (client, handler, buf, responseSender) -> {
+		ClientPlayNetworking.registerGlobalReceiver(UPDATE_BOOLEAN_GAMERULE_PACKET, (client, handler, buf, responseSender) -> {
 			String gameRuleName = buf.readString();
 			boolean value = buf.readBoolean();
 			client.execute(() -> GAME_RULES.put(gameRuleName, value));
 		});
-		ClientPlayNetworking.registerGlobalReceiver(BingBingWahoo.UPDATE_DOUBLE_GAMERULE_PACKET, (client, handler, buf, responseSender) -> {
+		ClientPlayNetworking.registerGlobalReceiver(UPDATE_DOUBLE_GAMERULE_PACKET, (client, handler, buf, responseSender) -> {
 			String gameRuleName = buf.readString();
 			double value = buf.readDouble();
 			client.execute(() -> GAME_RULES.put(gameRuleName, value));
@@ -54,7 +58,6 @@ public class BingBingWahooClient implements ClientModInitializer {
 		ItemTooltipCallback.EVENT.register(((stack, context, lines) -> {
 			if (stack.isOf(BingBingWahoo.MYSTERIOUS_CAP)) {
 				if (BingBingWahoo.MYSTERIOUS_CAP.getColor(stack) == 0x80C71F) {
-					lines.remove(1);
 					lines.add(1, new TranslatableText("bingbingwahoo.luigiNumberOne"));
 				}
 			} else if (stack.isOf(BingBingWahoo.MUSIC_DISC_SLIDER)) {

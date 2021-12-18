@@ -2,7 +2,7 @@ package net.ignoramuses.bingBingWahoo.mixin;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.ignoramuses.bingBingWahoo.ClientPlayerEntityExtensions;
+import net.ignoramuses.bingBingWahoo.WahooUtils;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.entity.EntityRendererFactory;
@@ -23,7 +23,7 @@ public abstract class PlayerEntityRendererMixin extends LivingEntityRenderer<Abs
 	
 	@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/PlayerEntityRenderer;getArmPose(Lnet/minecraft/client/network/AbstractClientPlayerEntity;Lnet/minecraft/util/Hand;)Lnet/minecraft/client/render/entity/model/BipedEntityModel$ArmPose;", shift = At.Shift.BEFORE), method = "setModelPose(Lnet/minecraft/client/network/AbstractClientPlayerEntity;)V")
 	private void wahoo$setModelPoseWhileGroundPoundingAndSliding(AbstractClientPlayerEntity player, CallbackInfo ci) {
-		if (player instanceof ClientPlayerEntityExtensions extendedPlayer) {
+		if (player instanceof WahooUtils.ClientPlayerEntityExtensions extendedPlayer) {
 			getModel().sneaking = extendedPlayer.groundPounding() || ((ClientPlayerEntity) extendedPlayer).isInSneakingPose();
 		}
 	}

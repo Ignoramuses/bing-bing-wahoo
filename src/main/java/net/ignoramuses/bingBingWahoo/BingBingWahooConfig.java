@@ -3,6 +3,7 @@ package net.ignoramuses.bingBingWahoo;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
+import net.ignoramuses.bingBingWahoo.movement.GroundPoundTypes;
 
 @Config(name = "bingbingwahoo")
 public class BingBingWahooConfig implements ConfigData {

@@ -24,7 +24,7 @@ public abstract class PlayerEntityRendererMixin extends LivingEntityRenderer<Abs
 	@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/PlayerEntityRenderer;getArmPose(Lnet/minecraft/client/network/AbstractClientPlayerEntity;Lnet/minecraft/util/Hand;)Lnet/minecraft/client/render/entity/model/BipedEntityModel$ArmPose;", shift = At.Shift.BEFORE), method = "setModelPose(Lnet/minecraft/client/network/AbstractClientPlayerEntity;)V")
 	private void wahoo$setModelPoseWhileGroundPoundingAndSliding(AbstractClientPlayerEntity player, CallbackInfo ci) {
 		if (player instanceof WahooUtils.ClientPlayerEntityExtensions extendedPlayer) {
-			getModel().sneaking = extendedPlayer.groundPounding() || ((ClientPlayerEntity) extendedPlayer).isInSneakingPose();
+			getModel().sneaking = extendedPlayer.wahoo$groundPounding() || ((ClientPlayerEntity) extendedPlayer).isInSneakingPose();
 		}
 	}
 }

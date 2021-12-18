@@ -41,10 +41,10 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
 	@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;isBaby()Z"), method = "render(Lnet/minecraft/entity/LivingEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V")
 	private void render(T livingEntity, float f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, CallbackInfo ci) {
 		if (livingEntity instanceof ClientPlayerEntityExtensions extendedPlayer) {
-			if (extendedPlayer.slidingOnGround()) {
+			if (extendedPlayer.wahoo$slidingOnGround()) {
 				model.riding = true;
 				matrixStack.translate(0, -0.25, 0);
-			} else if (extendedPlayer.slidingOnSlope()) {
+			} else if (extendedPlayer.wahoo$slidingOnSlope()) {
 				model.riding = true;
 				matrixStack.translate(0, -0.5, 0);
 			}

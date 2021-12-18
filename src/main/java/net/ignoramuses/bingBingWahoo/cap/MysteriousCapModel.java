@@ -29,9 +29,6 @@ public class MysteriousCapModel extends Model {
 		bone = ctx.getPart(MODEL_LAYER).getChild("bone");
 		cube_r1 = bone.getChild("cube_r1");
 		this.wearerHead = WahooUtils.getHeadModel(wearerModel);
-		if (gotHead()) {
-			((ModelPartExtensions) (Object) wearerHead).setCapRenderer(this);
-		}
 		setRotationAngle(cube_r1, 0.0F, 0.0F, -0.3927F);
 	}
 	

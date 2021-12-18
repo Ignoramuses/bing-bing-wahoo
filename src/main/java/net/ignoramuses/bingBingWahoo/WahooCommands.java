@@ -76,7 +76,7 @@ public class WahooCommands {
 			reader.setSuggestionProvider((suggestionsBuilder, suggestionsBuilderConsumer) -> CommandSource.suggestMatching(new String[]{"true", "false"}, suggestionsBuilder));
 			reader.setPredicate(entity -> {
 				if (entity instanceof WahooUtils.PlayerEntityExtensions extendedPlayer) {
-					return extendedPlayer.getSliding() == sliding;
+					return extendedPlayer.wahoo$getSliding() == sliding;
 				}
 				return false;
 			});
@@ -88,7 +88,7 @@ public class WahooCommands {
 						.then(argument("value", BoolArgumentType.bool())
 								.executes(context -> {
 									ServerPlayerEntity target = EntityArgumentType.getPlayer(context, "target");
-									((WahooUtils.ServerPlayerEntityExtensions) target).setDestructionPermOverride(BoolArgumentType.getBool(context, "value"));
+									((WahooUtils.ServerPlayerEntityExtensions) target).wahoo$setDestructionPermOverride(BoolArgumentType.getBool(context, "value"));
 									return 0;
 								})))));
 		

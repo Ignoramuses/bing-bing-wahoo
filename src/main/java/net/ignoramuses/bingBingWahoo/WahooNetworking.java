@@ -22,12 +22,12 @@ public class WahooNetworking {
 	public static void init() {
 		ServerPlayNetworking.registerGlobalReceiver(JUMP_TYPE_PACKET, (server, player, handler, buf, responseSender) -> {
 			JumpTypes jumpType = JumpTypes.fromBuf(buf);
-			server.execute(() -> ((WahooUtils.ServerPlayerEntityExtensions) player).setPreviousJumpType(jumpType));
+			server.execute(() -> ((WahooUtils.ServerPlayerEntityExtensions) player).wahoo$setPreviousJumpType(jumpType));
 		});
 		ServerPlayNetworking.registerGlobalReceiver(GROUND_POUND_PACKET, (server, player, handler, buf, responseSender) -> {
 			boolean groundPounding = buf.readBoolean();
 			boolean destruction = buf.readBoolean();
-			server.execute(() -> ((WahooUtils.ServerPlayerEntityExtensions) player).setGroundPounding(groundPounding, destruction));
+			server.execute(() -> ((WahooUtils.ServerPlayerEntityExtensions) player).wahoo$setGroundPounding(groundPounding, destruction));
 		});
 		ServerPlayNetworking.registerGlobalReceiver(DIVE_PACKET, (server, player, handler, buf, responseSender) -> {
 			boolean start = buf.readBoolean();
@@ -36,11 +36,11 @@ public class WahooNetworking {
 				startPos = buf.readBlockPos();
 			}
 			BlockPos finalStartPos = startPos;
-			server.execute(() -> ((WahooUtils.ServerPlayerEntityExtensions) player).setDiving(start, finalStartPos));
+			server.execute(() -> ((WahooUtils.ServerPlayerEntityExtensions) player).wahoo$setDiving(start, finalStartPos));
 		});
 		ServerPlayNetworking.registerGlobalReceiver(SLIDE_PACKET, (server, player, handler, buf, responseSender) -> {
 			boolean start = buf.readBoolean();
-			server.execute(() -> ((WahooUtils.ServerPlayerEntityExtensions) player).setSliding(start));
+			server.execute(() -> ((WahooUtils.ServerPlayerEntityExtensions) player).wahoo$setSliding(start));
 		});
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			sender.sendPacket(UPDATE_BOOLEAN_GAMERULE_PACKET, new PacketByteBuf(PacketByteBufs.create().writeString(DESTRUCTIVE_GROUND_POUND_RULE.getName()).writeBoolean(server.getGameRules().getBoolean(DESTRUCTIVE_GROUND_POUND_RULE))));

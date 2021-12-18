@@ -704,22 +704,22 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		super.setYaw(yaw);
 	}
 	
-	public void setBonked(boolean value, UUID bonked) {
+	public void wahoo$setBonked(boolean value, UUID bonked) {
 	}
 	
-	public boolean getSliding() {
+	public boolean wahoo$getSliding() {
 		return wahoo$isDiving || wahoo$forwardSliding;
 	}
 	
-	public boolean groundPounding() {
+	public boolean wahoo$groundPounding() {
 		return wahoo$isGroundPounding;
 	}
 	
-	public boolean slidingOnSlope() {
+	public boolean wahoo$slidingOnSlope() {
 		return wahoo$slidingOnSlope && wahoo$forwardSliding;
 	}
 	
-	public boolean slidingOnGround() {
+	public boolean wahoo$slidingOnGround() {
 		return wahoo$slidingOnGround && wahoo$forwardSliding;
 	}
 	
@@ -839,7 +839,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	
 	public void bonk() {
 		if (!wahoo$canWahoo || wahoo$wasRiding || !BingBingWahooClient.CONFIG.bonking) return;
-		((WahooUtils.KeyboardInputExtensions) input).disableControl();
+		((WahooUtils.KeyboardInputExtensions) input).wahoo$disableControl();
 		if (wahoo$isDiving) exitDive();
 		if (wahoo$midTripleJump) {
 			exitTripleJump();
@@ -859,7 +859,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	}
 	
 	public void exitBonk() {
-		((WahooUtils.KeyboardInputExtensions) input).enableControl();
+		((WahooUtils.KeyboardInputExtensions) input).wahoo$enableControl();
 		wahoo$bonked = false;
 		wahoo$bonkTime = 0;
 		setPitch(0);

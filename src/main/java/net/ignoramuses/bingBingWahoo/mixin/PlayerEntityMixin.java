@@ -24,7 +24,7 @@ public abstract class PlayerEntityMixin extends LivingEntity implements WahooUti
 	}
 	
 	@Override
-	public void setBonked(boolean value, UUID bonked) {
+	public void wahoo$setBonked(boolean value, UUID bonked) {
 		wahoo$isBonked = value;
 	}
 	

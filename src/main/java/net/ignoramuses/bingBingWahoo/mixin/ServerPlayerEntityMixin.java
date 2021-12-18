@@ -62,10 +62,10 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Wa
 		super(world, pos, yaw, profile);
 	}
 	
-	public void setBonked(boolean value, UUID bonked) {
+	public void wahoo$setBonked(boolean value, UUID bonked) {
 	}
 	
-	public boolean getSliding() {
+	public boolean wahoo$getSliding() {
 		return wahoo$diving || wahoo$sliding;
 	}
 	
@@ -133,12 +133,12 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Wa
 	}
 	
 	@Override
-	public void setPreviousJumpType(JumpTypes type) {
+	public void wahoo$setPreviousJumpType(JumpTypes type) {
 		wahoo$previousJumpType = type;
 	}
 	
 	@Override
-	public void setGroundPounding(boolean value, boolean destruction) {
+	public void wahoo$setGroundPounding(boolean value, boolean destruction) {
 		wahoo$destructiveGroundPound = destruction;
 		wahoo$groundPounding = value;
 		if (value) {
@@ -170,7 +170,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Wa
 		}
 	}
 	
-	public void setDiving(boolean value, @Nullable BlockPos startPos) {
+	public void wahoo$setDiving(boolean value, @Nullable BlockPos startPos) {
 		if (value) {
 			setPose(EntityPose.SWIMMING);
 			wahoo$divingStartPos.set(startPos);
@@ -178,7 +178,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Wa
 		wahoo$diving = value;
 	}
 	
-	public void setSliding(boolean value) {
+	public void wahoo$setSliding(boolean value) {
 		wahoo$sliding = value;
 	}
 	
@@ -199,7 +199,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Wa
 	}
 	
 	@Override
-	public void setDestructionPermOverride(boolean value) {
+	public void wahoo$setDestructionPermOverride(boolean value) {
 		wahoo$destructionPermOverride = value;
 	}
 }

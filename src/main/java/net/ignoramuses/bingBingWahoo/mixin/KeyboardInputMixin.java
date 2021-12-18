@@ -32,12 +32,12 @@ public abstract class KeyboardInputMixin extends Input implements WahooUtils.Key
 	}
 	
 	@Override
-	public void disableControl() {
+	public void wahoo$disableControl() {
 		wahoo$disableControl = true;
 	}
 	
 	@Override
-	public void enableControl() {
+	public void wahoo$enableControl() {
 		wahoo$disableControl = false;
 	}
 }

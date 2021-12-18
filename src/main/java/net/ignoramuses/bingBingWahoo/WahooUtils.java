@@ -16,6 +16,7 @@ import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.client.render.entity.model.ModelWithHead;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
@@ -232,33 +233,36 @@ public class WahooUtils {
 	}
 	
 	public interface PlayerEntityExtensions {
-		void setBonked(boolean value, UUID bonked);
-		boolean getSliding();
+		void wahoo$setBonked(boolean value, UUID bonked);
+		boolean wahoo$getSliding();
 	}
 	
 	public interface ServerPlayerEntityExtensions {
-		void setPreviousJumpType(JumpTypes type);
-		void setGroundPounding(boolean value, boolean breakBlocks);
-		void setDiving(boolean value, @Nullable BlockPos startPos);
-		void setSliding(boolean value);
-		void setDestructionPermOverride(boolean value);
+		void wahoo$setPreviousJumpType(JumpTypes type);
+		void wahoo$setGroundPounding(boolean value, boolean breakBlocks);
+		void wahoo$setDiving(boolean value, @Nullable BlockPos startPos);
+		void wahoo$setSliding(boolean value);
+		void wahoo$setDestructionPermOverride(boolean value);
 	}
 	
 	public interface ClientPlayerEntityExtensions {
-		boolean groundPounding();
-		boolean slidingOnSlope();
-		boolean slidingOnGround();
+		boolean wahoo$groundPounding();
+		boolean wahoo$slidingOnSlope();
+		boolean wahoo$slidingOnGround();
 	}
 	
 	public interface KeyboardInputExtensions {
-		void disableControl();
-		void enableControl();
+		void wahoo$disableControl();
+		void wahoo$enableControl();
 	}
 	
 	@Environment(EnvType.CLIENT)
 	public interface ModelPartExtensions {
-		void setCapRenderer(MysteriousCapModel model);
-		void setEntity(Entity entity);
-		void setVertexConsumerProvider(VertexConsumerProvider provider);
+		MatrixStack.Entry wahoo$getLastMatrixStackEntry();
+	}
+	
+	@Environment(EnvType.CLIENT)
+	public interface MatrixStackExtensions {
+		void wahoo$push(MatrixStack.Entry entry);
 	}
 }

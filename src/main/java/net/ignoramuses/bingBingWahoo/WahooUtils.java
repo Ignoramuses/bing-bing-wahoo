@@ -255,14 +255,4 @@ public class WahooUtils {
 		void wahoo$disableControl();
 		void wahoo$enableControl();
 	}
-	
-	@Environment(EnvType.CLIENT)
-	public interface ModelPartExtensions {
-		MatrixStack.Entry wahoo$getLastMatrixStackEntry();
-	}
-	
-	@Environment(EnvType.CLIENT)
-	public interface MatrixStackExtensions {
-		void wahoo$push(MatrixStack.Entry entry);
-	}
 }

@@ -9,7 +9,6 @@
     "EntityAccessor",
     "KeyboardInputMixin",
     "LivingEntityRendererMixin",
-    "ModelPartAccessor",
     "PlayerEntityRendererMixin",
     "modelAccessors.EntityModelWithHeadAccessor"
   ],
@@ -19,8 +18,6 @@
   "mixins": [
     "EntitySelectorOptionsAccessor",
     "LivingEntityMixin",
-    "MatrixStackMixin",
-    "ModelPartMixin",
     "PlayerEntityMixin",
     "ServerPlayerEntityMixin"
   ]

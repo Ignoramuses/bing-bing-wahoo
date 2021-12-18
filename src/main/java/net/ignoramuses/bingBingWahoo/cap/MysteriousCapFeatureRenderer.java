@@ -4,8 +4,6 @@ import com.google.common.util.concurrent.AtomicDouble;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.ignoramuses.bingBingWahoo.BingBingWahoo;
-import net.ignoramuses.bingBingWahoo.WahooUtils.MatrixStackExtensions;
-import net.ignoramuses.bingBingWahoo.WahooUtils.ModelPartExtensions;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.feature.FeatureRenderer;
@@ -40,7 +38,7 @@ public class MysteriousCapFeatureRenderer<T extends Entity, M extends EntityMode
 		float r = (color >> 16 & 255) / 255.0F;
 		float g = (color >> 8 & 255) / 255.0F;
 		float b = (color & 255) / 255.0F;
-		((MatrixStackExtensions) matrices).wahoo$push(((ModelPartExtensions) (Object) model.wearerHead).wahoo$getLastMatrixStackEntry());
+		matrices.push();
 		model.wearerHead.rotate(matrices);
 		final AtomicDouble x = new AtomicDouble(0);
 		final AtomicDouble y = new AtomicDouble(0);

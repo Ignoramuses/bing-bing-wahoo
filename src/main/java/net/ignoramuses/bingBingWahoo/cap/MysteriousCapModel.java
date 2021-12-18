@@ -7,7 +7,6 @@ package net.ignoramuses.bingBingWahoo.cap;
 
 import net.ignoramuses.bingBingWahoo.BingBingWahoo;
 import net.ignoramuses.bingBingWahoo.WahooUtils;
-import net.ignoramuses.bingBingWahoo.WahooUtils.ModelPartExtensions;
 import net.minecraft.client.model.*;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;

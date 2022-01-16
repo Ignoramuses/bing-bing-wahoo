@@ -2,6 +2,7 @@ package net.ignoramuses.bingBingWahoo.compat;
 
 import dev.emi.trinkets.api.SlotReference;
 import dev.emi.trinkets.api.TrinketComponent;
+import dev.emi.trinkets.api.TrinketInventory;
 import dev.emi.trinkets.api.TrinketsApi;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.annotation.Nullable;
 import net.minecraft.entity.LivingEntity;
@@ -20,7 +21,7 @@ public class TrinketsHandler {
 	}
 	
 	@Nullable
-	public static ItemStack getHatStack(LivingEntity entity) {
+	public static ItemStack getCapStack(LivingEntity entity) {
 		Optional<TrinketComponent> component = TrinketsApi.getTrinketComponent(entity);
 		if (component.isPresent()) {
 			for (Pair<SlotReference, ItemStack> pair : component.get().getEquipped(MYSTERIOUS_CAP)) {
@@ -28,5 +29,18 @@ public class TrinketsHandler {
 			}
 		}
 		return null;
+	}
+	
+	public static void equipInHatSlot(LivingEntity entity, ItemStack stack) {
+		Optional<TrinketComponent> component = TrinketsApi.getTrinketComponent(entity);
+		if (component.isPresent()) {
+			for (Pair<SlotReference, ItemStack> pair : component.get().getEquipped(item -> true)) {
+				SlotReference slot = pair.getLeft();
+				TrinketInventory inv = slot.inventory();
+				if (inv.getSlotType().getName().equals("hat")) {
+					inv.setStack(slot.index(), stack);
+				}
+			}
+		}
 	}
 }

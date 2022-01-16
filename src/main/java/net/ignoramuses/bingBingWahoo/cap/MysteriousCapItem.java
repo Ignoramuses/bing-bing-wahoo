@@ -6,6 +6,7 @@ import net.minecraft.item.ArmorMaterial;
 import net.minecraft.item.DyeableArmorItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
@@ -25,8 +26,7 @@ public class MysteriousCapItem extends DyeableArmorItem {
 		ItemStack held = user.getStackInHand(hand);
 		boolean client = world.isClient();
 		if (!client) {
-			FlyingCapEntity cap = new FlyingCapEntity(world, held, user, user.getX(), user.getEyeY() - 0.1, user.getZ());
-			world.spawnEntity(cap);
+			FlyingCapEntity.spawn((ServerPlayerEntity) user, held, PreferredCapSlot.HAND);
 			user.setStackInHand(hand, ItemStack.EMPTY);
 		}
 		return TypedActionResult.success(held, client);

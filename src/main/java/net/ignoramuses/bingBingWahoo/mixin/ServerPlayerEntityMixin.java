@@ -75,7 +75,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Wa
 		if (getEquippedStack(EquipmentSlot.HEAD).isOf(MYSTERIOUS_CAP)) {
 			wearingGreenCap = BingBingWahoo.MYSTERIOUS_CAP.getColor(getEquippedStack(EquipmentSlot.HEAD)) == 0x80C71F;
 		} else if (TRINKETS_LOADED) {
-			ItemStack hatStack = TrinketsHandler.getHatStack(this);
+			ItemStack hatStack = TrinketsHandler.getCapStack(this);
 			if (hatStack != null) {
 				wearingGreenCap = BingBingWahoo.MYSTERIOUS_CAP.getColor(hatStack) == 0x80C71F; // luigi number 1!
 			}

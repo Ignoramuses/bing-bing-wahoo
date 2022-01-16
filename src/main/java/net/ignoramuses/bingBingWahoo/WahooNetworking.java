@@ -3,7 +3,12 @@ package net.ignoramuses.bingBingWahoo;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.ignoramuses.bingBingWahoo.cap.FlyingCapEntity;
+import net.ignoramuses.bingBingWahoo.cap.PreferredCapSlot;
+import net.ignoramuses.bingBingWahoo.compat.TrinketsHandler;
 import net.ignoramuses.bingBingWahoo.movement.JumpTypes;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -17,6 +22,7 @@ public class WahooNetworking {
 	public static final Identifier DIVE_PACKET = new Identifier(ID, "dive_packet");
 	public static final Identifier SLIDE_PACKET = new Identifier(ID, "slide_packet");
 	public static final Identifier BONK_PACKET = new Identifier(ID, "bonk_packet");
+	public static final Identifier CAP_THROW = new Identifier(ID, "cap_throw");
 	public static final Identifier UPDATE_BOOLEAN_GAMERULE_PACKET = new Identifier(ID, "update_boolean_gamerule_packet");
 	public static final Identifier CAP_ENTITY_SPAWN = new Identifier(ID, "cap_entity_spawn");
 	
@@ -42,6 +48,18 @@ public class WahooNetworking {
 		ServerPlayNetworking.registerGlobalReceiver(SLIDE_PACKET, (server, player, handler, buf, responseSender) -> {
 			boolean start = buf.readBoolean();
 			server.execute(() -> ((WahooUtils.ServerPlayerEntityExtensions) player).wahoo$setSliding(start));
+		});
+		ServerPlayNetworking.registerGlobalReceiver(CAP_THROW, (server, player, handler, buf, responseSender) -> {
+			boolean fromTrinketSlot = buf.readBoolean();
+			server.execute(() -> {
+				ItemStack cap = fromTrinketSlot ? TrinketsHandler.getCapStack(player) : player.getEquippedStack(EquipmentSlot.HEAD);
+				FlyingCapEntity.spawn(player, cap, fromTrinketSlot ? PreferredCapSlot.TRINKETS : PreferredCapSlot.HEAD);
+				if (fromTrinketSlot) {
+					TrinketsHandler.equipInHatSlot(player, ItemStack.EMPTY);
+				} else {
+					player.equipStack(EquipmentSlot.HEAD, ItemStack.EMPTY);
+				}
+			});
 		});
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			sender.sendPacket(UPDATE_BOOLEAN_GAMERULE_PACKET, new PacketByteBuf(PacketByteBufs.create().writeString(DESTRUCTIVE_GROUND_POUND_RULE.getName()).writeBoolean(server.getGameRules().getBoolean(DESTRUCTIVE_GROUND_POUND_RULE))));

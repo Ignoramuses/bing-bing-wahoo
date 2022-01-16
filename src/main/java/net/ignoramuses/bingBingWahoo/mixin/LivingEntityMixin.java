@@ -66,24 +66,24 @@ public abstract class LivingEntityMixin extends Entity implements CapWearer {
 		}
 	}
 	
-	@Override
-	public ActionResult interact(PlayerEntity player, Hand hand) {
-		ItemStack held = player.getStackInHand(hand);
-		if (held.isOf(MYSTERIOUS_CAP) && !this.isSpectator()) {
-			if (!player.isCreative()) {
-				player.setStackInHand(hand, ItemStack.EMPTY);
-			}
-			if (isWearingCap()) {
-				dropStack(getCap());
-			}
-			equipStack(EquipmentSlot.HEAD, held.copy());
-			SoundEvent soundEvent = held.getEquipSound();
-			if (soundEvent != null) {
-				this.emitGameEvent(GameEvent.EQUIP);
-				this.playSound(soundEvent, 1.0F, 1.0F);
-			}
-			return ActionResult.SUCCESS;
-		}
-		return super.interact(player, hand);
-	}
+//	@Override
+//	public ActionResult interact(PlayerEntity player, Hand hand) {
+//		ItemStack held = player.getStackInHand(hand);
+//		if (held.isOf(MYSTERIOUS_CAP) && !this.isSpectator()) {
+//			if (!player.isCreative()) {
+//				player.setStackInHand(hand, ItemStack.EMPTY);
+//			}
+//			if (isWearingCap()) {
+//				dropStack(getCap());
+//			}
+//			equipStack(EquipmentSlot.HEAD, held.copy());
+//			SoundEvent soundEvent = held.getEquipSound();
+//			if (soundEvent != null) {
+//				this.emitGameEvent(GameEvent.EQUIP);
+//				this.playSound(soundEvent, 1.0F, 1.0F);
+//			}
+//			return ActionResult.SUCCESS;
+//		}
+//		return super.interact(player, hand);
+//	}
 }

@@ -35,19 +35,17 @@ import static net.minecraft.entity.Entity.RemovalReason.*;
 
 public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 	private static final TrackedData<Integer> COLOR = DataTracker.registerData(FlyingCapEntity.class, TrackedDataHandlerRegistry.INTEGER);
-	public static final Map<String, List<FlyingCapEntity>> BY_PLAYER = new HashMap<>(); // UUID -> caps
 	
 	// synced
 	private ItemStack stack;
 	private String throwerId;
 	private Vec3d startAngle;
 	private Vec3d startPos;
+	private boolean leftThrower = false;
+	private int ticksAtEnd;
 	// not synced
 	@Nullable
 	private PlayerEntity thrower;
-	private int ticksToFindThrower = 0;
-	private boolean leftThrower = false;
-	private int ticksAtEnd;
 	
 	// region init
 	
@@ -102,12 +100,6 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 	// endregion
 	// region data
 	
-	
-	@Override
-	public boolean shouldSave() {
-		return false; // handled by players
-	}
-
 	@Override
 	public void readCustomDataFromNbt(NbtCompound nbt) {
 		ItemStack stack = ItemStack.fromNbt(nbt.getCompound("Item"));
@@ -115,6 +107,8 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 		this.throwerId = nbt.getString("Thrower");
 		this.startAngle = new Vec3d(nbt.getDouble("StartAngleX"), nbt.getDouble("StartAngleY"), nbt.getDouble("StartAngleZ"));
 		this.startPos = new Vec3d(nbt.getDouble("StartPosX"), nbt.getDouble("StartPosY"), nbt.getDouble("StartPosZ"));
+		this.leftThrower = nbt.getBoolean("LeftThrower");
+		this.ticksAtEnd = nbt.getInt("TicksAtEnd");
 	}
 	
 	@Override
@@ -128,6 +122,8 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 		nbt.putDouble("StartPosX", startPos.getX());
 		nbt.putDouble("StartPosY", startPos.getY());
 		nbt.putDouble("StartPosZ", startPos.getZ());
+		nbt.putBoolean("LeftThrower", leftThrower);
+		nbt.putInt("TicksAtEnd", ticksAtEnd);
 	}
 	
 	// endregion
@@ -135,46 +131,10 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 	@Override
 	public void tick() {
 		super.tick();
-		if (thrower == null) {
-			ticksToFindThrower++;
-			if (ticksToFindThrower == 20) {
-				ticksToFindThrower = 0;
-				for (PlayerEntity player : world.getPlayers()) {
-					if (player.getUuidAsString().equals(throwerId)) {
-						thrower = player;
-					}
-				}
-			}
-		} else if (thrower.isRemoved() && !isRemoved()) {
-			thrower = null;
-			kill();
-		}
+		tryFindThrower();
+		tryMove();
 		
-		// movement
-		Vec3d toMove = Vec3d.ZERO;
-		if (ticksAtEnd == 0) {
-			double mult = 10;
-			toMove = startAngle.multiply(mult);
-			// valley of the cosine wave - slow down as it approaches the end
-			ticksAtEnd = mult <= 0 ? 1 : 0;
-		} else {
-			ticksAtEnd++;
-			if (ticksAtEnd > 10) {
-				if (thrower != null) {
-					Vec3d distance = thrower.getEyePos().subtract(getPos());
-					toMove = distance.multiply(0.2);
-				}
-			}
-		}
-		
-		if (toMove != Vec3d.ZERO) {
-			move(MovementType.SELF, toMove);
-		}
-
-		// server behavior - drops, capturing, etc
 		if (!world.isClient()) {
-			if (age > 500) kill();
-			
 			List<Entity> collisions = world.getOtherEntities(this, getBoundingBox().stretch(getVelocity()).expand(1), e -> !e.isSpectator() && e.collides());
 			
 			if (shouldLeaveThrower(collisions)) {
@@ -207,6 +167,42 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 					}
 				}
 			}
+			
+			if (age > 500) kill();
+		}
+	}
+	
+	private void tryFindThrower() {
+		if (thrower == null) {
+			for (PlayerEntity player : world.getPlayers()) {
+				if (player.getUuidAsString().equals(throwerId)) {
+					thrower = player;
+				}
+			}
+		}
+	}
+	
+	private void tryMove() {
+		if (thrower != null) {
+			Vec3d toMove = Vec3d.ZERO;
+			if (ticksAtEnd == 0) {
+				double mult = Math.cos(age / 5f) * 10;
+				toMove = startAngle.multiply(mult);
+				// valley of the cosine wave - slow down as it approaches the end
+				ticksAtEnd = mult <= 0 ? 1 : 0;
+			} else {
+				ticksAtEnd++;
+				if (ticksAtEnd > 10) {
+					if (thrower != null) {
+						Vec3d distance = thrower.getEyePos().subtract(getPos());
+						toMove = distance.multiply(0.2);
+					}
+				}
+			}
+			
+			if (toMove != Vec3d.ZERO) {
+				move(MovementType.SELF, toMove);
+			}
 		}
 	}
 	
@@ -235,20 +231,7 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 		super.kill();
 		dropStack(stack.copy());
 	}
-	
-	@Override
-	public void remove(RemovalReason reason) {
-		super.remove(reason);
-		if (reason == CHANGED_DIMENSION) {
-			dropStack(stack.copy());
-			return;
-		}
-		if (reason != UNLOADED_WITH_PLAYER) { // players handle removal from lists on their own
-			List<FlyingCapEntity> caps = BY_PLAYER.get(throwerId);
-			if (caps != null) caps.remove(this);
-		}
-	}
-	
+
 	@Override
 	public ItemStack getStack() {
 		return stack;

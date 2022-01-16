@@ -50,57 +50,6 @@ public abstract class PlayerEntityMixin extends LivingEntity implements PlayerEn
 		}
 	}
 	
-	@Inject(at = @At("TAIL"), method = "readCustomDataFromNbt")
-	private void wahoo$readCaps(NbtCompound nbt, CallbackInfo ci) {
-		if (nbt.contains("Caps")) {
-			NbtList caps = nbt.getList("Caps", NbtElement.COMPOUND_TYPE);
-			for (NbtElement element : caps) {
-				NbtCompound data = (NbtCompound) element;
-				FlyingCapEntity cap = BingBingWahoo.FLYING_CAP.create(world);
-				cap.readNbt(data);
-				world.spawnEntity(cap);
-				FlyingCapEntity.BY_PLAYER.computeIfAbsent(getUuidAsString(), $ -> new ArrayList<>()).add(cap);
-			}
-		}
-	}
-	
-	@Inject(at = @At("TAIL"), method = "writeCustomDataToNbt")
-	private void wahoo$writeCaps(NbtCompound nbt, CallbackInfo ci) {
-		List<FlyingCapEntity> entities = FlyingCapEntity.BY_PLAYER.get(getUuidAsString());
-		if (entities != null) {
-			NbtList caps = new NbtList();
-			for (FlyingCapEntity cap : entities) {
-				NbtCompound data = new NbtCompound();
-				cap.writeNbt(data);
-				caps.add(data);
-			}
-			nbt.put("Caps", caps);
-		}
-		
-	}
-	
-	@Inject(at = @At("TAIL"), method = "remove")
-	private void wahoo$onRemove(RemovalReason reason, CallbackInfo ci) {
-		if (reason == DISCARDED) return; // don't want to catch respawning
-		List<FlyingCapEntity> entities = FlyingCapEntity.BY_PLAYER.get(getUuidAsString());
-		if (entities != null) {
-			entities.forEach(cap -> cap.remove(reason == CHANGED_DIMENSION ? reason : RemovalReason.UNLOADED_WITH_PLAYER)); // prevent CME
-			entities.clear();
-		}
-	}
-	
-	@Inject(at = @At("TAIL"), method = "tick")
-	private void wahoo$tick(CallbackInfo ci) {
-		List<FlyingCapEntity> caps = FlyingCapEntity.BY_PLAYER.get(getUuidAsString());
-		if (caps != null) {
-			for (FlyingCapEntity cap : caps) {
-				if (cap.world != this.world) {
-					world.spawnEntity(cap);
-				}
-			}
-		}
-	}
-	
 	@Override
 	public void setPose(EntityPose pose) {
 		if (wahoo$isBonked) {

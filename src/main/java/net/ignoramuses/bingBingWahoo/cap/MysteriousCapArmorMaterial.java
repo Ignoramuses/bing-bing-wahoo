@@ -7,7 +7,9 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.tag.ItemTags;
 
-public class MysteriousCapArmorMaterial implements ArmorMaterial {
+public enum MysteriousCapArmorMaterial implements ArmorMaterial {
+	INSTANCE;
+	
 	public static final Ingredient REPAIR = Ingredient.fromTag(ItemTags.WOOL);
 	
 	@Override

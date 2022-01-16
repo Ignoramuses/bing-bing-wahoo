@@ -4,7 +4,7 @@
   "version": "${version}",
 
   "name": "Bing Bing Wahoo",
-  "description": "Bringing the physics of Super Mario 64 to Minecraft, one wahoo at a time.\nMade for ModFest 1.17.",
+  "description": "Bringing the physics of Mario to Minecraft, one wahoo at a time.\nMade for ModFest 1.17.",
   "authors": [
     "Tropheus Jay",
     "InsaneASockJr"
@@ -33,9 +33,9 @@
   ],
 
   "depends": {
-    "fabricloader": ">=0.12.5",
+    "fabricloader": ">=0.12.12",
     "fabric": "*",
-    "minecraft": ">1.17",
+    "minecraft": ">1.18",
     "java": ">=17",
     "cloth-config2": ">=6.0.42"
   },

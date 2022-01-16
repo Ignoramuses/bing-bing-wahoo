@@ -2,8 +2,9 @@ package net.ignoramuses.bingBingWahoo;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.ignoramuses.bingBingWahoo.cap.FlyingCapEntity;
 import net.ignoramuses.bingBingWahoo.cap.MysteriousCapModel;
-import net.ignoramuses.bingBingWahoo.mixin.modelAccessors.EntityModelWithHeadAccessor;
+import net.ignoramuses.bingBingWahoo.mixin.EntityModelWithHeadAccessor;
 import net.ignoramuses.bingBingWahoo.movement.JumpTypes;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -13,26 +14,52 @@ import net.minecraft.block.enums.BlockHalf;
 import net.minecraft.block.enums.StairShape;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.model.ModelPart;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.entity.model.BipedEntityModel;
-import net.minecraft.client.render.entity.model.ModelWithHead;
+import net.minecraft.client.render.entity.model.*;
+import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.Entity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3f;
 import net.minecraft.util.shape.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.UUID;
+
+import static net.ignoramuses.bingBingWahoo.BingBingWahoo.MYSTERIOUS_CAP;
 
 public class WahooUtils {
 	public static final double SIXTEENTH = 1 / 16f;
+	public static final Identifier CAP_TEXTURE = new Identifier(BingBingWahoo.ID, "textures/armor/mysterious_cap.png");
+	public static final Identifier EMBLEM_TEXTURE = new Identifier(BingBingWahoo.ID, "textures/armor/mysterious_cap_emblem.png");
+	
+	@Environment(EnvType.CLIENT)
+	public static void renderCap(MatrixStack matrices, VertexConsumerProvider vertexConsumers, ItemStack hatStack, int light, float tickDelta, MysteriousCapModel model) {
+		int color = MYSTERIOUS_CAP.getColor(hatStack);
+		float r = (color >> 16 & 255) / 255.0F;
+		float g = (color >> 8 & 255) / 255.0F;
+		float b = (color & 255) / 255.0F;
+		matrices.push();
+		matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(90));
+		VertexConsumer capConsumer = ItemRenderer.getArmorGlintConsumer(vertexConsumers, RenderLayer.getArmorCutoutNoCull(CAP_TEXTURE), false, hatStack.hasGlint());
+		model.render(matrices, capConsumer, light, 1, r, g, b, 1);
+		VertexConsumer emblemConsumer = ItemRenderer.getArmorGlintConsumer(vertexConsumers, RenderLayer.getArmorCutoutNoCull(EMBLEM_TEXTURE), false, hatStack.hasGlint());
+		model.render(matrices, emblemConsumer, light, 1, 1, 1, 1, 1);
+		matrices.pop();
+	}
 	
 	@Nullable
 	@Environment(EnvType.CLIENT)
-	public static ModelPart getHeadModel(Model base) {
+	public static ModelPart getHeadModel(@Nullable Model base) {
 		if (base instanceof BipedEntityModel biped) {
 			return biped.head;
 		} else if (base instanceof ModelWithHead model) {

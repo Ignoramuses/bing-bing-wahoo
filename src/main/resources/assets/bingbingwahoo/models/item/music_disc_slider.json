@@ -1,6 +1,0 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "bingbingwahoo:items/music_disc_slider"
-  }
-}

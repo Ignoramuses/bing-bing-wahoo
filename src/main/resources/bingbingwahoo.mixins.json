@@ -7,10 +7,10 @@
     "ArmorFeatureRendererMixin",
     "ClientPlayerEntityMixin",
     "EntityAccessor",
+    "EntityModelWithHeadAccessor",
     "KeyboardInputMixin",
     "LivingEntityRendererMixin",
-    "PlayerEntityRendererMixin",
-    "modelAccessors.EntityModelWithHeadAccessor"
+    "PlayerEntityRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

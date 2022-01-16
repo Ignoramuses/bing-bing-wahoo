@@ -1,4 +1,4 @@
-package net.ignoramuses.bingBingWahoo.mixin.modelAccessors;
+package net.ignoramuses.bingBingWahoo.mixin;
 
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.entity.EnderDragonEntityRenderer.DragonEntityModel;

@@ -31,9 +31,12 @@
   "text.autoconfig.bingbingwahoo.option.bonking": "Bonking",
   "text.autoconfig.bingbingwahoo.option.bonking.@Tooltip": "Whether bonks should happen or not.",
   "item.bingbingwahoo.mysterious_cap": "Mysterious Cap",
-  "item.bingbingwahoo.music_disc_slider": "Music Disc",
-  "item.bingbingwahoo.music_disc_slider.desc": "Koji Kondo - Slider",
-  "item.bingbingwahoo.music_disc_slider.desc2": "...but in the Minecraft soundfont",
   "bingbingwahoo.luigiNumberOne": "§a§oLuigi Number One!",
-  "argument.entity.options.sliding.description": "Players sliding"
+  "argument.entity.options.sliding.description": "Players sliding",
+  "gamerule.backwardsLongJumps": "Backwards Long Jumps",
+  "gamerule.destructiveGroundPounds": "Destructive Ground Pounds",
+  "gamerule.rapidFireLongJumps": "Rapid Fire Long Jumps",
+  "gamerule.longJumpMaxSpeed": "Max long jump speed",
+  "gamerule.longJumpSpeedMultiplier": "Long jump speed multiplier",
+  "gamerule.mysteriousCapRequired": "Mysterious Cap Required"
 }

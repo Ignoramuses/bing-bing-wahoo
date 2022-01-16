@@ -18,6 +18,7 @@ public class WahooNetworking {
 	public static final Identifier SLIDE_PACKET = new Identifier(ID, "slide_packet");
 	public static final Identifier BONK_PACKET = new Identifier(ID, "bonk_packet");
 	public static final Identifier UPDATE_BOOLEAN_GAMERULE_PACKET = new Identifier(ID, "update_boolean_gamerule_packet");
+	public static final Identifier CAP_ENTITY_SPAWN = new Identifier(ID, "cap_entity_spawn");
 	
 	public static void init() {
 		ServerPlayNetworking.registerGlobalReceiver(JUMP_TYPE_PACKET, (server, player, handler, buf, responseSender) -> {

@@ -11,7 +11,7 @@
     "KeyboardInputMixin",
     "LivingEntityRendererMixin",
     "PlayerEntityRendererMixin",
-    "identity.IdentityClientMixin"
+    "identity.IdentityMinecraftClientMixin"
   ],
   "injectors": {
     "defaultRequire": 1
@@ -21,6 +21,7 @@
     "LivingEntityMixin",
     "PlayerEntityMixin",
     "ServerPlayerEntityMixin",
-    "identity.IdentityCommandMixin"
+    "identity.IdentityCommandMixin",
+    "identity.IdentityServerNetworkingMixin"
   ]
 }

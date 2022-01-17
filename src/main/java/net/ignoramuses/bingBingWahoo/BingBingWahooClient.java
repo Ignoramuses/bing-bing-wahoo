@@ -17,6 +17,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.ignoramuses.bingBingWahoo.WahooUtils.ClientPlayerEntityExtensions;
 import net.ignoramuses.bingBingWahoo.cap.FlyingCapEntity;
 import net.ignoramuses.bingBingWahoo.cap.FlyingCapRenderer;
 import net.ignoramuses.bingBingWahoo.cap.MysteriousCapModel;
@@ -78,6 +79,17 @@ public class BingBingWahooClient implements ClientModInitializer {
 				if (cap != null) {
 					cap.readCustomDataFromNbt(data);
 				}
+			});
+		});
+		ClientPlayNetworking.registerGlobalReceiver(CAPTURE, (client, handler, buf, sender) -> {
+			NbtCompound entityData = buf.readNbt();
+			client.execute(() -> {
+				ClientPlayerEntity player = client.player;
+				if (entityData != null) {
+					LivingEntity entity = Components.CURRENT_IDENTITY.get(player).getIdentity();
+					entity.readNbt(entityData);
+				}
+				((ClientPlayerEntityExtensions) player).wahoo$setCapturing(entityData != null);
 			});
 		});
 //		ClientPlayNetworking.registerGlobalReceiver(BingBingWahoo.BONK_PACKET, (client, handler, buf, sender) -> {

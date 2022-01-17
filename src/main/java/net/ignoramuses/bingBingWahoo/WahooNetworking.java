@@ -18,10 +18,11 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
 
-import static net.ignoramuses.bingBingWahoo.BingBingWahoo.ID;
 import static net.ignoramuses.bingBingWahoo.WahooCommands.*;
+import static net.ignoramuses.bingBingWahoo.WahooUtils.toNbtList;
 
 public class WahooNetworking {
 	public static final Identifier JUMP_TYPE_PACKET = BingBingWahoo.id("jump_type_packet");
@@ -34,6 +35,7 @@ public class WahooNetworking {
 	public static final Identifier IDENTITY_REQUEST_ADDON = BingBingWahoo.id("identity_request_addon");
 	public static final Identifier UPDATE_BOOLEAN_GAMERULE_PACKET = BingBingWahoo.id("update_boolean_gamerule_packet");
 	public static final Identifier CAP_ENTITY_SPAWN = BingBingWahoo.id("cap_entity_spawn");
+	public static final Identifier CAPTURE = BingBingWahoo.id("capture");
 	
 	public static void init() {
 		ServerPlayNetworking.registerGlobalReceiver(JUMP_TYPE_PACKET, (server, player, handler, buf, responseSender) -> {
@@ -61,12 +63,15 @@ public class WahooNetworking {
 		ServerPlayNetworking.registerGlobalReceiver(CAP_THROW, (server, player, handler, buf, responseSender) -> {
 			boolean fromTrinketSlot = buf.readBoolean();
 			server.execute(() -> {
-				ItemStack cap = fromTrinketSlot ? TrinketsHandler.getCapStack(player) : player.getEquippedStack(EquipmentSlot.HEAD);
-				FlyingCapEntity.spawn(player, cap, fromTrinketSlot ? PreferredCapSlot.TRINKETS : PreferredCapSlot.HEAD);
-				if (fromTrinketSlot) {
-					TrinketsHandler.equipInHatSlot(player, ItemStack.EMPTY);
-				} else {
-					player.equipStack(EquipmentSlot.HEAD, ItemStack.EMPTY);
+				NbtCompound captured = ((ServerPlayerEntityExtensions) player).wahoo$getCaptured();
+				if (captured == null) {
+					ItemStack cap = fromTrinketSlot ? TrinketsHandler.getCapStack(player) : player.getEquippedStack(EquipmentSlot.HEAD);
+					FlyingCapEntity.spawn(player, cap, fromTrinketSlot ? PreferredCapSlot.TRINKETS : PreferredCapSlot.HEAD);
+					if (fromTrinketSlot) {
+						TrinketsHandler.equipInHatSlot(player, ItemStack.EMPTY);
+					} else {
+						player.equipStack(EquipmentSlot.HEAD, ItemStack.EMPTY);
+					}
 				}
 			});
 		});
@@ -75,6 +80,10 @@ public class WahooNetworking {
 			if (captured != null) {
 				String typeId = captured.getString("Type");
 				NbtCompound entityData = captured.getCompound("Entity");
+				entityData.put("Pos", toNbtList(player.getX(), player.getY(), player.getZ()));
+				Vec3d motion = player.getVelocity();
+				entityData.put("Motion", toNbtList(motion.getX(), motion.getY(), motion.getZ()));
+				entityData.put("Rotation", toNbtList(player.getYaw(), player.getPitch()));
 				EntityType<?> type = Registry.ENTITY_TYPE.get(new Identifier(typeId));
 				Entity entity = type.create(player.world);
 				if (entity != null) {
@@ -82,6 +91,7 @@ public class WahooNetworking {
 					player.world.spawnEntity(entity);
 					player.world.playSound(null, player.getX(), player.getY(), player.getZ(),
 							SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1, 1);
+					((ServerPlayerEntityExtensions) player).wahoo$setCaptured(null);
 				}
 			}
 		}));

@@ -21,6 +21,8 @@ import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtDouble;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -38,6 +40,16 @@ public class WahooUtils {
 	public static final double SIXTEENTH = 1 / 16f;
 	public static final Identifier CAP_TEXTURE = new Identifier(BingBingWahoo.ID, "textures/armor/mysterious_cap.png");
 	public static final Identifier EMBLEM_TEXTURE = new Identifier(BingBingWahoo.ID, "textures/armor/mysterious_cap_emblem.png");
+	
+	public static NbtList toNbtList(double... values) {
+		NbtList nbtList = new NbtList();
+		
+		for(double d : values) {
+			nbtList.add(NbtDouble.of(d));
+		}
+		
+		return nbtList;
+	}
 	
 	@Environment(EnvType.CLIENT)
 	public static void renderCap(MatrixStack matrices, VertexConsumerProvider vertexConsumers, ItemStack hatStack, int light, float tickDelta, MysteriousCapModel model) {
@@ -267,7 +279,7 @@ public class WahooUtils {
 		void wahoo$setDiving(boolean value, @Nullable BlockPos startPos);
 		void wahoo$setSliding(boolean value);
 		void wahoo$setDestructionPermOverride(boolean value);
-		void wahoo$setCaptured(NbtCompound capturedData);
+		void wahoo$setCaptured(@Nullable NbtCompound capturedData);
 		NbtCompound wahoo$getCaptured();
 	}
 	
@@ -275,6 +287,7 @@ public class WahooUtils {
 		boolean wahoo$groundPounding();
 		boolean wahoo$slidingOnSlope();
 		boolean wahoo$slidingOnGround();
+		void wahoo$setCapturing(boolean value);
 	}
 	
 	public interface KeyboardInputExtensions {

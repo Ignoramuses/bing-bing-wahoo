@@ -5,6 +5,7 @@ import draylar.identity.registry.Components;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.ignoramuses.bingBingWahoo.BingBingWahoo;
+import net.ignoramuses.bingBingWahoo.WahooNetworking;
 import net.ignoramuses.bingBingWahoo.WahooUtils.ServerPlayerEntityExtensions;
 import net.minecraft.entity.*;
 import net.minecraft.entity.damage.DamageSource;
@@ -159,16 +160,21 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 					if (Identity.CONFIG.enableSwaps || player.hasPermissionLevel(3)) {
 						LivingEntity copy = (LivingEntity) living.getType().create(world);
 						if (copy != null) {
-							copy.readNbt(living.writeNbt(new NbtCompound()));
+							NbtCompound captured = new NbtCompound();
+							NbtCompound entityData = living.writeNbt(new NbtCompound());
+							entityData.remove("Pos");
+							entityData.remove("Motion");
+							entityData.remove("Rotation");
+							captured.put("Entity", entityData);
+							captured.putString("Type", Registry.ENTITY_TYPE.getId(living.getType()).toString());
+							copy.readNbt(entityData);
 							Components.CURRENT_IDENTITY.get(player).setIdentity(copy);
+							((ServerPlayerEntityExtensions) player).wahoo$setCaptured(captured);
+							ServerPlayNetworking.send(player, WahooNetworking.CAPTURE, PacketByteBufs.create().writeNbt(entityData));
 							player.calculateDimensions();
 							player.teleport((ServerWorld) world, living.getX(), living.getY(), living.getZ(), living.getYaw(), living.getPitch());
 							world.playSound(null, living.getX(), living.getY(), living.getZ(),
 									SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1, 1);
-							NbtCompound captured = new NbtCompound();
-							captured.put("Entity", living.writeNbt(new NbtCompound()));
-							captured.putString("Type", Registry.ENTITY_TYPE.getId(living.getType()).toString());
-							((ServerPlayerEntityExtensions) player).wahoo$setCaptured(captured);
 							living.discard();
 							ItemStack stack = getStack();
 							if (!tryReequipCap()) { // set in correct slot
@@ -177,6 +183,7 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 								}
 							}
 							remove(KILLED);
+							break;
 						}
 					}
 				} else if (entity != thrower && entity instanceof LivingEntity living) {

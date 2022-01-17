@@ -30,6 +30,7 @@ public class FlyingCapRenderer extends EntityRenderer<FlyingCapEntity> {
 		matrices.translate(0, -1.55, 0);
 		float rotation = (entity.age + tickDelta) * 50;
 		matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(rotation));
+		if (entity.ticksAtEnd > 0 && entity.ticksAtEnd <= 10) matrices.scale(2.5f, 1, 2.5f); // larger surface to jump on
 		WahooUtils.renderCap(matrices, vertexConsumers, stack, light, tickDelta, model);
 		matrices.pop();
 	}

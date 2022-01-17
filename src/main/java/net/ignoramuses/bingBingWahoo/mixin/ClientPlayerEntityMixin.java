@@ -727,13 +727,13 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	
 	public void longJump() {
 		if (!wahoo$canWahoo || wahoo$wasRiding) return;
-		// ------- warning: black magic wizardry below -------
+		// ---------- warning: scary math ----------
 		Vec2f velocity = new Vec2f((float) getVelocity().getX(), (float) getVelocity().getZ());
 		Vec2f rotation = new Vec2f((float) getRotationVector().getX(), (float) getRotationVector().getZ());
 		
 		double cosOfVecs = (rotation.dot(velocity)) / (rotation.length() * velocity.length());
 		double degreesDiff = Math.toDegrees(Math.acos(cosOfVecs));
-		// ----------- end of black magic wizardry -----------
+		// ----------- end of scary math -----------
 		
 		// todo: use this to make a cleaner implementation
 //		float x = MathHelper.sin(getYaw() * (float) (Math.PI / 180.0)) * MathHelper.cos(getPitch() * (float) (Math.PI / 180.0));

@@ -15,6 +15,7 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
@@ -26,7 +27,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
 import java.util.UUID;
 
 import static net.ignoramuses.bingBingWahoo.BingBingWahoo.MYSTERIOUS_CAP;
@@ -57,6 +57,9 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Wa
 	private boolean wahoo$destructionPermOverride = false;
 	@Unique
 	private boolean wahoo$sliding = false;
+	@Nullable
+	@Unique
+	private NbtCompound wahoo$capturedData = null;
 	
 	public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile profile) {
 		super(world, pos, yaw, profile);
@@ -107,6 +110,26 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Wa
 		}
 	}
 	
+	@Inject(at = @At("HEAD"), method = "readCustomDataFromNbt")
+	private void wahoo$readCapturedData(NbtCompound nbt, CallbackInfo ci) {
+		if (nbt.contains("CapturedData")) {
+			wahoo$capturedData = nbt.getCompound("CapturedData");
+		}
+	}
+	
+	@Inject(at = @At("HEAD"), method = "writeCustomDataToNbt")
+	private void wahoo$writeCapturedData(NbtCompound nbt, CallbackInfo ci) {
+		if (wahoo$capturedData != null) {
+			nbt.put("CapturedData", wahoo$capturedData);
+		}
+	}
+	
+	@Override
+	protected boolean clipAtLedge() {
+		if (wahoo$previousJumpType == JumpTypes.LONG) return false;
+		return super.clipAtLedge();
+	}
+	
 	@Override
 	protected int computeFallDamage(float fallDistance, float damageMultiplier) {
 		if (wahoo$groundPounding) {
@@ -126,7 +149,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Wa
 		int fallDamage = super.computeFallDamage(fallDistance, damageMultiplier);
 		
 		if (fallDamage > getHealth() && wahoo$groundPounding) {
-			return (int) (getHealth() - 4);
+			return (int) (getHealth() - 1);
 		}
 		
 		return fallDamage;
@@ -170,6 +193,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Wa
 		}
 	}
 	
+	@Override
 	public void wahoo$setDiving(boolean value, @Nullable BlockPos startPos) {
 		if (value) {
 			setPose(EntityPose.SWIMMING);
@@ -178,6 +202,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Wa
 		wahoo$diving = value;
 	}
 	
+	@Override
 	public void wahoo$setSliding(boolean value) {
 		wahoo$sliding = value;
 	}
@@ -201,5 +226,15 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Wa
 	@Override
 	public void wahoo$setDestructionPermOverride(boolean value) {
 		wahoo$destructionPermOverride = value;
+	}
+	
+	@Override
+	public void wahoo$setCaptured(@Nullable NbtCompound capturedData) {
+		wahoo$capturedData = capturedData;
+	}
+	
+	@Override
+	public NbtCompound wahoo$getCaptured() {
+		return wahoo$capturedData;
 	}
 }

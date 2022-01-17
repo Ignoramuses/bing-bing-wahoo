@@ -24,6 +24,13 @@ import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class WahooCommands {
+	public static GameRules.Key<GameRules.BooleanRule> DISABLE_IDENTITY_SWAPPING_RULE = GameRuleRegistry.register("disableIdentitySwapping", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true, (server, rule) -> {
+		List<ServerPlayerEntity> players = server.getPlayerManager().getPlayerList();
+		PacketByteBuf buffer = new PacketByteBuf(PacketByteBufs.create().writeString("disableIdentitySwapping").writeBoolean(rule.get()));
+		for (ServerPlayerEntity player : players) {
+			ServerPlayNetworking.send(player, UPDATE_BOOLEAN_GAMERULE_PACKET, buffer);
+		}
+	}));
 	public static GameRules.Key<GameRules.BooleanRule> DESTRUCTIVE_GROUND_POUND_RULE = GameRuleRegistry.register("destructiveGroundPounds", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true, (server, rule) -> {
 		List<ServerPlayerEntity> players = server.getPlayerManager().getPlayerList();
 		PacketByteBuf buffer = new PacketByteBuf(PacketByteBufs.create().writeString("destructiveGroundPounds").writeBoolean(rule.get()));
@@ -52,7 +59,7 @@ public class WahooCommands {
 			ServerPlayNetworking.send(player, UPDATE_BOOLEAN_GAMERULE_PACKET, buffer);
 		}
 	}));
-	public static final Identifier UPDATE_DOUBLE_GAMERULE_PACKET = new Identifier(ID, "update_double_gamerule_packet");
+	public static final Identifier UPDATE_DOUBLE_GAMERULE_PACKET = BingBingWahoo.id("update_double_gamerule_packet");
 	public static GameRules.Key<DoubleRule> MAX_LONG_JUMP_SPEED_RULE = GameRuleRegistry.register("longJumpMaxSpeed", GameRules.Category.PLAYER, GameRuleFactory.createDoubleRule(1.5, (server, rule) -> {
 		List<ServerPlayerEntity> players = server.getPlayerManager().getPlayerList();
 		PacketByteBuf buffer = new PacketByteBuf(PacketByteBufs.create().writeString("longJumpMaxSpeed").writeDouble(rule.get()));

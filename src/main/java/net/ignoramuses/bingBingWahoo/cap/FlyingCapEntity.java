@@ -1,11 +1,11 @@
 package net.ignoramuses.bingBingWahoo.cap;
 
+import draylar.identity.Identity;
+import draylar.identity.registry.Components;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.ignoramuses.bingBingWahoo.BingBingWahoo;
-import net.ignoramuses.bingBingWahoo.capture.CaptureHandler;
-import net.ignoramuses.bingBingWahoo.capture.CapturingRegistry;
-import net.ignoramuses.bingBingWahoo.compat.TrinketsHandler;
+import net.ignoramuses.bingBingWahoo.WahooUtils.ServerPlayerEntityExtensions;
 import net.minecraft.entity.*;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
@@ -18,17 +18,17 @@ import net.minecraft.network.Packet;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.Hand;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 import static net.ignoramuses.bingBingWahoo.BingBingWahoo.MYSTERIOUS_CAP;
-import static net.ignoramuses.bingBingWahoo.BingBingWahoo.TRINKETS_LOADED;
 import static net.ignoramuses.bingBingWahoo.WahooNetworking.CAP_ENTITY_SPAWN;
 import static net.minecraft.entity.Entity.RemovalReason.*;
 
@@ -41,13 +41,11 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 	private Vec3d startAngle;
 	private Vec3d startPos;
 	private boolean leftThrower = false;
-	private int ticksAtEnd;
+	public int ticksAtEnd;
 	private PreferredCapSlot preferredSlot;
 	// not synced
 	@Nullable
 	private PlayerEntity thrower;
-	
-	// region init
 	
 	public FlyingCapEntity(EntityType<FlyingCapEntity> entityType, World world) {
 		super(entityType, world);
@@ -84,9 +82,6 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 		dataTracker.startTracking(COLOR, 0xFFFFFF);
 	}
 	
-	// endregion
-	// region setters
-	
 	public void setItem(ItemStack stack) {
 		this.stack = stack;
 		if (stack.getItem() instanceof MysteriousCapItem cap) {
@@ -97,9 +92,6 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 	public void setColor(int color) {
 		dataTracker.set(COLOR, color);
 	}
-	
-	// endregion
-	// region data
 	
 	@Override
 	public void readCustomDataFromNbt(NbtCompound nbt) {
@@ -115,8 +107,7 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 	
 	@Override
 	public void writeCustomDataToNbt(NbtCompound nbt) {
-		ItemStack stack = getStack();
-		if (stack != null) nbt.put("Item", stack.writeNbt(new NbtCompound()));
+		nbt.put("Item", getStack().writeNbt(new NbtCompound()));
 		nbt.putString("Thrower", throwerId);
 		nbt.putDouble("StartAngleX", startAngle.getX());
 		nbt.putDouble("StartAngleY", startAngle.getY());
@@ -128,8 +119,6 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 		nbt.putInt("TicksAtEnd", ticksAtEnd);
 		nbt.putInt("PreferredSlot", preferredSlot.ordinal());
 	}
-	
-	// endregion
 	
 	@Override
 	public void tick() {
@@ -165,11 +154,34 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 					}
 				}
 				
-				CaptureHandler<?> captureHandler = CapturingRegistry.get(entity);
-				if (captureHandler != null) {
-					// todo capturing
+				
+				if (entity instanceof LivingEntity living && !(entity instanceof PlayerEntity) && thrower instanceof ServerPlayerEntity player) {
+					if (Identity.CONFIG.enableSwaps || player.hasPermissionLevel(3)) {
+						LivingEntity copy = (LivingEntity) living.getType().create(world);
+						if (copy != null) {
+							copy.readNbt(living.writeNbt(new NbtCompound()));
+							Components.CURRENT_IDENTITY.get(player).setIdentity(copy);
+							player.calculateDimensions();
+							player.teleport((ServerWorld) world, living.getX(), living.getY(), living.getZ(), living.getYaw(), living.getPitch());
+							world.playSound(null, living.getX(), living.getY(), living.getZ(),
+									SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1, 1);
+							NbtCompound captured = new NbtCompound();
+							captured.put("Entity", living.writeNbt(new NbtCompound()));
+							captured.putString("Type", Registry.ENTITY_TYPE.getId(living.getType()).toString());
+							((ServerPlayerEntityExtensions) player).wahoo$setCaptured(captured);
+							living.discard();
+							ItemStack stack = getStack();
+							if (!tryReequipCap()) { // set in correct slot
+								if (!player.giveItemStack(stack)) { // throw randomly in inventory
+									world.spawnEntity(new ItemEntity(world, player.getX(), player.getY(), player.getZ(), stack)); // drop on ground
+								}
+							}
+							remove(KILLED);
+						}
+					}
 				} else if (entity != thrower && entity instanceof LivingEntity living) {
 					living.damage(DamageSource.thrownProjectile(this, thrower), 3);
+					ticksAtEnd = 10;
 					break;
 				}
 			}

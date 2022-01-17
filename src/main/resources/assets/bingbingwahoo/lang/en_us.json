@@ -38,5 +38,6 @@
   "gamerule.rapidFireLongJumps": "Rapid Fire Long Jumps",
   "gamerule.longJumpMaxSpeed": "Max long jump speed",
   "gamerule.longJumpSpeedMultiplier": "Long jump speed multiplier",
-  "gamerule.mysteriousCapRequired": "Mysterious Cap Required"
+  "gamerule.mysteriousCapRequired": "Mysterious Cap Required",
+  "bingbingwahoo.identity_disabled": "This feature has been disabled by Bing Bing Wahoo.\nSet the 'disableIdentitySwapping' gamerule to false to enable it."
 }

@@ -1,8 +1,5 @@
 package net.ignoramuses.bingBingWahoo;
 
-import draylar.identity.Identity;
-import draylar.identity.api.event.IdentitySwapCallback;
-import draylar.identity.api.event.UnlockIdentityCallback;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
@@ -18,7 +15,6 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.item.*;
 import net.minecraft.tag.Tag;
-import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 import net.minecraft.util.math.Direction;

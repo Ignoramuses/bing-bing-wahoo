@@ -287,7 +287,6 @@ public class WahooUtils {
 		boolean wahoo$groundPounding();
 		boolean wahoo$slidingOnSlope();
 		boolean wahoo$slidingOnGround();
-		void wahoo$setCapturing(boolean value);
 	}
 	
 	public interface KeyboardInputExtensions {

@@ -1,8 +1,5 @@
 package net.ignoramuses.bingBingWahoo;
 
-import draylar.identity.network.ClientNetworking;
-import draylar.identity.registry.Components;
-import io.netty.buffer.Unpooled;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ClientModInitializer;
@@ -15,8 +12,8 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
-import net.fabricmc.fabric.api.network.ClientSidePacketRegistry;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.impl.screenhandler.client.ClientNetworking;
 import net.ignoramuses.bingBingWahoo.WahooUtils.ClientPlayerEntityExtensions;
 import net.ignoramuses.bingBingWahoo.cap.FlyingCapEntity;
 import net.ignoramuses.bingBingWahoo.cap.FlyingCapRenderer;
@@ -81,17 +78,6 @@ public class BingBingWahooClient implements ClientModInitializer {
 				}
 			});
 		});
-		ClientPlayNetworking.registerGlobalReceiver(CAPTURE, (client, handler, buf, sender) -> {
-			NbtCompound entityData = buf.readNbt();
-			client.execute(() -> {
-				ClientPlayerEntity player = client.player;
-				if (entityData != null) {
-					LivingEntity entity = Components.CURRENT_IDENTITY.get(player).getIdentity();
-					entity.readNbt(entityData);
-				}
-				((ClientPlayerEntityExtensions) player).wahoo$setCapturing(entityData != null);
-			});
-		});
 //		ClientPlayNetworking.registerGlobalReceiver(BingBingWahoo.BONK_PACKET, (client, handler, buf, sender) -> {
 //			boolean start = buf.readBoolean();
 //			UUID bonked = buf.readUuid();
@@ -127,18 +113,10 @@ public class BingBingWahooClient implements ClientModInitializer {
 			while (THROW_CAP.wasPressed()) {
 				ClientPlayerEntity player = client.player;
 				if (player != null) {
-					if (MinecraftClient.getInstance().options.keySneak.isPressed() &&
-							Components.CURRENT_IDENTITY.get(player).getIdentity() != null) {
-						PacketByteBuf packet = PacketByteBufs.create();
-						packet.writeIdentifier(Registry.ENTITY_TYPE.getId(EntityType.PLAYER));
-						ClientPlayNetworking.send(ClientNetworking.IDENTITY_REQUEST, packet);
-						ClientPlayNetworking.send(IDENTITY_REQUEST_ADDON, PacketByteBufs.create());
-					} else {
-						if (TRINKETS_LOADED && TrinketsHandler.capEquipped(player)) {
-							ClientPlayNetworking.send(WahooNetworking.CAP_THROW, new PacketByteBuf(PacketByteBufs.create().writeBoolean(true)));
-						} else if (player.getEquippedStack(EquipmentSlot.HEAD).isOf(BingBingWahoo.MYSTERIOUS_CAP)) {
-							ClientPlayNetworking.send(WahooNetworking.CAP_THROW, new PacketByteBuf(PacketByteBufs.create().writeBoolean(false)));
-						}
+					if (TRINKETS_LOADED && TrinketsHandler.capEquipped(player)) {
+						ClientPlayNetworking.send(WahooNetworking.CAP_THROW, new PacketByteBuf(PacketByteBufs.create().writeBoolean(true)));
+					} else if (player.getEquippedStack(EquipmentSlot.HEAD).isOf(BingBingWahoo.MYSTERIOUS_CAP)) {
+						ClientPlayNetworking.send(WahooNetworking.CAP_THROW, new PacketByteBuf(PacketByteBufs.create().writeBoolean(false)));
 					}
 				}
 			}

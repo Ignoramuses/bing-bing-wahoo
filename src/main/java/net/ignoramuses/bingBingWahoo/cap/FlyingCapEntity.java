@@ -1,12 +1,8 @@
 package net.ignoramuses.bingBingWahoo.cap;
 
-import draylar.identity.Identity;
-import draylar.identity.registry.Components;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.ignoramuses.bingBingWahoo.BingBingWahoo;
-import net.ignoramuses.bingBingWahoo.WahooNetworking;
-import net.ignoramuses.bingBingWahoo.WahooUtils.ServerPlayerEntityExtensions;
 import net.minecraft.entity.*;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
@@ -19,11 +15,9 @@ import net.minecraft.network.Packet;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
@@ -156,37 +150,7 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 				}
 				
 				
-				if (entity instanceof LivingEntity living && !(entity instanceof PlayerEntity) && thrower instanceof ServerPlayerEntity player) {
-					if (Identity.CONFIG.enableSwaps || player.hasPermissionLevel(3)) {
-						LivingEntity copy = (LivingEntity) living.getType().create(world);
-						if (copy != null) {
-							NbtCompound captured = new NbtCompound();
-							NbtCompound entityData = living.writeNbt(new NbtCompound());
-							entityData.remove("Pos");
-							entityData.remove("Motion");
-							entityData.remove("Rotation");
-							captured.put("Entity", entityData);
-							captured.putString("Type", Registry.ENTITY_TYPE.getId(living.getType()).toString());
-							copy.readNbt(entityData);
-							Components.CURRENT_IDENTITY.get(player).setIdentity(copy);
-							((ServerPlayerEntityExtensions) player).wahoo$setCaptured(captured);
-							ServerPlayNetworking.send(player, WahooNetworking.CAPTURE, PacketByteBufs.create().writeNbt(entityData));
-							player.calculateDimensions();
-							player.teleport((ServerWorld) world, living.getX(), living.getY(), living.getZ(), living.getYaw(), living.getPitch());
-							world.playSound(null, living.getX(), living.getY(), living.getZ(),
-									SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1, 1);
-							living.discard();
-							ItemStack stack = getStack();
-							if (!tryReequipCap()) { // set in correct slot
-								if (!player.giveItemStack(stack)) { // throw randomly in inventory
-									world.spawnEntity(new ItemEntity(world, player.getX(), player.getY(), player.getZ(), stack)); // drop on ground
-								}
-							}
-							remove(KILLED);
-							break;
-						}
-					}
-				} else if (entity != thrower && entity instanceof LivingEntity living) {
+				if (entity != thrower && entity instanceof LivingEntity living) {
 					living.damage(DamageSource.thrownProjectile(this, thrower), 3);
 					ticksAtEnd = 10;
 					break;

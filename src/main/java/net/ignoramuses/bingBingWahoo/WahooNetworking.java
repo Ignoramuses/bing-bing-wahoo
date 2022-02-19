@@ -8,21 +8,14 @@ import net.ignoramuses.bingBingWahoo.cap.FlyingCapEntity;
 import net.ignoramuses.bingBingWahoo.cap.PreferredCapSlot;
 import net.ignoramuses.bingBingWahoo.compat.TrinketsHandler;
 import net.ignoramuses.bingBingWahoo.movement.JumpTypes;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.Registry;
 
 import static net.ignoramuses.bingBingWahoo.WahooCommands.*;
-import static net.ignoramuses.bingBingWahoo.WahooUtils.toNbtList;
 
 public class WahooNetworking {
 	public static final Identifier JUMP_TYPE_PACKET = BingBingWahoo.id("jump_type_packet");
@@ -32,10 +25,8 @@ public class WahooNetworking {
 	public static final Identifier BONK_PACKET = BingBingWahoo.id("bonk_packet");
 	public static final Identifier DISABLE_IDENTITY_SWAPPING = BingBingWahoo.id("disable_identity_swapping");
 	public static final Identifier CAP_THROW = BingBingWahoo.id("cap_throw");
-	public static final Identifier IDENTITY_REQUEST_ADDON = BingBingWahoo.id("identity_request_addon");
 	public static final Identifier UPDATE_BOOLEAN_GAMERULE_PACKET = BingBingWahoo.id("update_boolean_gamerule_packet");
 	public static final Identifier CAP_ENTITY_SPAWN = BingBingWahoo.id("cap_entity_spawn");
-	public static final Identifier CAPTURE = BingBingWahoo.id("capture");
 	
 	public static void init() {
 		ServerPlayNetworking.registerGlobalReceiver(JUMP_TYPE_PACKET, (server, player, handler, buf, responseSender) -> {
@@ -75,26 +66,6 @@ public class WahooNetworking {
 				}
 			});
 		});
-		ServerPlayNetworking.registerGlobalReceiver(IDENTITY_REQUEST_ADDON, (server, player, handler, buf, responseSender) -> server.execute(() -> {
-			NbtCompound captured = ((ServerPlayerEntityExtensions) player).wahoo$getCaptured();
-			if (captured != null) {
-				String typeId = captured.getString("Type");
-				NbtCompound entityData = captured.getCompound("Entity");
-				entityData.put("Pos", toNbtList(player.getX(), player.getY(), player.getZ()));
-				Vec3d motion = player.getVelocity();
-				entityData.put("Motion", toNbtList(motion.getX(), motion.getY(), motion.getZ()));
-				entityData.put("Rotation", toNbtList(player.getYaw(), player.getPitch()));
-				EntityType<?> type = Registry.ENTITY_TYPE.get(new Identifier(typeId));
-				Entity entity = type.create(player.world);
-				if (entity != null) {
-					entity.readNbt(entityData);
-					player.world.spawnEntity(entity);
-					player.world.playSound(null, player.getX(), player.getY(), player.getZ(),
-							SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1, 1);
-					((ServerPlayerEntityExtensions) player).wahoo$setCaptured(null);
-				}
-			}
-		}));
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			sender.sendPacket(UPDATE_BOOLEAN_GAMERULE_PACKET, new PacketByteBuf(PacketByteBufs.create().writeString(DISABLE_IDENTITY_SWAPPING_RULE.getName()).writeBoolean(server.getGameRules().getBoolean(DISABLE_IDENTITY_SWAPPING_RULE))));
 			sender.sendPacket(UPDATE_BOOLEAN_GAMERULE_PACKET, new PacketByteBuf(PacketByteBufs.create().writeString(DESTRUCTIVE_GROUND_POUND_RULE.getName()).writeBoolean(server.getGameRules().getBoolean(DESTRUCTIVE_GROUND_POUND_RULE))));

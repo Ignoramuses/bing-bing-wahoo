@@ -10,8 +10,7 @@
     "EntityModelWithHeadAccessor",
     "KeyboardInputMixin",
     "LivingEntityRendererMixin",
-    "PlayerEntityRendererMixin",
-    "identity.IdentityMinecraftClientMixin"
+    "PlayerEntityRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
@@ -20,8 +19,6 @@
     "EntitySelectorOptionsAccessor",
     "LivingEntityMixin",
     "PlayerEntityMixin",
-    "ServerPlayerEntityMixin",
-    "identity.IdentityCommandMixin",
-    "identity.IdentityServerNetworkingMixin"
+    "ServerPlayerEntityMixin"
   ]
 }

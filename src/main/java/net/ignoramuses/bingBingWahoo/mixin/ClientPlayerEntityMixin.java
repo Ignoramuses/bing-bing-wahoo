@@ -129,8 +129,6 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 	private long wahoo$ticksSlidingOnGround = 0;
 	@Shadow
 	private boolean riding;
-	@Unique
-	private boolean wahoo$capturing = false;
 	
 	private ClientPlayerEntityMixin(ClientWorld world, GameProfile profile) {
 		super(world, profile);
@@ -176,9 +174,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		} else {
 			wahoo$canWahoo = true;
 		}
-		
-		if (wahoo$canWahoo && wahoo$capturing) wahoo$canWahoo = false;
-		
+
 		// I think this can be simplified but I'm too scared it will catastrophically fail if I try to
 		if (wahoo$jumpHeldSinceLastJump) {
 			if (wahoo$lastJumping) {
@@ -436,21 +432,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 			startForwardSliding();
 		}
 	}
-	
-	@Override
-	public void readCustomDataFromNbt(NbtCompound nbt) {
-		super.readCustomDataFromNbt(nbt);
-		if (nbt.contains("Capturing")) {
-			wahoo$capturing = nbt.getBoolean("Capturing");
-		}
-	}
-	
-	@Override
-	public void writeCustomDataToNbt(NbtCompound nbt) {
-		super.writeCustomDataToNbt(nbt);
-		nbt.putBoolean("Capturing", wahoo$capturing);
-	}
-	
+
 	private void handleSlidingOnSlope(BlockState floor) {
 		wahoo$ticksSlidingOnGround = 0;
 		wahoo$slidingOnSlope = true;
@@ -997,10 +979,5 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		wahoo$ticksSlidingOnGround = 0;
 		wahoo$ticksStillInDive = 0;
 		ClientPlayNetworking.send(SLIDE_PACKET, new PacketByteBuf(PacketByteBufs.create().writeBoolean(false)));
-	}
-	
-	@Override
-	public void wahoo$setCapturing(boolean value) {
-		wahoo$capturing = value;
 	}
 }

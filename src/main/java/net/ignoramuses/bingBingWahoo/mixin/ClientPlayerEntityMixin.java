@@ -26,6 +26,7 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.math.*;
+import net.minecraft.util.math.Direction.Type;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -876,7 +877,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		wahoo$previousJumpType = JumpTypes.WALL;
 		Direction directionOfNearestWall = Direction.UP;
 		double distanceToNearestWall = 1;
-		for (Direction direction : BingBingWahoo.CARDINAL_DIRECTIONS) {
+		for (Direction direction : Type.HORIZONTAL) {
 			BlockState adjacentState = world.getBlockState(getBlockPos().offset(direction));
 			if (!adjacentState.isAir()) {
 				double distance = getPos().distanceTo(Vec3d.ofCenter(getBlockPos().offset(direction)));

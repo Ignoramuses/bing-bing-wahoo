@@ -36,13 +36,18 @@ dependencies {
 	minecraft("com.mojang:minecraft:${project.minecraft_version}")
 	mappings("net.fabricmc:yarn:${project.minecraft_version}+build.${project.mappings_version}:v2")
 	modImplementation("net.fabricmc:fabric-loader:${project.loader_version}")
+
 	modImplementation("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
 	modImplementation("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") { exclude(group: "net.fabricmc.fabric-api") }
 
 	modCompileOnly("dev.emi:trinkets:${project.trinkets_version}")
+	modRuntimeOnly("dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cca_version}")
+	modRuntimeOnly("dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${project.cca_version}")
+
 	modCompileOnly("com.terraformersmc:modmenu:${project.mod_menu_version}")
-	modImplementation("maven.modrinth:lazydfu:0.1.2")
-	modImplementation("maven.modrinth:here-be-no-dragons:1.0.0")
+
+	modRuntimeOnly("maven.modrinth:lazydfu:0.1.2")
+	modRuntimeOnly("maven.modrinth:here-be-no-dragons:1.0.0")
 }
 
 task buildOrPublish {
@@ -50,10 +55,10 @@ task buildOrPublish {
 	String mavenUser = System.getenv().MAVEN_USER
 	if (mavenUser != null && !mavenUser.isEmpty()) {
 		dependsOn(tasks.getByName("publish"))
-		println "prepared for publish"
+		println("prepared for publish")
 	} else {
 		dependsOn(tasks.getByName("build"))
-		println "prepared for build"
+		println("prepared for build")
 	}
 }
 

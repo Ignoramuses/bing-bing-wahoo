@@ -1,8 +1,11 @@
 package net.ignoramuses.bingBingWahoo.cap;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.ignoramuses.bingBingWahoo.BingBingWahoo;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
@@ -13,6 +16,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -34,7 +38,7 @@ import static net.minecraft.world.entity.Entity.RemovalReason.*;
 
 public class FlyingCapEntity extends Entity implements ItemSupplier {
 	private static final EntityDataAccessor<Integer> COLOR = SynchedEntityData.defineId(FlyingCapEntity.class, EntityDataSerializers.INT);
-	
+
 	// synced
 	private ItemStack stack;
 	private String throwerId;
@@ -46,6 +50,8 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 	// not synced
 	@Nullable
 	private Player thrower;
+	@Environment(EnvType.CLIENT)
+	private CapFlyingSoundInstance whooshSound;
 	
 	public FlyingCapEntity(EntityType<FlyingCapEntity> entityType, Level world) {
 		super(entityType, world);
@@ -125,50 +131,64 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 		super.tick();
 		tryFindThrower();
 		tryMove();
-		
+
+		if (level.isClientSide()) {
+			playWhoosh();
+		}
+
+		handleCollisions();
+
 		if (!level.isClientSide()) {
-			if (tickCount == 1 || tickCount % 40 == 0) // todo
-				level.playSound(null, this, SoundEvents.ELYTRA_FLYING, SoundSource.PLAYERS, 0.5f, 2);
-			
-			List<Entity> collisions = level.getEntities(this, getBoundingBox().expandTowards(getDeltaMovement()).inflate(1), e -> !e.isSpectator() && e.isPickable());
-			
-			if (shouldLeaveThrower(collisions)) {
-				leftThrower = true;
-			}
-			
-			for (Entity entity : collisions) {
-				if (entity instanceof Player thrower) {
-					if ((leftThrower || ticksAtEnd != 0) && throwerId.equals(entity.getStringUUID())) {
-						if (!tryReequipCap()) { // set in correct slot
-							if (!thrower.addItem(getItem())) { // throw randomly in inventory
-								level.addFreshEntity(new ItemEntity(level, thrower.getX(), thrower.getY(), thrower.getZ(), getItem())); // drop on ground
-							}
-						}
-						remove(KILLED); // bypass item drop
-						level.playSound(null,
-								thrower.getX(),
-								thrower.getY(),
-								thrower.getZ(),
-								SoundEvents.ITEM_PICKUP,
-								SoundSource.PLAYERS,
-								0.2F,
-								((thrower.getRandom().nextFloat() - thrower.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F
-						);
-					}
-				}
-				
-				
-				if (entity != thrower && entity instanceof LivingEntity living) {
-					living.hurt(DamageSource.thrown(this, thrower), 3);
-					ticksAtEnd = 10;
-					break;
-				}
-			}
-			
 			if (tickCount > 500) kill();
 		}
 	}
-	
+
+	private void handleCollisions() {
+		List<Entity> collisions = level.getEntities(
+				this,
+				getBoundingBox().expandTowards(getDeltaMovement()).inflate(1),
+				e -> !e.isSpectator() && e.isPickable()
+		);
+
+		if (shouldLeaveThrower(collisions)) {
+			leftThrower = true;
+		}
+
+		for (Entity entity : collisions) {
+			if (entity instanceof Player thrower) {
+				if ((leftThrower || ticksAtEnd != 0) && throwerId.equals(entity.getStringUUID())) {
+					if (!tryReequipCap()) { // set in correct slot
+						thrower.getInventory().placeItemBackInInventory(getItem()); // throw in inv or on ground if no space
+					}
+					remove(KILLED); // bypass item drop
+					level.playSound(null,
+							thrower.getX(),
+							thrower.getY(),
+							thrower.getZ(),
+							SoundEvents.ITEM_PICKUP,
+							SoundSource.PLAYERS,
+							0.2F,
+							((thrower.getRandom().nextFloat() - thrower.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F
+					);
+				}
+			}
+
+			if (entity != thrower && entity instanceof LivingEntity living) {
+				living.hurt(DamageSource.thrown(this, thrower), 3);
+				ticksAtEnd = 10;
+				break;
+			}
+		}
+	}
+
+	private void playWhoosh() {
+		if (whooshSound == null) {
+			Minecraft mc = Minecraft.getInstance();
+			whooshSound = new CapFlyingSoundInstance(this);
+			mc.getSoundManager().play(whooshSound);
+		}
+	}
+
 	private boolean tryReequipCap() {
 		if (thrower != null) {
 			ItemStack stack = getItem();
@@ -177,15 +197,6 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 				preferredSlot.equip(thrower, stack);
 				return true;
 			}
-			
-			// then try all slots
-			for (PreferredCapSlot slot : PreferredCapSlot.values()) {
-				if (slot.shouldEquip(thrower, stack)) {
-					slot.shouldEquip(thrower, stack);
-					return true;
-				}
-			}
-			
 		}
 		return false;
 	}
@@ -262,6 +273,7 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 		if (capStack != null && capStack.is(MYSTERIOUS_CAP)) {
 			FlyingCapEntity cap = new FlyingCapEntity(thrower.level, capStack.copy(), thrower, thrower.getX(), thrower.getEyeY() - 0.1, thrower.getZ(), preferredSlot);
 			thrower.level.addFreshEntity(cap);
+			thrower.swing(InteractionHand.MAIN_HAND, true);
 		}
 	}
 }

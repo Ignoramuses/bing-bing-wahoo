@@ -106,11 +106,16 @@ public class BingBingWahooClient implements ClientModInitializer {
 			while (THROW_CAP.consumeClick()) {
 				LocalPlayer player = client.player;
 				if (player != null) {
+					FriendlyByteBuf buf = null;
 					if (TRINKETS_LOADED && TrinketsHandler.capEquipped(player)) {
-						ClientPlayNetworking.send(WahooNetworking.CAP_THROW, new FriendlyByteBuf(PacketByteBufs.create().writeBoolean(true)));
+						buf = PacketByteBufs.create();
+						buf.writeBoolean(true);
 					} else if (player.getItemBySlot(EquipmentSlot.HEAD).is(BingBingWahoo.MYSTERIOUS_CAP)) {
-						ClientPlayNetworking.send(WahooNetworking.CAP_THROW, new FriendlyByteBuf(PacketByteBufs.create().writeBoolean(false)));
+						buf = PacketByteBufs.create();
+						buf.writeBoolean(false);
 					}
+					if (buf != null)
+						ClientPlayNetworking.send(WahooNetworking.CAP_THROW, buf);
 				}
 			}
 		});

@@ -5,13 +5,13 @@ import net.fabricmc.fabric.api.transfer.v1.item.PlayerInventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.ignoramuses.bingBingWahoo.BingBingWahoo;
 import net.ignoramuses.bingBingWahoo.compat.TrinketsHandler;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Hand;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
 public enum PreferredCapSlot {
 	// priority order
@@ -34,32 +34,32 @@ public enum PreferredCapSlot {
 	HEAD {
 		@Override
 		public boolean shouldEquip(LivingEntity entity, ItemStack stack) {
-			return entity.getEquippedStack(EquipmentSlot.HEAD).isEmpty();
+			return entity.getItemBySlot(EquipmentSlot.HEAD).isEmpty();
 		}
 		
 		@Override
 		public void equip(LivingEntity entity, ItemStack stack) {
-			entity.equipStack(EquipmentSlot.HEAD, stack);
+			entity.setItemSlot(EquipmentSlot.HEAD, stack);
 		}
 	},
 	HAND {
 		@Override
 		public boolean shouldEquip(LivingEntity entity, ItemStack stack) {
-			Hand hand = entity.getActiveHand();
-			return entity.getStackInHand(hand).isEmpty();
+			InteractionHand hand = entity.getUsedItemHand();
+			return entity.getItemInHand(hand).isEmpty();
 		}
 		
 		@Override
 		public void equip(LivingEntity entity, ItemStack stack) {
-			Hand hand = entity.getActiveHand();
-			entity.setStackInHand(hand, stack);
+			InteractionHand hand = entity.getUsedItemHand();
+			entity.setItemInHand(hand, stack);
 		}
 	},
 	@SuppressWarnings("UnstableApiUsage")
 	INVENTORY {
 		@Override
 		public boolean shouldEquip(LivingEntity entity, ItemStack stack) {
-			if (entity instanceof PlayerEntity player) {
+			if (entity instanceof Player player) {
 				return PlayerInventoryStorage.of(player.getInventory()).simulateInsert(ItemVariant.of(stack), stack.getCount(), null) == stack.getCount();
 			}
 			return false;
@@ -67,7 +67,7 @@ public enum PreferredCapSlot {
 		
 		@Override
 		public void equip(LivingEntity entity, ItemStack stack) {
-			if (entity instanceof PlayerEntity player) {
+			if (entity instanceof Player player) {
 				try (Transaction t = Transaction.openOuter()) {
 					PlayerInventoryStorage.of(player.getInventory()).insert(ItemVariant.of(stack), stack.getCount(), t);
 					t.commit();
@@ -78,13 +78,13 @@ public enum PreferredCapSlot {
 	WORLD {
 		@Override
 		public boolean shouldEquip(LivingEntity entity, ItemStack stack) {
-			return entity.getWorld() instanceof ServerWorld;
+			return entity.getLevel() instanceof ServerLevel;
 		}
 		
 		@Override
 		public void equip(LivingEntity entity, ItemStack stack) {
-			if (entity.getWorld() instanceof ServerWorld world) {
-				world.spawnEntity(new ItemEntity(world, entity.getX(), entity.getY(), entity.getZ(), stack));
+			if (entity.getLevel() instanceof ServerLevel world) {
+				world.addFreshEntity(new ItemEntity(world, entity.getX(), entity.getY(), entity.getZ(), stack));
 			} else throw new RuntimeException("called from client");
 		}
 	};

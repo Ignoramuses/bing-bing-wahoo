@@ -7,95 +7,95 @@ import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.gamerule.v1.rule.DoubleRule;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.ignoramuses.bingBingWahoo.WahooUtils.PlayerExtensions;
+import net.ignoramuses.bingBingWahoo.WahooUtils.ServerPlayerExtensions;
 import net.ignoramuses.bingBingWahoo.mixin.EntitySelectorOptionsAccessor;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.GameRules;
-
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.GameRules;
 import java.util.List;
 
-import static net.ignoramuses.bingBingWahoo.BingBingWahoo.ID;
 import static net.ignoramuses.bingBingWahoo.WahooNetworking.UPDATE_BOOLEAN_GAMERULE_PACKET;
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
 
 public class WahooCommands {
-	public static GameRules.Key<GameRules.BooleanRule> DISABLE_IDENTITY_SWAPPING_RULE = GameRuleRegistry.register("disableIdentitySwapping", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true, (server, rule) -> {
-		List<ServerPlayerEntity> players = server.getPlayerManager().getPlayerList();
-		PacketByteBuf buffer = new PacketByteBuf(PacketByteBufs.create().writeString("disableIdentitySwapping").writeBoolean(rule.get()));
-		for (ServerPlayerEntity player : players) {
+	public static GameRules.Key<GameRules.BooleanValue> DISABLE_IDENTITY_SWAPPING_RULE = GameRuleRegistry.register("disableIdentitySwapping", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true, (server, rule) -> {
+		List<ServerPlayer> players = server.getPlayerList().getPlayers();
+		FriendlyByteBuf buffer = new FriendlyByteBuf(PacketByteBufs.create().writeUtf("disableIdentitySwapping").writeBoolean(rule.get()));
+		for (ServerPlayer player : players) {
 			ServerPlayNetworking.send(player, UPDATE_BOOLEAN_GAMERULE_PACKET, buffer);
 		}
 	}));
-	public static GameRules.Key<GameRules.BooleanRule> DESTRUCTIVE_GROUND_POUND_RULE = GameRuleRegistry.register("destructiveGroundPounds", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true, (server, rule) -> {
-		List<ServerPlayerEntity> players = server.getPlayerManager().getPlayerList();
-		PacketByteBuf buffer = new PacketByteBuf(PacketByteBufs.create().writeString("destructiveGroundPounds").writeBoolean(rule.get()));
-		for (ServerPlayerEntity player : players) {
+	public static GameRules.Key<GameRules.BooleanValue> DESTRUCTIVE_GROUND_POUND_RULE = GameRuleRegistry.register("destructiveGroundPounds", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true, (server, rule) -> {
+		List<ServerPlayer> players = server.getPlayerList().getPlayers();
+		FriendlyByteBuf buffer = new FriendlyByteBuf(PacketByteBufs.create().writeUtf("destructiveGroundPounds").writeBoolean(rule.get()));
+		for (ServerPlayer player : players) {
 			ServerPlayNetworking.send(player, UPDATE_BOOLEAN_GAMERULE_PACKET, buffer);
 		}
 	}));
-	public static GameRules.Key<GameRules.BooleanRule> BACKWARDS_LONG_JUMPS_RULE = GameRuleRegistry.register("backwardsLongJumps", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true, (server, rule) -> {
-		List<ServerPlayerEntity> players = server.getPlayerManager().getPlayerList();
-		PacketByteBuf buffer = new PacketByteBuf(PacketByteBufs.create().writeString("backwardsLongJumps").writeBoolean(rule.get()));
-		for (ServerPlayerEntity player : players) {
+	public static GameRules.Key<GameRules.BooleanValue> BACKWARDS_LONG_JUMPS_RULE = GameRuleRegistry.register("backwardsLongJumps", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true, (server, rule) -> {
+		List<ServerPlayer> players = server.getPlayerList().getPlayers();
+		FriendlyByteBuf buffer = new FriendlyByteBuf(PacketByteBufs.create().writeUtf("backwardsLongJumps").writeBoolean(rule.get()));
+		for (ServerPlayer player : players) {
 			ServerPlayNetworking.send(player, UPDATE_BOOLEAN_GAMERULE_PACKET, buffer);
 		}
 	}));
-	public static GameRules.Key<GameRules.BooleanRule> RAPID_FIRE_LONG_JUMPS_RULE = GameRuleRegistry.register("rapidFireLongJumps", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true, (server, rule) -> {
-		List<ServerPlayerEntity> players = server.getPlayerManager().getPlayerList();
-		PacketByteBuf buffer = new PacketByteBuf(PacketByteBufs.create().writeString("rapidFireLongJumps").writeBoolean(rule.get()));
-		for (ServerPlayerEntity player : players) {
+	public static GameRules.Key<GameRules.BooleanValue> RAPID_FIRE_LONG_JUMPS_RULE = GameRuleRegistry.register("rapidFireLongJumps", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true, (server, rule) -> {
+		List<ServerPlayer> players = server.getPlayerList().getPlayers();
+		FriendlyByteBuf buffer = new FriendlyByteBuf(PacketByteBufs.create().writeUtf("rapidFireLongJumps").writeBoolean(rule.get()));
+		for (ServerPlayer player : players) {
 			ServerPlayNetworking.send(player, UPDATE_BOOLEAN_GAMERULE_PACKET, buffer);
 		}
 	}));
-	public static GameRules.Key<GameRules.BooleanRule> HAT_REQUIRED_RULE = GameRuleRegistry.register("mysteriousCapRequired", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true, (server, rule) -> {
-		List<ServerPlayerEntity> players = server.getPlayerManager().getPlayerList();
-		PacketByteBuf buffer = new PacketByteBuf(PacketByteBufs.create().writeString("mysteriousCapRequired").writeBoolean(rule.get()));
-		for (ServerPlayerEntity player : players) {
+	public static GameRules.Key<GameRules.BooleanValue> HAT_REQUIRED_RULE = GameRuleRegistry.register("mysteriousCapRequired", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true, (server, rule) -> {
+		List<ServerPlayer> players = server.getPlayerList().getPlayers();
+		FriendlyByteBuf buffer = new FriendlyByteBuf(PacketByteBufs.create().writeUtf("mysteriousCapRequired").writeBoolean(rule.get()));
+		for (ServerPlayer player : players) {
 			ServerPlayNetworking.send(player, UPDATE_BOOLEAN_GAMERULE_PACKET, buffer);
 		}
 	}));
-	public static final Identifier UPDATE_DOUBLE_GAMERULE_PACKET = BingBingWahoo.id("update_double_gamerule_packet");
+	public static final ResourceLocation UPDATE_DOUBLE_GAMERULE_PACKET = BingBingWahoo.id("update_double_gamerule_packet");
 	public static GameRules.Key<DoubleRule> MAX_LONG_JUMP_SPEED_RULE = GameRuleRegistry.register("longJumpMaxSpeed", GameRules.Category.PLAYER, GameRuleFactory.createDoubleRule(1.5, (server, rule) -> {
-		List<ServerPlayerEntity> players = server.getPlayerManager().getPlayerList();
-		PacketByteBuf buffer = new PacketByteBuf(PacketByteBufs.create().writeString("longJumpMaxSpeed").writeDouble(rule.get()));
-		for (ServerPlayerEntity player : players) {
+		List<ServerPlayer> players = server.getPlayerList().getPlayers();
+		FriendlyByteBuf buffer = new FriendlyByteBuf(PacketByteBufs.create().writeUtf("longJumpMaxSpeed").writeDouble(rule.get()));
+		for (ServerPlayer player : players) {
 			ServerPlayNetworking.send(player, UPDATE_DOUBLE_GAMERULE_PACKET, buffer);
 		}
 	}));
 	public static GameRules.Key<DoubleRule> LONG_JUMP_SPEED_MULTIPLIER_RULE = GameRuleRegistry.register("longJumpSpeedMultiplier", GameRules.Category.PLAYER, GameRuleFactory.createDoubleRule(10, (server, rule) -> {
-		List<ServerPlayerEntity> players = server.getPlayerManager().getPlayerList();
-		PacketByteBuf buffer = new PacketByteBuf(PacketByteBufs.create().writeString("longJumpSpeedMultiplier").writeDouble(rule.get()));
-		for (ServerPlayerEntity player : players) {
+		List<ServerPlayer> players = server.getPlayerList().getPlayers();
+		FriendlyByteBuf buffer = new FriendlyByteBuf(PacketByteBufs.create().writeUtf("longJumpSpeedMultiplier").writeDouble(rule.get()));
+		for (ServerPlayer player : players) {
 			ServerPlayNetworking.send(player, UPDATE_DOUBLE_GAMERULE_PACKET, buffer);
 		}
 	}));
 	
 	public static void init() {
-		EntitySelectorOptionsAccessor.wahoo$invokePutOption("sliding", reader -> {
+		EntitySelectorOptionsAccessor.wahoo$register("sliding", reader -> {
 			boolean sliding = reader.getReader().readBoolean();
-			reader.setIncludesNonPlayers(false);
-			reader.setLocalWorldOnly();
-			reader.setSuggestionProvider((suggestionsBuilder, suggestionsBuilderConsumer) -> CommandSource.suggestMatching(new String[]{"true", "false"}, suggestionsBuilder));
-			reader.setPredicate(entity -> {
-				if (entity instanceof WahooUtils.PlayerEntityExtensions extendedPlayer) {
+			reader.setIncludesEntities(false);
+			reader.setWorldLimited();
+			reader.setSuggestions((suggestionsBuilder, suggestionsBuilderConsumer) -> SharedSuggestionProvider.suggest(new String[]{"true", "false"}, suggestionsBuilder));
+			reader.addPredicate(entity -> {
+				if (entity instanceof PlayerExtensions extendedPlayer) {
 					return extendedPlayer.wahoo$getSliding() == sliding;
 				}
 				return false;
 			});
-		}, entitySelectorReader -> true, new TranslatableText("argument.entity.options.sliding.description"));
+		}, entitySelectorReader -> true, new TranslatableComponent("argument.entity.options.sliding.description"));
 		
 		CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> dispatcher.register(literal("bingbingwahoo:setDestructionPerms")
-				.requires(source -> source.hasPermissionLevel(2))
-				.then(argument("target", EntityArgumentType.player())
+				.requires(source -> source.hasPermission(2))
+				.then(argument("target", EntityArgument.player())
 						.then(argument("value", BoolArgumentType.bool())
 								.executes(context -> {
-									ServerPlayerEntity target = EntityArgumentType.getPlayer(context, "target");
-									((WahooUtils.ServerPlayerEntityExtensions) target).wahoo$setDestructionPermOverride(BoolArgumentType.getBool(context, "value"));
+									ServerPlayer target = EntityArgument.getPlayer(context, "target");
+									((ServerPlayerExtensions) target).wahoo$setDestructionPermOverride(BoolArgumentType.getBool(context, "value"));
 									return 0;
 								})))));
 		

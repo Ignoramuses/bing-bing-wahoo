@@ -1,14 +1,14 @@
 package net.ignoramuses.bingBingWahoo.mixin;
 
-import net.minecraft.entity.Entity;
+import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(Entity.class)
 public interface EntityAccessor {
-	@Accessor("pitch")
-	void setPitchRaw(float pitch);
+	@Accessor("xRot")
+	void setXRotRaw(float pitch);
 	
-	@Accessor("yaw")
-	void setYawRaw(float yaw);
+	@Accessor("yRot")
+	void setYRotRaw(float yaw);
 }

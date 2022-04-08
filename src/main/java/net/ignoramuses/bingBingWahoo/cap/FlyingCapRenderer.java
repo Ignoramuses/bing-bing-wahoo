@@ -1,17 +1,17 @@
 package net.ignoramuses.bingBingWahoo.cap;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Vector3f;
 import net.ignoramuses.bingBingWahoo.BingBingWahoo;
 import net.ignoramuses.bingBingWahoo.WahooUtils;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.entity.EntityRenderer;
-import net.minecraft.client.render.entity.EntityRendererFactory.Context;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Vec3f;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererProvider.Context;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 
 public class FlyingCapRenderer extends EntityRenderer<FlyingCapEntity> {
-	public static final Identifier TEXTURE = new Identifier(BingBingWahoo.ID, "textures/armor/mysterious_cap.png");
+	public static final ResourceLocation TEXTURE = new ResourceLocation(BingBingWahoo.ID, "textures/armor/mysterious_cap.png");
 	
 	private final MysteriousCapModel model;
 	
@@ -21,22 +21,22 @@ public class FlyingCapRenderer extends EntityRenderer<FlyingCapEntity> {
 	}
 	
 	@Override
-	public void render(FlyingCapEntity entity, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {
+	public void render(FlyingCapEntity entity, float yaw, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light) {
 		super.render(entity, yaw, tickDelta, matrices, vertexConsumers, light);
-		ItemStack stack = entity.getStack();
+		ItemStack stack = entity.getItem();
 		if (stack == null || stack.isEmpty()) return;
-		matrices.push();
-		matrices.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(180));
+		matrices.pushPose();
+		matrices.mulPose(Vector3f.ZP.rotationDegrees(180));
 		matrices.translate(0, -1.55, 0);
-		float rotation = (entity.age + tickDelta) * 50;
-		matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(rotation));
+		float rotation = (entity.tickCount + tickDelta) * 50;
+		matrices.mulPose(Vector3f.YP.rotationDegrees(rotation));
 		if (entity.ticksAtEnd > 0 && entity.ticksAtEnd <= 10) matrices.scale(2.5f, 1, 2.5f); // larger surface to jump on
 		WahooUtils.renderCap(matrices, vertexConsumers, stack, light, tickDelta, model);
-		matrices.pop();
+		matrices.popPose();
 	}
 	
 	@Override
-	public Identifier getTexture(FlyingCapEntity entity) {
+	public ResourceLocation getTextureLocation(FlyingCapEntity entity) {
 		return TEXTURE;
 	}
 }

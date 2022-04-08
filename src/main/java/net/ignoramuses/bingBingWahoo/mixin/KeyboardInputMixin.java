@@ -3,8 +3,9 @@ package net.ignoramuses.bingBingWahoo.mixin;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.ignoramuses.bingBingWahoo.WahooUtils;
-import net.minecraft.client.input.Input;
-import net.minecraft.client.input.KeyboardInput;
+import net.ignoramuses.bingBingWahoo.WahooUtils.KeyboardInputExtensions;
+import net.minecraft.client.player.Input;
+import net.minecraft.client.player.KeyboardInput;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -13,21 +14,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Environment(EnvType.CLIENT)
 @Mixin(KeyboardInput.class)
-public abstract class KeyboardInputMixin extends Input implements WahooUtils.KeyboardInputExtensions {
+public abstract class KeyboardInputMixin extends Input implements KeyboardInputExtensions {
 	@Unique
 	private boolean wahoo$disableControl = false;
 	
 	@Inject(at = @At("TAIL"), method = "tick(Z)V")
 	public void wahoo$tick(boolean slowDown, CallbackInfo ci) {
 		if (wahoo$disableControl) {
-			pressingForward = false;
-			pressingBack = false;
-			pressingLeft = false;
-			pressingRight = false;
-			movementForward = 0;
-			movementSideways = 0;
+			up = false;
+			down = false;
+			left = false;
+			right = false;
+			forwardImpulse = 0;
+			leftImpulse = 0;
 			jumping = false;
-			sneaking = false;
+			shiftKeyDown = false;
 		}
 	}
 	

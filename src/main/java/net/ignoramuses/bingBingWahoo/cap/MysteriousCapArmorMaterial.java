@@ -1,35 +1,35 @@
 package net.ignoramuses.bingBingWahoo.cap;
 
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.item.ArmorMaterial;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.tag.ItemTags;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.crafting.Ingredient;
 
 public enum MysteriousCapArmorMaterial implements ArmorMaterial {
 	INSTANCE;
 	
-	public static final Ingredient REPAIR = Ingredient.fromTag(ItemTags.WOOL);
+	public static final Ingredient REPAIR = Ingredient.of(ItemTags.WOOL);
 	
 	@Override
-	public int getDurability(EquipmentSlot slot) {
+	public int getDurabilityForSlot(EquipmentSlot slot) {
 		return 128;
 	}
 	
 	@Override
-	public int getProtectionAmount(EquipmentSlot slot) {
+	public int getDefenseForSlot(EquipmentSlot slot) {
 		return 1;
 	}
 	
 	@Override
-	public int getEnchantability() {
+	public int getEnchantmentValue() {
 		return 15;
 	}
 	
 	@Override
 	public SoundEvent getEquipSound() {
-		return SoundEvents.ITEM_ARMOR_EQUIP_LEATHER;
+		return SoundEvents.ARMOR_EQUIP_LEATHER;
 	}
 	
 	@Override

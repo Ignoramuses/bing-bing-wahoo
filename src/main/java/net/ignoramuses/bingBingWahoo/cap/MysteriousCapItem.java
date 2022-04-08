@@ -1,34 +1,34 @@
 package net.ignoramuses.bingBingWahoo.cap;
 
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ArmorMaterial;
-import net.minecraft.item.DyeableArmorItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.world.World;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.DyeableArmorItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 public class MysteriousCapItem extends DyeableArmorItem {
-	public MysteriousCapItem(ArmorMaterial armorMaterial, EquipmentSlot equipmentSlot, Settings settings) {
+	public MysteriousCapItem(ArmorMaterial armorMaterial, EquipmentSlot equipmentSlot, Properties settings) {
 		super(armorMaterial, equipmentSlot, settings);
 	}
 	
 	public int getColor(ItemStack stack) {
-		NbtCompound nbtCompound = stack.getSubNbt("display");
+		CompoundTag nbtCompound = stack.getTagElement("display");
 		return nbtCompound != null && nbtCompound.contains("color", 99) ? nbtCompound.getInt("color") : 0xFFFFFF;
 	}
 	
 	@Override
-	public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-		ItemStack held = user.getStackInHand(hand);
-		boolean client = world.isClient();
+	public InteractionResultHolder<ItemStack> use(Level world, Player user, InteractionHand hand) {
+		ItemStack held = user.getItemInHand(hand);
+		boolean client = world.isClientSide();
 		if (!client) {
-			FlyingCapEntity.spawn((ServerPlayerEntity) user, held, PreferredCapSlot.HAND);
-			user.setStackInHand(hand, ItemStack.EMPTY);
+			FlyingCapEntity.spawn((ServerPlayer) user, held, PreferredCapSlot.HAND);
+			user.setItemInHand(hand, ItemStack.EMPTY);
 		}
-		return TypedActionResult.success(held, client);
+		return InteractionResultHolder.sidedSuccess(held, client);
 	}
 }

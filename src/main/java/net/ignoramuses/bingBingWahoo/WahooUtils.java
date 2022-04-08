@@ -4,72 +4,74 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.ignoramuses.bingBingWahoo.cap.MysteriousCapModel;
 import net.ignoramuses.bingBingWahoo.movement.JumpTypes;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.HorizontalFacingBlock;
-import net.minecraft.block.StairsBlock;
-import net.minecraft.block.enums.BlockHalf;
-import net.minecraft.block.enums.StairShape;
+import net.minecraft.client.model.HeadedModel;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.Model;
-import net.minecraft.client.model.ModelPart;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.entity.model.*;
-import net.minecraft.client.render.item.ItemRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtDouble;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3f;
-import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.DoubleTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.Half;
+import net.minecraft.world.level.block.state.properties.StairsShape;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
 import static net.ignoramuses.bingBingWahoo.BingBingWahoo.MYSTERIOUS_CAP;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Vector3f;
+
 public class WahooUtils {
 	public static final double SIXTEENTH = 1 / 16f;
-	public static final Identifier CAP_TEXTURE = new Identifier(BingBingWahoo.ID, "textures/armor/mysterious_cap.png");
-	public static final Identifier EMBLEM_TEXTURE = new Identifier(BingBingWahoo.ID, "textures/armor/mysterious_cap_emblem.png");
+	public static final ResourceLocation CAP_TEXTURE = new ResourceLocation(BingBingWahoo.ID, "textures/armor/mysterious_cap.png");
+	public static final ResourceLocation EMBLEM_TEXTURE = new ResourceLocation(BingBingWahoo.ID, "textures/armor/mysterious_cap_emblem.png");
 	
-	public static NbtList toNbtList(double... values) {
-		NbtList nbtList = new NbtList();
+	public static ListTag toNbtList(double... values) {
+		ListTag nbtList = new ListTag();
 		
 		for(double d : values) {
-			nbtList.add(NbtDouble.of(d));
+			nbtList.add(DoubleTag.valueOf(d));
 		}
 		
 		return nbtList;
 	}
 	
 	@Environment(EnvType.CLIENT)
-	public static void renderCap(MatrixStack matrices, VertexConsumerProvider vertexConsumers, ItemStack hatStack, int light, float tickDelta, MysteriousCapModel model) {
+	public static void renderCap(PoseStack matrices, MultiBufferSource vertexConsumers, ItemStack hatStack, int light, float tickDelta, MysteriousCapModel model) {
 		int color = MYSTERIOUS_CAP.getColor(hatStack);
 		float r = (color >> 16 & 255) / 255.0F;
 		float g = (color >> 8 & 255) / 255.0F;
 		float b = (color & 255) / 255.0F;
-		matrices.push();
-		matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(90));
-		VertexConsumer capConsumer = ItemRenderer.getArmorGlintConsumer(vertexConsumers, RenderLayer.getArmorCutoutNoCull(CAP_TEXTURE), false, hatStack.hasGlint());
-		model.render(matrices, capConsumer, light, 1, r, g, b, 1);
-		VertexConsumer emblemConsumer = ItemRenderer.getArmorGlintConsumer(vertexConsumers, RenderLayer.getArmorCutoutNoCull(EMBLEM_TEXTURE), false, hatStack.hasGlint());
-		model.render(matrices, emblemConsumer, light, 1, 1, 1, 1, 1);
-		matrices.pop();
+		matrices.pushPose();
+		matrices.mulPose(Vector3f.YP.rotationDegrees(90));
+		VertexConsumer capConsumer = ItemRenderer.getArmorFoilBuffer(vertexConsumers, RenderType.armorCutoutNoCull(CAP_TEXTURE), false, hatStack.hasFoil());
+		model.renderToBuffer(matrices, capConsumer, light, 1, r, g, b, 1);
+		VertexConsumer emblemConsumer = ItemRenderer.getArmorFoilBuffer(vertexConsumers, RenderType.armorCutoutNoCull(EMBLEM_TEXTURE), false, hatStack.hasFoil());
+		model.renderToBuffer(matrices, emblemConsumer, light, 1, 1, 1, 1, 1);
+		matrices.popPose();
 	}
 	
 	@Nullable
 	@Environment(EnvType.CLIENT)
 	public static ModelPart getHeadModel(@Nullable Model base) {
-		if (base instanceof BipedEntityModel biped) {
+		if (base instanceof HumanoidModel biped) {
 			return biped.head;
-		} else if (base instanceof ModelWithHead model) {
+		} else if (base instanceof HeadedModel model) {
 			return model.getHead();
 		}
 		
@@ -98,9 +100,9 @@ public class WahooUtils {
 		return Math.copySign(newValue, value);
 	}
 	
-	public static Direction getHorizontalDirectionFromVector(Vec3d vector) {
-		double x = vector.getX();
-		double z = vector.getZ();
+	public static Direction getHorizontalDirectionFromVector(Vec3 vector) {
+		double x = vector.x();
+		double z = vector.z();
 		
 		if (Math.abs(x) > Math.abs(z)) {
 			if (x > 0) {
@@ -121,27 +123,27 @@ public class WahooUtils {
 	 * @return If the BlockState can be slid up
 	 */
 	public static boolean canGoUpSlope(BlockState state, Direction playerMoving) {
-		if (state.getBlock() instanceof StairsBlock) {
-			if (state.get(Properties.BLOCK_HALF).equals(BlockHalf.TOP)) return false;
-			Direction blockFacing = state.get(HorizontalFacingBlock.FACING);
-			StairShape shape = state.get(Properties.STAIR_SHAPE);
+		if (state.getBlock() instanceof StairBlock) {
+			if (state.getValue(BlockStateProperties.HALF).equals(Half.TOP)) return false;
+			Direction blockFacing = state.getValue(HorizontalDirectionalBlock.FACING);
+			StairsShape shape = state.getValue(BlockStateProperties.STAIRS_SHAPE);
 			Direction secondaryDirection = switch (shape) {
-				case INNER_LEFT, OUTER_LEFT, STRAIGHT -> blockFacing.rotateYCounterclockwise();
-				case INNER_RIGHT, OUTER_RIGHT -> blockFacing.rotateYClockwise();
+				case INNER_LEFT, OUTER_LEFT, STRAIGHT -> blockFacing.getCounterClockWise();
+				case INNER_RIGHT, OUTER_RIGHT -> blockFacing.getClockWise();
 			};
-			Direction tertiaryDirection = shape == StairShape.STRAIGHT ? secondaryDirection.getOpposite() : null;
+			Direction tertiaryDirection = shape == StairsShape.STRAIGHT ? secondaryDirection.getOpposite() : null;
 			return playerMoving == blockFacing || playerMoving == secondaryDirection || playerMoving == tertiaryDirection;
 		} else if (blockIsAutomobilitySlope(state)) {
-			Direction blockFacing = state.get(HorizontalFacingBlock.FACING).getOpposite();
-			Direction left = blockFacing.rotateYCounterclockwise();
-			Direction right = blockFacing.rotateYClockwise();
+			Direction blockFacing = state.getValue(HorizontalDirectionalBlock.FACING).getOpposite();
+			Direction left = blockFacing.getCounterClockWise();
+			Direction right = blockFacing.getClockWise();
 			return blockFacing == playerMoving || left == playerMoving || right == playerMoving;
 		}
 		return false;
 	}
 	
 	public static boolean blockIsSlope(BlockState state) {
-		return state.getBlock() instanceof StairsBlock || blockIsAutomobilitySlope(state);
+		return state.getBlock() instanceof StairBlock || blockIsAutomobilitySlope(state);
 	}
 	
 	public static boolean blockIsAutomobilitySlope(BlockState state) {
@@ -175,14 +177,14 @@ public class WahooUtils {
 	}
 	
 	public static boolean voxelShapeEligibleForGrab(VoxelShape shape, Direction facing) {
-		double xMin = shape.getMin(Direction.Axis.X);
-		double xMax = shape.getMax(Direction.Axis.X);
+		double xMin = shape.min(Direction.Axis.X);
+		double xMax = shape.max(Direction.Axis.X);
 		
-		double yMin = shape.getMin(Direction.Axis.Y);
-		double yMax = shape.getMax(Direction.Axis.Y);
+		double yMin = shape.min(Direction.Axis.Y);
+		double yMax = shape.max(Direction.Axis.Y);
 		
-		double zMin = shape.getMin(Direction.Axis.Z);
-		double zMax = shape.getMax(Direction.Axis.Z);
+		double zMin = shape.min(Direction.Axis.Z);
+		double zMax = shape.max(Direction.Axis.Z);
 		
 		// this is unholy
 		// iterate over each pixel of a 16x16x16 block, checking for a solid row across which can be grabbed.
@@ -193,7 +195,7 @@ public class WahooUtils {
 				for (double y = yMax; y > yMin; y -= SIXTEENTH) {
 					for (double x = xMin; x < xMax; x += SIXTEENTH) {
 						for (double z = zMax; z >= zMin; z -= SIXTEENTH) {
-							if (shape.getBoundingBox().contains(xMin + x, yMin + y, zMin + z)) {
+							if (shape.bounds().contains(xMin + x, yMin + y, zMin + z)) {
 								solidPixelsInARow++;
 							} else {
 								solidPixelsInARow = 0;
@@ -211,7 +213,7 @@ public class WahooUtils {
 				for (double y = yMax; y > yMin; y -= SIXTEENTH) {
 					for (double x = xMin; x < xMax; x += SIXTEENTH) {
 						for (double z = zMin; z < zMax; z += SIXTEENTH) {
-							if (shape.getBoundingBox().contains(xMin + x, yMin + y, zMin + z)) {
+							if (shape.bounds().contains(xMin + x, yMin + y, zMin + z)) {
 								solidPixelsInARow++;
 							} else {
 								solidPixelsInARow = 0;
@@ -229,7 +231,7 @@ public class WahooUtils {
 				for (double y = yMax; y > yMin; y -= SIXTEENTH) {
 					for (double x = xMax; x >= xMin; x -= SIXTEENTH) {
 						for (double z = zMin; z < zMax; z += SIXTEENTH) {
-							if (shape.getBoundingBox().contains(xMin + x, yMin + y, zMin + z)) {
+							if (shape.bounds().contains(xMin + x, yMin + y, zMin + z)) {
 								solidPixelsInARow++;
 							} else {
 								solidPixelsInARow = 0;
@@ -247,7 +249,7 @@ public class WahooUtils {
 				for (double y = yMax; y > yMin; y -= SIXTEENTH) {
 					for (double x = xMax; x >= xMin; x -= SIXTEENTH) {
 						for (double z = zMax; z >= zMin; z -= SIXTEENTH) {
-							if (shape.getBoundingBox().contains(xMin + x, yMin + y, zMin + z)) {
+							if (shape.bounds().contains(xMin + x, yMin + y, zMin + z)) {
 								solidPixelsInARow++;
 							} else {
 								solidPixelsInARow = 0;
@@ -264,12 +266,12 @@ public class WahooUtils {
 		};
 	}
 	
-	public interface PlayerEntityExtensions {
+	public interface PlayerExtensions {
 		void wahoo$setBonked(boolean value, UUID bonked);
 		boolean wahoo$getSliding();
 	}
 	
-	public interface ServerPlayerEntityExtensions {
+	public interface ServerPlayerExtensions {
 		void wahoo$setPreviousJumpType(JumpTypes type);
 		void wahoo$setGroundPounding(boolean value, boolean breakBlocks);
 		void wahoo$setDiving(boolean value, @Nullable BlockPos startPos);
@@ -277,7 +279,7 @@ public class WahooUtils {
 		void wahoo$setDestructionPermOverride(boolean value);
 	}
 	
-	public interface ClientPlayerEntityExtensions {
+	public interface LocalPlayerExtensions {
 		boolean wahoo$groundPounding();
 		boolean wahoo$slidingOnSlope();
 		boolean wahoo$slidingOnGround();

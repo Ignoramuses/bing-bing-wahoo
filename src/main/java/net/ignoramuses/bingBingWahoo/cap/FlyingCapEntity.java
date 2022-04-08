@@ -3,78 +3,83 @@ package net.ignoramuses.bingBingWahoo.cap;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.ignoramuses.bingBingWahoo.BingBingWahoo;
-import net.minecraft.entity.*;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.Packet;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.ItemSupplier;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 import static net.ignoramuses.bingBingWahoo.BingBingWahoo.MYSTERIOUS_CAP;
 import static net.ignoramuses.bingBingWahoo.WahooNetworking.CAP_ENTITY_SPAWN;
-import static net.minecraft.entity.Entity.RemovalReason.*;
+import static net.minecraft.world.entity.Entity.RemovalReason.*;
 
-public class FlyingCapEntity extends Entity implements FlyingItemEntity {
-	private static final TrackedData<Integer> COLOR = DataTracker.registerData(FlyingCapEntity.class, TrackedDataHandlerRegistry.INTEGER);
+public class FlyingCapEntity extends Entity implements ItemSupplier {
+	private static final EntityDataAccessor<Integer> COLOR = SynchedEntityData.defineId(FlyingCapEntity.class, EntityDataSerializers.INT);
 	
 	// synced
 	private ItemStack stack;
 	private String throwerId;
-	private Vec3d startAngle;
-	private Vec3d startPos;
+	private Vec3 startAngle;
+	private Vec3 startPos;
 	private boolean leftThrower = false;
 	public int ticksAtEnd;
 	private PreferredCapSlot preferredSlot;
 	// not synced
 	@Nullable
-	private PlayerEntity thrower;
+	private Player thrower;
 	
-	public FlyingCapEntity(EntityType<FlyingCapEntity> entityType, World world) {
+	public FlyingCapEntity(EntityType<FlyingCapEntity> entityType, Level world) {
 		super(entityType, world);
 	}
 	
-	public FlyingCapEntity(World world, ItemStack itemStack, PlayerEntity thrower, double x, double y, double z, PreferredCapSlot slot) {
+	public FlyingCapEntity(Level world, ItemStack itemStack, Player thrower, double x, double y, double z, PreferredCapSlot slot) {
 		super(BingBingWahoo.FLYING_CAP, world);
 		this.setItem(itemStack.copy());
 		this.thrower = thrower;
-		this.throwerId = thrower.getUuidAsString();
-		this.startAngle = thrower.getRotationVec(0).normalize().multiply(0.1);
-		setPos(x, y, z);
-		this.startPos = getPos();
+		this.throwerId = thrower.getStringUUID();
+		this.startAngle = thrower.getViewVector(0).normalize().scale(0.1);
+		setPosRaw(x, y, z);
+		this.startPos = position();
 		this.preferredSlot = slot;
 	}
 	
-	public void sendData(ServerPlayerEntity player) {
-		NbtCompound data = new NbtCompound();
-		writeCustomDataToNbt(data);
-		PacketByteBuf buf = PacketByteBufs.create()
+	public void sendData(ServerPlayer player) {
+		CompoundTag data = new CompoundTag();
+		addAdditionalSaveData(data);
+		FriendlyByteBuf buf = PacketByteBufs.create()
 				.writeNbt(data)
-				.writeString(getUuidAsString());
+				.writeUtf(getStringUUID());
 		ServerPlayNetworking.send(player, CAP_ENTITY_SPAWN, buf);
 	}
 	
 	@Override
-	public void onStartedTrackingBy(ServerPlayerEntity player) {
-		super.onStartedTrackingBy(player);
+	public void startSeenByPlayer(ServerPlayer player) {
+		super.startSeenByPlayer(player);
 		sendData(player);
 	}
 	
 	@Override
-	protected void initDataTracker() {
-		dataTracker.startTracking(COLOR, 0xFFFFFF);
+	protected void defineSynchedData() {
+		entityData.define(COLOR, 0xFFFFFF);
 	}
 	
 	public void setItem(ItemStack stack) {
@@ -85,31 +90,31 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 	}
 	
 	public void setColor(int color) {
-		dataTracker.set(COLOR, color);
+		entityData.set(COLOR, color);
 	}
 	
 	@Override
-	public void readCustomDataFromNbt(NbtCompound nbt) {
-		ItemStack stack = ItemStack.fromNbt(nbt.getCompound("Item"));
+	public void readAdditionalSaveData(CompoundTag nbt) {
+		ItemStack stack = ItemStack.of(nbt.getCompound("Item"));
 		setItem(stack);
 		this.throwerId = nbt.getString("Thrower");
-		this.startAngle = new Vec3d(nbt.getDouble("StartAngleX"), nbt.getDouble("StartAngleY"), nbt.getDouble("StartAngleZ"));
-		this.startPos = new Vec3d(nbt.getDouble("StartPosX"), nbt.getDouble("StartPosY"), nbt.getDouble("StartPosZ"));
+		this.startAngle = new Vec3(nbt.getDouble("StartAngleX"), nbt.getDouble("StartAngleY"), nbt.getDouble("StartAngleZ"));
+		this.startPos = new Vec3(nbt.getDouble("StartPosX"), nbt.getDouble("StartPosY"), nbt.getDouble("StartPosZ"));
 		this.leftThrower = nbt.getBoolean("LeftThrower");
 		this.ticksAtEnd = nbt.getInt("TicksAtEnd");
 		this.preferredSlot = PreferredCapSlot.values()[nbt.getInt("PreferredSlot")];
 	}
 	
 	@Override
-	public void writeCustomDataToNbt(NbtCompound nbt) {
-		nbt.put("Item", getStack().writeNbt(new NbtCompound()));
+	public void addAdditionalSaveData(CompoundTag nbt) {
+		nbt.put("Item", getItem().save(new CompoundTag()));
 		nbt.putString("Thrower", throwerId);
-		nbt.putDouble("StartAngleX", startAngle.getX());
-		nbt.putDouble("StartAngleY", startAngle.getY());
-		nbt.putDouble("StartAngleZ", startAngle.getZ());
-		nbt.putDouble("StartPosX", startPos.getX());
-		nbt.putDouble("StartPosY", startPos.getY());
-		nbt.putDouble("StartPosZ", startPos.getZ());
+		nbt.putDouble("StartAngleX", startAngle.x());
+		nbt.putDouble("StartAngleY", startAngle.y());
+		nbt.putDouble("StartAngleZ", startAngle.z());
+		nbt.putDouble("StartPosX", startPos.x());
+		nbt.putDouble("StartPosY", startPos.y());
+		nbt.putDouble("StartPosZ", startPos.z());
 		nbt.putBoolean("LeftThrower", leftThrower);
 		nbt.putInt("TicksAtEnd", ticksAtEnd);
 		nbt.putInt("PreferredSlot", preferredSlot.ordinal());
@@ -121,28 +126,31 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 		tryFindThrower();
 		tryMove();
 		
-		if (!world.isClient()) {
-			List<Entity> collisions = world.getOtherEntities(this, getBoundingBox().stretch(getVelocity()).expand(1), e -> !e.isSpectator() && e.collides());
+		if (!level.isClientSide()) {
+			if (tickCount == 1 || tickCount % 40 == 0) // todo
+				level.playSound(null, this, SoundEvents.ELYTRA_FLYING, SoundSource.PLAYERS, 0.5f, 2);
+			
+			List<Entity> collisions = level.getEntities(this, getBoundingBox().expandTowards(getDeltaMovement()).inflate(1), e -> !e.isSpectator() && e.isPickable());
 			
 			if (shouldLeaveThrower(collisions)) {
 				leftThrower = true;
 			}
 			
 			for (Entity entity : collisions) {
-				if (entity instanceof PlayerEntity thrower) {
-					if ((leftThrower || ticksAtEnd != 0) && throwerId.equals(entity.getUuidAsString())) {
+				if (entity instanceof Player thrower) {
+					if ((leftThrower || ticksAtEnd != 0) && throwerId.equals(entity.getStringUUID())) {
 						if (!tryReequipCap()) { // set in correct slot
-							if (!thrower.giveItemStack(getStack())) { // throw randomly in inventory
-								world.spawnEntity(new ItemEntity(world, thrower.getX(), thrower.getY(), thrower.getZ(), getStack())); // drop on ground
+							if (!thrower.addItem(getItem())) { // throw randomly in inventory
+								level.addFreshEntity(new ItemEntity(level, thrower.getX(), thrower.getY(), thrower.getZ(), getItem())); // drop on ground
 							}
 						}
 						remove(KILLED); // bypass item drop
-						world.playSound(null,
+						level.playSound(null,
 								thrower.getX(),
 								thrower.getY(),
 								thrower.getZ(),
-								SoundEvents.ENTITY_ITEM_PICKUP,
-								SoundCategory.PLAYERS,
+								SoundEvents.ITEM_PICKUP,
+								SoundSource.PLAYERS,
 								0.2F,
 								((thrower.getRandom().nextFloat() - thrower.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F
 						);
@@ -151,19 +159,19 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 				
 				
 				if (entity != thrower && entity instanceof LivingEntity living) {
-					living.damage(DamageSource.thrownProjectile(this, thrower), 3);
+					living.hurt(DamageSource.thrown(this, thrower), 3);
 					ticksAtEnd = 10;
 					break;
 				}
 			}
 			
-			if (age > 500) kill();
+			if (tickCount > 500) kill();
 		}
 	}
 	
 	private boolean tryReequipCap() {
 		if (thrower != null) {
-			ItemStack stack = getStack();
+			ItemStack stack = getItem();
 			// first try preferred slot
 			if (preferredSlot.shouldEquip(thrower, stack)) {
 				preferredSlot.equip(thrower, stack);
@@ -184,8 +192,8 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 	
 	private void tryFindThrower() {
 		if (thrower == null) {
-			for (PlayerEntity player : world.getPlayers()) {
-				if (player.getUuidAsString().equals(throwerId)) {
+			for (Player player : level.players()) {
+				if (player.getStringUUID().equals(throwerId)) {
 					thrower = player;
 				}
 			}
@@ -194,29 +202,29 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 	
 	private void tryMove() {
 		if (thrower != null) {
-			Vec3d toMove = Vec3d.ZERO;
+			Vec3 toMove = Vec3.ZERO;
 			if (ticksAtEnd == 0) {
-				double mult = Math.cos(age / 8f) * 10;
-				toMove = startAngle.multiply(mult);
+				double mult = Math.cos(tickCount / 8f) * 10;
+				toMove = startAngle.scale(mult);
 				// valley of the cosine wave - slow down as it approaches the end
 				ticksAtEnd = mult <= 0 ? 1 : 0;
 			} else {
 				ticksAtEnd++;
 				if (ticksAtEnd > 10) {
-					Vec3d distance = thrower.getEyePos().subtract(getPos());
-					toMove = distance.multiply(0.2);
+					Vec3 distance = thrower.getEyePosition().subtract(position());
+					toMove = distance.scale(0.2);
 				}
 			}
 			
-			if (toMove != Vec3d.ZERO) {
-				move(MovementType.SELF, toMove);
+			if (toMove != Vec3.ZERO) {
+				move(MoverType.SELF, toMove);
 			}
 		}
 	}
 	
 	private boolean shouldLeaveThrower(List<Entity> collisions) {
 		for(Entity entity : collisions) {
-			if (entity.getUuidAsString().equals(throwerId)) {
+			if (entity.getStringUUID().equals(throwerId)) {
 				return false;
 			}
 		}
@@ -225,35 +233,35 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 	}
 	
 	@Override
-	public boolean collides() {
+	public boolean isPickable() {
 		return true;
 	}
 	
 	@Override
-	public boolean canUsePortals() {
+	public boolean canChangeDimensions() {
 		return false;
 	}
 	
 	@Override
 	public void kill() {
 		super.kill();
-		dropStack(stack.copy());
+		spawnAtLocation(stack.copy());
 	}
 
 	@Override
-	public ItemStack getStack() {
+	public ItemStack getItem() {
 		return stack;
 	}
 	
 	@Override
-	public Packet<?> createSpawnPacket() {
-		return new EntitySpawnS2CPacket(this);
+	public Packet<?> getAddEntityPacket() {
+		return new ClientboundAddEntityPacket(this);
 	}
 	
-	public static void spawn(ServerPlayerEntity thrower, ItemStack capStack, PreferredCapSlot preferredSlot) {
-		if (capStack != null && capStack.isOf(MYSTERIOUS_CAP)) {
-			FlyingCapEntity cap = new FlyingCapEntity(thrower.world, capStack.copy(), thrower, thrower.getX(), thrower.getEyeY() - 0.1, thrower.getZ(), preferredSlot);
-			thrower.world.spawnEntity(cap);
+	public static void spawn(ServerPlayer thrower, ItemStack capStack, PreferredCapSlot preferredSlot) {
+		if (capStack != null && capStack.is(MYSTERIOUS_CAP)) {
+			FlyingCapEntity cap = new FlyingCapEntity(thrower.level, capStack.copy(), thrower, thrower.getX(), thrower.getEyeY() - 0.1, thrower.getZ(), preferredSlot);
+			thrower.level.addFreshEntity(cap);
 		}
 	}
 }

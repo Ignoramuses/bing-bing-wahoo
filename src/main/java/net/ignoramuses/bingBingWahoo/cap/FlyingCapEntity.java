@@ -136,7 +136,7 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 								world.spawnEntity(new ItemEntity(world, thrower.getX(), thrower.getY(), thrower.getZ(), getStack())); // drop on ground
 							}
 						}
-						remove(KILLED);
+						remove(KILLED); // bypass item drop
 						world.playSound(null,
 								thrower.getX(),
 								thrower.getY(),
@@ -196,17 +196,15 @@ public class FlyingCapEntity extends Entity implements FlyingItemEntity {
 		if (thrower != null) {
 			Vec3d toMove = Vec3d.ZERO;
 			if (ticksAtEnd == 0) {
-				double mult = Math.cos(age / 5f) * 10;
+				double mult = Math.cos(age / 8f) * 10;
 				toMove = startAngle.multiply(mult);
 				// valley of the cosine wave - slow down as it approaches the end
 				ticksAtEnd = mult <= 0 ? 1 : 0;
 			} else {
 				ticksAtEnd++;
 				if (ticksAtEnd > 10) {
-					if (thrower != null) {
-						Vec3d distance = thrower.getEyePos().subtract(getPos());
-						toMove = distance.multiply(0.2);
-					}
+					Vec3d distance = thrower.getEyePos().subtract(getPos());
+					toMove = distance.multiply(0.2);
 				}
 			}
 			

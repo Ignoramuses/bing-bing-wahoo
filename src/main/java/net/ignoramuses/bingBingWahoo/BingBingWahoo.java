@@ -15,6 +15,7 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.item.*;
 import net.minecraft.tag.Tag;
+import net.minecraft.tag.TagKey;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 import net.minecraft.util.math.Direction;
@@ -24,7 +25,7 @@ public class BingBingWahoo implements ModInitializer {
 	public static final Direction[] CARDINAL_DIRECTIONS = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
 	public static final String ID = "bingbingwahoo";
 	public static final boolean TRINKETS_LOADED = FabricLoader.getInstance().isModLoaded("trinkets");
-	public static final Tag<Block> SLIDES = TagFactory.BLOCK.create(BingBingWahoo.id("slides"));
+	public static final TagKey<Block> SLIDES = TagKey.of(Registry.BLOCK_KEY, BingBingWahoo.id("slides"));
 	public static DyeableArmorItem MYSTERIOUS_CAP;
 	public static EntityType<FlyingCapEntity> FLYING_CAP;
 	

@@ -33,11 +33,11 @@
   ],
 
   "depends": {
-    "fabricloader": ">=0.12.12",
-    "fabric": "*",
-    "minecraft": ">1.18",
-    "java": ">=17",
-    "cloth-config2": ">=6.0.42"
+    "fabricloader": ">=${loader_version}",
+    "fabric": ">=${fabric_version}",
+    "minecraft": ">=${minecraft_version}",
+    "java": ">=${java_version}",
+    "cloth-config2": ">=${cloth_config_version}"
   },
   "recommends": {
     "modmenu": ">=3.0.0"

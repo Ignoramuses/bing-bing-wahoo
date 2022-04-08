@@ -280,8 +280,8 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
 		// Initiates Diving
 		// ugly but it works
 		if (wahoo$diveCooldown == 0 && isSprinting() && !wahoo$isDiving && !wahoo$diveFlip && getPose() != EntityPose.SWIMMING && wahoo$previousJumpType != JumpTypes.LONG && wahoo$previousJumpType != JumpTypes.DIVE && !riding && (isOnGround()
-				? BingBingWahooClient.CONFIG.groundedDives && MinecraftClient.getInstance().options.keyAttack.isPressed()
-				: MinecraftClient.getInstance().options.keyAttack.isPressed())) {
+				? BingBingWahooClient.CONFIG.groundedDives && MinecraftClient.getInstance().options.attackKey.isPressed()
+				: MinecraftClient.getInstance().options.attackKey.isPressed())) {
 			dive();
 			wahoo$previousJumpType = JumpTypes.DIVE;
 		}

@@ -57,9 +57,6 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Wa
 	private boolean wahoo$destructionPermOverride = false;
 	@Unique
 	private boolean wahoo$sliding = false;
-	@Nullable
-	@Unique
-	private NbtCompound wahoo$capturedData = null;
 	
 	public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile profile) {
 		super(world, pos, yaw, profile);
@@ -107,20 +104,6 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Wa
 					}
 				}
 			}
-		}
-	}
-	
-	@Inject(at = @At("HEAD"), method = "readCustomDataFromNbt")
-	private void wahoo$readCapturedData(NbtCompound nbt, CallbackInfo ci) {
-		if (nbt.contains("CapturedData")) {
-			wahoo$capturedData = nbt.getCompound("CapturedData");
-		}
-	}
-	
-	@Inject(at = @At("HEAD"), method = "writeCustomDataToNbt")
-	private void wahoo$writeCapturedData(NbtCompound nbt, CallbackInfo ci) {
-		if (wahoo$capturedData != null) {
-			nbt.put("CapturedData", wahoo$capturedData);
 		}
 	}
 	
@@ -226,15 +209,5 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Wa
 	@Override
 	public void wahoo$setDestructionPermOverride(boolean value) {
 		wahoo$destructionPermOverride = value;
-	}
-	
-	@Override
-	public void wahoo$setCaptured(@Nullable NbtCompound capturedData) {
-		wahoo$capturedData = capturedData;
-	}
-	
-	@Override
-	public NbtCompound wahoo$getCaptured() {
-		return wahoo$capturedData;
 	}
 }

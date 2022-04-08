@@ -54,15 +54,12 @@ public class WahooNetworking {
 		ServerPlayNetworking.registerGlobalReceiver(CAP_THROW, (server, player, handler, buf, responseSender) -> {
 			boolean fromTrinketSlot = buf.readBoolean();
 			server.execute(() -> {
-				NbtCompound captured = ((ServerPlayerEntityExtensions) player).wahoo$getCaptured();
-				if (captured == null) {
-					ItemStack cap = fromTrinketSlot ? TrinketsHandler.getCapStack(player) : player.getEquippedStack(EquipmentSlot.HEAD);
-					FlyingCapEntity.spawn(player, cap, fromTrinketSlot ? PreferredCapSlot.TRINKETS : PreferredCapSlot.HEAD);
-					if (fromTrinketSlot) {
-						TrinketsHandler.equipInHatSlot(player, ItemStack.EMPTY);
-					} else {
-						player.equipStack(EquipmentSlot.HEAD, ItemStack.EMPTY);
-					}
+				ItemStack cap = fromTrinketSlot ? TrinketsHandler.getCapStack(player) : player.getEquippedStack(EquipmentSlot.HEAD);
+				FlyingCapEntity.spawn(player, cap, fromTrinketSlot ? PreferredCapSlot.TRINKETS : PreferredCapSlot.HEAD);
+				if (fromTrinketSlot) {
+					TrinketsHandler.equipInHatSlot(player, ItemStack.EMPTY);
+				} else {
+					player.equipStack(EquipmentSlot.HEAD, ItemStack.EMPTY);
 				}
 			});
 		});

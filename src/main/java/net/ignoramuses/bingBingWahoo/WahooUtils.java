@@ -3,7 +3,6 @@ package net.ignoramuses.bingBingWahoo;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.ignoramuses.bingBingWahoo.cap.MysteriousCapModel;
-import net.ignoramuses.bingBingWahoo.mixin.EntityModelWithHeadAccessor;
 import net.ignoramuses.bingBingWahoo.movement.JumpTypes;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -20,7 +19,6 @@ import net.minecraft.client.render.entity.model.*;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtDouble;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.state.property.Properties;
@@ -73,8 +71,6 @@ public class WahooUtils {
 			return biped.head;
 		} else if (base instanceof ModelWithHead model) {
 			return model.getHead();
-		} else if (base instanceof EntityModelWithHeadAccessor model) {
-			return model.wahoo$getHead();
 		}
 		
 		return null;
@@ -279,8 +275,6 @@ public class WahooUtils {
 		void wahoo$setDiving(boolean value, @Nullable BlockPos startPos);
 		void wahoo$setSliding(boolean value);
 		void wahoo$setDestructionPermOverride(boolean value);
-		void wahoo$setCaptured(@Nullable NbtCompound capturedData);
-		NbtCompound wahoo$getCaptured();
 	}
 	
 	public interface ClientPlayerEntityExtensions {

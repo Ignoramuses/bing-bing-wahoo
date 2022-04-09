@@ -156,6 +156,16 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 	@Shadow
 	protected abstract boolean hasEnoughImpulseToStartSprinting();
 
+	@Inject(method = "onSyncedDataUpdated", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/sounds/ElytraOnPlayerSoundInstance;<init>(Lnet/minecraft/client/player/LocalPlayer;)V"))
+	public void wahoo$syncedDataUpdated(CallbackInfo ci) {
+		if (wahoo$isDiving)
+			exitDive();
+		if (wahoo$isGroundPounding)
+			exitGroundPound();
+		if (wahoo$forwardSliding)
+			exitForwardSlide();
+	}
+
 	@Inject(at = @At("HEAD"), method = "aiStep")
 	public void wahoo$aiStepHEAD(CallbackInfo ci) {
 		wahoo$lastRiding = handsBusy;
@@ -171,7 +181,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		updateJumpTicks();
 		
 		wahoo$canWahoo = false;
-		if ((boolean) BingBingWahooClient.GAME_RULES.get(HAT_REQUIRED_RULE.getId())) {
+		if (BingBingWahooClient.getBooleanValue(HAT_REQUIRED_RULE)) {
 			if (getItemBySlot(EquipmentSlot.HEAD).is(MYSTERIOUS_CAP)) {
 				wahoo$canWahoo = true;
 			} else if (TRINKETS_LOADED) {
@@ -200,9 +210,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		if (wahoo$midTripleJump) {
 			wahoo$tripleJumpTicks++;
 			if (wahoo$tripleJumpTicks > 10) {
-				if (tryToStartFallFlying()) {
-					exitTripleJump();
-				}
+				ClientPlayNetworking.send(START_FALL_FLY, PacketByteBufs.empty());
 			}
 			if ((isOnGround() || !level.getFluidState(blockPosition()).isEmpty()) && wahoo$tripleJumpTicks > 3 || wahoo$isDiving || wahoo$isGroundPounding || getAbilities().flying) {
 				exitTripleJump();
@@ -547,7 +555,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 					wahoo$flipTimer = 15;
 					push(0, 0.25, 0);
 					setDeltaMovement(getDeltaMovement().multiply(1.25, 1, 1.25));
-				} else if (((BingBingWahooClient.CONFIG.rapidFireLongJumps && (boolean) BingBingWahooClient.GAME_RULES.get(RAPID_FIRE_LONG_JUMPS_RULE.getId())) || wahoo$ticksLeftToLongJump > 0) && (isShiftKeyDown() || wasShiftKeyDown) && wahoo$previousJumpType.canLongJumpFrom() && (isSprinting() || hasEnoughImpulseToStartSprinting() || input.down)) {
+				} else if (((BingBingWahooClient.CONFIG.rapidFireLongJumps && BingBingWahooClient.getBooleanValue(RAPID_FIRE_LONG_JUMPS_RULE)) || wahoo$ticksLeftToLongJump > 0) && (isShiftKeyDown() || wasShiftKeyDown) && wahoo$previousJumpType.canLongJumpFrom() && (isSprinting() || hasEnoughImpulseToStartSprinting() || input.down)) {
 					longJump();
 				} else if (wahoo$ticksLeftToDoubleJump > 0 && !wahoo$jumpHeldSinceLastJump && wahoo$previousJumpType == JumpTypes.NORMAL) {
 					doubleJump();
@@ -756,11 +764,11 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		double newVelXAbs;
 		double newVelZAbs;
 		
-		double multiplier = Math.min(BingBingWahooClient.CONFIG.longJumpSpeedMultiplier, (double) BingBingWahooClient.GAME_RULES.get(LONG_JUMP_SPEED_MULTIPLIER_RULE.getId()));
-		double maxSpeed = Math.min(BingBingWahooClient.CONFIG.maxLongJumpSpeed, (double) BingBingWahooClient.GAME_RULES.get(MAX_LONG_JUMP_SPEED_RULE.getId()));
+		double multiplier = Math.min(BingBingWahooClient.CONFIG.longJumpSpeedMultiplier, BingBingWahooClient.getDoubleValue(LONG_JUMP_SPEED_MULTIPLIER_RULE));
+		double maxSpeed = Math.min(BingBingWahooClient.CONFIG.maxLongJumpSpeed, BingBingWahooClient.getDoubleValue(MAX_LONG_JUMP_SPEED_RULE));
 		
 		if (degreesDiff > 170) { // BLJ
-			if ((boolean) BingBingWahooClient.GAME_RULES.get(BACKWARDS_LONG_JUMPS_RULE.getId()) && BingBingWahooClient.CONFIG.blj) {
+			if (BingBingWahooClient.getBooleanValue(BACKWARDS_LONG_JUMPS_RULE) && BingBingWahooClient.CONFIG.blj) {
 				newVelXAbs = Math.abs(getDeltaMovement().x()) * multiplier;
 				newVelZAbs = Math.abs(getDeltaMovement().z()) * multiplier;
 			} else {
@@ -814,7 +822,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 	}
 	
 	private void dive() {
-		if (!wahoo$canWahoo || wahoo$wasRiding) return;
+		if (!wahoo$canWahoo || wahoo$wasRiding || isFallFlying()) return;
 		if (wahoo$midTripleJump) exitTripleJump();
 		if (wahoo$wallJumping) exitWallJump();
 		if (level.getBlockState(blockPosition()).isAir() && level.getBlockState(blockPosition().above()).isAir()) {
@@ -857,7 +865,9 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		}
 		
 		setDeltaMovement(-getDeltaMovement().x(), getDeltaMovement().y(), -getDeltaMovement().z());
-		ClientPlayNetworking.send(UPDATE_POSE, PacketByteBufs.create().writeVarInt(Pose.SLEEPING.ordinal()));
+		FriendlyByteBuf buf = PacketByteBufs.create();
+		buf.writeBoolean(true);
+		ClientPlayNetworking.send(BONK_PACKET, buf);
 		setXRot(-90);
 		wahoo$bonked = true;
 		wahoo$bonkTime = 30;
@@ -867,7 +877,9 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 	public void exitBonk() {
 		((WahooUtils.KeyboardInputExtensions) input).wahoo$enableControl();
 		wahoo$bonked = false;
-		ClientPlayNetworking.send(UPDATE_POSE, PacketByteBufs.create().writeVarInt(Pose.STANDING.ordinal()));
+		FriendlyByteBuf buf = PacketByteBufs.create();
+		buf.writeBoolean(false);
+		ClientPlayNetworking.send(BONK_PACKET, buf);
 		tryCheckInsideBlocks();
 		wahoo$bonkTime = 0;
 		setXRot(0);

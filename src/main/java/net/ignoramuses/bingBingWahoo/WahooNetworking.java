@@ -26,13 +26,23 @@ public class WahooNetworking {
 	public static final ResourceLocation GROUND_POUND_PACKET = id("ground_pound_packet");
 	public static final ResourceLocation DIVE_PACKET = id("dive_packet");
 	public static final ResourceLocation SLIDE_PACKET = id("slide_packet");
+	public static final ResourceLocation BONK_PACKET = id("bonk_packet");
 	public static final ResourceLocation CAP_THROW = id("cap_throw");
 	public static final ResourceLocation UPDATE_BOOLEAN_GAMERULE_PACKET = id("update_boolean_gamerule_packet");
 	public static final ResourceLocation CAP_ENTITY_SPAWN = id("cap_entity_spawn");
 	public static final ResourceLocation UPDATE_PICKUP_TYPE = id("update_pickup_type");
 	public static final ResourceLocation UPDATE_POSE = id("update_pose");
+	public static final ResourceLocation START_FALL_FLY = id("start_fall_fly");
 	
 	public static void init() {
+		ServerPlayNetworking.registerGlobalReceiver(BONK_PACKET, (server, player, handler, buf, responseSender) -> {
+			boolean started = buf.readBoolean();
+			server.execute(() ->
+					((ServerPlayerExtensions) player).wahoo$setBonked(started));
+		});
+		ServerPlayNetworking.registerGlobalReceiver(START_FALL_FLY, (server, player, handler, buf, responseSender) ->
+				server.execute(player::tryToStartFallFlying)
+		);
 		ServerPlayNetworking.registerGlobalReceiver(UPDATE_POSE, ((server, player, handler, buf, responseSender) -> {
 			Pose newPose = Pose.values()[buf.readVarInt()];
 			server.execute(() -> player.setPose(newPose));

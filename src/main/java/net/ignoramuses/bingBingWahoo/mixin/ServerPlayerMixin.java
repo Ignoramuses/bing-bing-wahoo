@@ -16,8 +16,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -27,6 +29,11 @@ import static net.ignoramuses.bingBingWahoo.WahooCommands.DESTRUCTIVE_GROUND_POU
 
 @Mixin(ServerPlayer.class)
 public abstract class ServerPlayerMixin extends Player implements ServerPlayerExtensions, PlayerExtensions {
+	@Shadow
+	public abstract void teleportTo(double x, double y, double z);
+
+	@Shadow public abstract void moveTo(double x, double y, double z);
+
 	@Unique
 	private final BlockPos.MutableBlockPos wahoo$groundPoundBlockBreakPos = new BlockPos.MutableBlockPos();
 	@Unique
@@ -47,6 +54,8 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 	private boolean wahoo$destructionPermOverride = false;
 	@Unique
 	private boolean wahoo$sliding = false;
+	@Unique
+	private boolean wahoo$bonked = false;
 	
 	public ServerPlayerMixin(Level world, BlockPos pos, float yaw, GameProfile profile) {
 		super(world, pos, yaw, profile);
@@ -106,7 +115,18 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 		
 		return fallDamage;
 	}
-	
+
+	@Override
+	public void wahoo$setBonked(boolean value) {
+		if (value) {
+			moveTo(Vec3.atCenterOf(blockPosition())); // don't suffocate in wall
+			setPose(Pose.SLEEPING);
+		} else {
+			setPose(Pose.STANDING);
+		}
+		wahoo$bonked = value;
+	}
+
 	@Override
 	public void wahoo$setPreviousJumpType(JumpTypes type) {
 		wahoo$previousJumpType = type;
@@ -150,6 +170,8 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 		if (value) {
 			setPose(Pose.SWIMMING);
 			wahoo$divingStartPos.set(startPos);
+		} else {
+			setPose(Pose.STANDING);
 		}
 		wahoo$diving = value;
 	}
@@ -161,7 +183,7 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 	
 	@Override
 	protected void updatePlayerPose() {
-		if (wahoo$diving) {
+		if (wahoo$diving || wahoo$bonked || wahoo$groundPounding) {
 			return;
 		}
 		super.updatePlayerPose();

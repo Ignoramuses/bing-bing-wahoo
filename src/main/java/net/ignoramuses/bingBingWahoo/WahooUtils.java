@@ -272,6 +272,7 @@ public class WahooUtils {
 	
 	public interface ServerPlayerExtensions {
 		void wahoo$setPreviousJumpType(JumpTypes type);
+		void wahoo$setBonked(boolean value);
 		void wahoo$setGroundPounding(boolean value, boolean breakBlocks);
 		void wahoo$setDiving(boolean value, @Nullable BlockPos startPos);
 		void wahoo$setSliding(boolean value);

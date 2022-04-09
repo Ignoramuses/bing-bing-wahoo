@@ -13,6 +13,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.fabricmc.fabric.api.gamerule.v1.rule.DoubleRule;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.ignoramuses.bingBingWahoo.cap.CapPickupType;
 import net.ignoramuses.bingBingWahoo.cap.FlyingCapEntity;
@@ -27,6 +28,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.level.GameRules;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.HashMap;
@@ -39,7 +41,7 @@ import static net.ignoramuses.bingBingWahoo.WahooNetworking.*;
 
 @Environment(EnvType.CLIENT)
 public class BingBingWahooClient implements ClientModInitializer {
-	public static final Map<String, Object> GAME_RULES = new HashMap<>();
+	private static final Map<String, Object> GAME_RULES = new HashMap<>();
 	public static BingBingWahooConfig CONFIG;
 	public static KeyMapping THROW_CAP = new KeyMapping("bingbingwahoo.key.throw_cap", GLFW.GLFW_KEY_G, "bingbingwahoo.key.category");
 	
@@ -108,5 +110,19 @@ public class BingBingWahooClient implements ClientModInitializer {
 				}
 			}
 		});
+	}
+
+	public static boolean getBooleanValue(GameRules.Key<GameRules.BooleanValue> key) {
+		String id = key.getId();
+		Object value = GAME_RULES.get(id);
+		if (value != null) return (boolean) value;
+		return false;
+	}
+
+	public static double getDoubleValue(GameRules.Key<DoubleRule> key) {
+		String id = key.getId();
+		Object value = GAME_RULES.get(id);
+		if (value != null) return (double) value;
+		return 0;
 	}
 }

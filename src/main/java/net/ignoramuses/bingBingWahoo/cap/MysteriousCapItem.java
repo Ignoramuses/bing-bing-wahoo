@@ -1,6 +1,10 @@
 package net.ignoramuses.bingBingWahoo.cap;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -12,14 +16,20 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.monster.piglin.AbstractPiglin;
-import net.minecraft.world.entity.monster.piglin.Piglin;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.DyeableArmorItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class MysteriousCapItem extends DyeableArmorItem {
+	public static final MutableComponent LUIGI_NUMBER_ONE = new TranslatableComponent("bingbingwahoo.luigiNumberOne")
+			.withStyle(ChatFormatting.ITALIC, ChatFormatting.GREEN);
+
 	public MysteriousCapItem(ArmorMaterial armorMaterial, EquipmentSlot equipmentSlot, Properties settings) {
 		super(armorMaterial, equipmentSlot, settings);
 	}
@@ -56,5 +66,13 @@ public class MysteriousCapItem extends DyeableArmorItem {
 			}
 		}
 		return InteractionResult.PASS;
+	}
+
+	@Override
+	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
+		super.appendHoverText(stack, level, tooltipComponents, isAdvanced);
+		if (getColor(stack) == 0x80C71F) {
+			tooltipComponents.add(1, LUIGI_NUMBER_ONE);
+		}
 	}
 }

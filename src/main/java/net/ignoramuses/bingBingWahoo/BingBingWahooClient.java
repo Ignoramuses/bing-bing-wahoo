@@ -7,7 +7,6 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -20,14 +19,11 @@ import net.ignoramuses.bingBingWahoo.cap.FlyingCapEntity;
 import net.ignoramuses.bingBingWahoo.cap.FlyingCapRenderer;
 import net.ignoramuses.bingBingWahoo.cap.MysteriousCapModel;
 import net.ignoramuses.bingBingWahoo.compat.TrinketsHandler;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -46,8 +42,6 @@ public class BingBingWahooClient implements ClientModInitializer {
 	public static final Map<String, Object> GAME_RULES = new HashMap<>();
 	public static BingBingWahooConfig CONFIG;
 	public static KeyMapping THROW_CAP = new KeyMapping("bingbingwahoo.key.throw_cap", GLFW.GLFW_KEY_G, "bingbingwahoo.key.category");
-	public static final MutableComponent LUIGI_NUMBER_ONE = new TranslatableComponent("bingbingwahoo.luigiNumberOne")
-			.withStyle(ChatFormatting.ITALIC, ChatFormatting.GREEN);
 	
 	@Override
 	public void onInitializeClient() {
@@ -91,15 +85,7 @@ public class BingBingWahooClient implements ClientModInitializer {
 						? BingBingWahoo.MYSTERIOUS_CAP.getColor(stack)
 						: 0xFFFFFF,
 				BingBingWahoo.MYSTERIOUS_CAP);
-		
-		ItemTooltipCallback.EVENT.register(((stack, context, lines) -> {
-			if (stack.is(BingBingWahoo.MYSTERIOUS_CAP)) {
-				if (BingBingWahoo.MYSTERIOUS_CAP.getColor(stack) == 0x80C71F) {
-					lines.add(1, LUIGI_NUMBER_ONE);
-				}
-			}
-		}));
-		
+
 		KeyBindingHelper.registerKeyBinding(THROW_CAP);
 
 		ClientPlayConnectionEvents.JOIN.register(((handler, sender, client) ->

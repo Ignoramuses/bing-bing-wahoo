@@ -22,7 +22,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.lwjgl.glfw.GLFW;
 
@@ -56,16 +56,11 @@ public class BingBingWahooClient implements ClientModInitializer {
 			client.execute(() -> GAME_RULES.put(gameRuleName, value));
 		});
 		ClientPlayNetworking.registerGlobalReceiver(CAP_ENTITY_SPAWN, (client, handler, buf, sender) -> {
+			ClientboundAddEntityPacket addPacket = new ClientboundAddEntityPacket(buf);
 			CompoundTag data = buf.readNbt();
-			String id = buf.readUtf();
 			client.execute(() -> {
-				FlyingCapEntity cap = null;
-				for (Entity entity : client.level.entitiesForRendering()) {
-					if (entity instanceof FlyingCapEntity && entity.getStringUUID().equals(id)) {
-						cap = (FlyingCapEntity) entity;
-						break;
-					}
-				}
+				addPacket.handle(handler);
+				FlyingCapEntity cap = (FlyingCapEntity) client.level.getEntity(addPacket.getId());
 				if (cap != null) {
 					cap.readAdditionalSaveData(data);
 				}

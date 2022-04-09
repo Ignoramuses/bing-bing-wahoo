@@ -5,6 +5,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.ignoramuses.bingBingWahoo.BingBingWahoo;
+import net.ignoramuses.bingBingWahoo.WahooNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -67,21 +68,6 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 		this.preferredSlot = slot;
 	}
 
-	public void sendData(ServerPlayer player) {
-		CompoundTag data = new CompoundTag();
-		addAdditionalSaveData(data);
-		FriendlyByteBuf buf = PacketByteBufs.create()
-				.writeNbt(data)
-				.writeUtf(getStringUUID());
-		ServerPlayNetworking.send(player, CAP_ENTITY_SPAWN, buf);
-	}
-	
-	@Override
-	public void startSeenByPlayer(ServerPlayer player) {
-		super.startSeenByPlayer(player);
-		sendData(player);
-	}
-	
 	@Override
 	protected void defineSynchedData() {
 		entityData.define(COLOR, 0xFFFFFF);
@@ -130,15 +116,12 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 		super.tick();
 		tryFindThrower();
 		tryMove();
-
-		if (level.isClientSide()) {
-			playWhoosh();
-		}
-
 		moveCarriedEntities();
 		handleCollisions();
 
-		if (!level.isClientSide()) {
+		if (level.isClientSide()) {
+			playWhoosh();
+		} else {
 			if (tickCount > 500) kill();
 		}
 	}
@@ -188,6 +171,7 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 				inventory.placeItemBackInInventory(getItem()); // throw in inv or on ground if no space
 			}
 			for (Entity entity : carriedEntities) {
+				if (entity.isRemoved()) continue;
 				if (entity instanceof ItemEntity item) {
 					ItemStack stack = item.getItem();
 					inventory.placeItemBackInInventory(stack);
@@ -249,7 +233,7 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 	}
 
 	private boolean shouldLeaveThrower(List<Entity> collisions) {
-		for(Entity entity : collisions) {
+		for (Entity entity : collisions) {
 			if (entity.getStringUUID().equals(throwerId)) {
 				return false;
 			}
@@ -301,7 +285,12 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 	
 	@Override
 	public Packet<?> getAddEntityPacket() {
-		return new ClientboundAddEntityPacket(this);
+		FriendlyByteBuf buf = PacketByteBufs.create();
+		new ClientboundAddEntityPacket(this).write(buf);
+		CompoundTag data = new CompoundTag();
+		addAdditionalSaveData(data);
+		buf.writeNbt(data);
+		return ServerPlayNetworking.createS2CPacket(CAP_ENTITY_SPAWN, buf);
 	}
 	
 	public static void spawn(ServerPlayer thrower, ItemStack capStack, PreferredCapSlot preferredSlot) {

@@ -306,7 +306,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 				exitLedgeGrab(true);
 			}
 			if (getPose() != Pose.SLEEPING) {
-				setPose(Pose.SLEEPING);
+				ClientPlayNetworking.send(UPDATE_POSE, PacketByteBufs.create().writeVarInt(Pose.SLEEPING.ordinal()));
 			}
 			setDeltaMovement(getDeltaMovement().multiply(-0.8, 1, -0.8));
 			--wahoo$bonkTime;
@@ -391,7 +391,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		}
 		
 		if (wahoo$isGroundPounding) {
-			setPose(Pose.CROUCHING);
+			ClientPlayNetworking.send(UPDATE_POSE, PacketByteBufs.create().writeVarInt(Pose.CROUCHING.ordinal()));
 			wahoo$hasGroundPounded = true;
 			wahoo$ticksInAirDuringGroundPound++;
 			if (wahoo$incipientGroundPound) {
@@ -701,6 +701,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 	/**
 	 * Similar to {@link LocalPlayerMixin#updatePlayerPose}, allows for special handling of yaw changes
 	 */
+	@Override
 	public void setYRot(float yaw) {
 		if (wahoo$bonked || wahoo$ledgeGrabbing) {
 			return;
@@ -708,22 +709,23 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		
 		super.setYRot(yaw);
 	}
-	
-	public void wahoo$setBonked(boolean value, UUID bonked) {
-	}
-	
+
+	@Override
 	public boolean wahoo$getSliding() {
 		return wahoo$isDiving || wahoo$forwardSliding;
 	}
-	
+
+	@Override
 	public boolean wahoo$groundPounding() {
 		return wahoo$isGroundPounding;
 	}
-	
+
+	@Override
 	public boolean wahoo$slidingOnSlope() {
 		return wahoo$slidingOnSlope && wahoo$forwardSliding;
 	}
-	
+
+	@Override
 	public boolean wahoo$slidingOnGround() {
 		return wahoo$slidingOnGround && wahoo$forwardSliding;
 	}
@@ -819,7 +821,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 			setPosRaw(position().x(), position().y() + 1, position().z());
 		}
 		wahoo$isDiving = true;
-		setPose(Pose.SWIMMING);
+		ClientPlayNetworking.send(UPDATE_POSE, PacketByteBufs.create().writeVarInt(Pose.SWIMMING.ordinal()));
 		wahoo$currentDivingVelocity = new Vec3(
 				Math.copySign(Math.min(1.5, Math.abs(getDeltaMovement().x()) * 2.25), getDeltaMovement().x()),
 				getDeltaMovement().y(),
@@ -855,7 +857,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		}
 		
 		setDeltaMovement(-getDeltaMovement().x(), getDeltaMovement().y(), -getDeltaMovement().z());
-		setPose(Pose.SLEEPING);
+		ClientPlayNetworking.send(UPDATE_POSE, PacketByteBufs.create().writeVarInt(Pose.SLEEPING.ordinal()));
 		setXRot(-90);
 		wahoo$bonked = true;
 		wahoo$bonkTime = 30;
@@ -865,6 +867,8 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 	public void exitBonk() {
 		((WahooUtils.KeyboardInputExtensions) input).wahoo$enableControl();
 		wahoo$bonked = false;
+		ClientPlayNetworking.send(UPDATE_POSE, PacketByteBufs.create().writeVarInt(Pose.STANDING.ordinal()));
+		tryCheckInsideBlocks();
 		wahoo$bonkTime = 0;
 		setXRot(0);
 	}

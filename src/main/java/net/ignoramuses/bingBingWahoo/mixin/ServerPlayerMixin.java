@@ -1,22 +1,16 @@
 package net.ignoramuses.bingBingWahoo.mixin;
 
 import com.mojang.authlib.GameProfile;
-import net.ignoramuses.bingBingWahoo.*;
 import net.ignoramuses.bingBingWahoo.WahooUtils.PlayerExtensions;
 import net.ignoramuses.bingBingWahoo.WahooUtils.ServerPlayerExtensions;
-import net.ignoramuses.bingBingWahoo.compat.TrinketsHandler;
 import net.ignoramuses.bingBingWahoo.movement.JumpTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -28,10 +22,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import java.util.UUID;
 
-import static net.ignoramuses.bingBingWahoo.BingBingWahoo.MYSTERIOUS_CAP;
-import static net.ignoramuses.bingBingWahoo.BingBingWahoo.TRINKETS_LOADED;
 import static net.ignoramuses.bingBingWahoo.WahooCommands.DESTRUCTIVE_GROUND_POUND_RULE;
 
 @Mixin(ServerPlayer.class)
@@ -60,10 +51,7 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 	public ServerPlayerMixin(Level world, BlockPos pos, float yaw, GameProfile profile) {
 		super(world, pos, yaw, profile);
 	}
-	
-	public void wahoo$setBonked(boolean value, UUID bonked) {
-	}
-	
+
 	public boolean wahoo$getSliding() {
 		return wahoo$diving || wahoo$sliding;
 	}
@@ -146,7 +134,7 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 					
 					if (wahoo$ticksGroundPoundingFor >= 15) {
 						for (Entity entity : level.getEntities(this, box)) {
-							if (!(entity instanceof ItemEntity)) {
+							if (entity instanceof LivingEntity) {
 								entity.hurt(DamageSource.ANVIL, damage);
 							}
 						}

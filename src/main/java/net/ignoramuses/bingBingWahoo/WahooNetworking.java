@@ -14,10 +14,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
-
-import java.util.UUID;
 
 import static net.ignoramuses.bingBingWahoo.BingBingWahoo.id;
 import static net.ignoramuses.bingBingWahoo.WahooCommands.*;
@@ -31,8 +30,13 @@ public class WahooNetworking {
 	public static final ResourceLocation UPDATE_BOOLEAN_GAMERULE_PACKET = id("update_boolean_gamerule_packet");
 	public static final ResourceLocation CAP_ENTITY_SPAWN = id("cap_entity_spawn");
 	public static final ResourceLocation UPDATE_PICKUP_TYPE = id("update_pickup_type");
+	public static final ResourceLocation UPDATE_POSE = id("update_pose");
 	
 	public static void init() {
+		ServerPlayNetworking.registerGlobalReceiver(UPDATE_POSE, ((server, player, handler, buf, responseSender) -> {
+			Pose newPose = Pose.values()[buf.readVarInt()];
+			server.execute(() -> player.setPose(newPose));
+		}));
 		ServerPlayNetworking.registerGlobalReceiver(UPDATE_PICKUP_TYPE, (server, player, handler, buf, responseSender) -> {
 			CapPickupType type = CapPickupType.values()[buf.readVarInt()];
 			server.execute(() -> BingBingWahoo.PLAYERS_TO_TYPES.put(player.getStringUUID(), type));

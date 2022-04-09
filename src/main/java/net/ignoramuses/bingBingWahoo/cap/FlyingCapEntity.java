@@ -5,7 +5,6 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.ignoramuses.bingBingWahoo.BingBingWahoo;
-import net.ignoramuses.bingBingWahoo.WahooNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -141,7 +140,8 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 		for (Entity entity : collisions) {
 			if (entity instanceof Player thrower) {
 				if ((leftThrower || ticksAtEnd != 0) && throwerId.equals(entity.getStringUUID())) {
-					giveThrowerItems();
+					giveThrowerItem();
+					dropCarried();
 					remove(KILLED); // bypass item drop
 					level.playSound(null,
 							thrower.getX(),
@@ -153,35 +153,32 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 							((thrower.getRandom().nextFloat() - thrower.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F
 					);
 				}
-			} else if (entity instanceof ItemEntity || entity instanceof ExperienceOrb) {
-				carriedEntities.add(entity);
-			}
-
-			if (entity != thrower && entity instanceof LivingEntity living) {
+			} else if (canPickupEntity(entity)) {
+					carriedEntities.add(entity);
+			} else if (entity instanceof LivingEntity living) {
 				living.hurt(DamageSource.thrown(this, thrower), 3);
 				ticksAtEnd = 10;
-				break;
 			}
 		}
 	}
 
-	private void giveThrowerItems() {
+	private void giveThrowerItem() {
 		if (thrower != null) {
-			Inventory inventory = thrower.getInventory();
 			if (!tryReequipCap()) { // set in correct slot
-				inventory.placeItemBackInInventory(getItem()); // throw in inv or on ground if no space
+				thrower.getInventory().placeItemBackInInventory(getItem()); // throw in inv or on ground if no space
 			}
+		}
+	}
+
+	private void dropCarried() {
+		if (thrower != null && !carriedEntities.isEmpty()) {
+			Inventory inv = thrower.getInventory();
 			for (Entity entity : carriedEntities) {
 				if (entity.isRemoved()) continue;
 				if (entity instanceof ItemEntity item) {
 					ItemStack stack = item.getItem();
-					inventory.placeItemBackInInventory(stack);
+					inv.placeItemBackInInventory(stack);
 					item.discard();
-				} else if (entity instanceof ExperienceOrb exp) {
-					int oldDelay = thrower.takeXpDelay;
-					thrower.takeXpDelay = 0;
-					exp.playerTouch(thrower);
-					thrower.takeXpDelay = oldDelay;
 				}
 			}
 		}
@@ -197,6 +194,7 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 					continue;
 				}
 				carried.setPos(pos);
+				carried.resetFallDistance();
 			}
 		}
 	}
@@ -245,13 +243,25 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 	private boolean tryReequipCap() {
 		if (thrower != null) {
 			ItemStack stack = getItem();
-			// first try preferred slot
 			if (preferredSlot.shouldEquip(thrower, stack)) {
 				preferredSlot.equip(thrower, stack);
 				return true;
 			}
 		}
 		return false;
+	}
+
+	private boolean canPickupEntity(Entity entity) {
+		if (entity instanceof FlyingCapEntity) return false;
+		CapPickupType pickupType = BingBingWahoo.PLAYERS_TO_TYPES.computeIfAbsent(throwerId, $ -> CapPickupType.ALL);
+		return switch (pickupType) {
+			case NONE -> false;
+			case ITEMS_AND_EXP -> entity instanceof ItemEntity || entity instanceof ExperienceOrb;
+			case ALL -> {
+				EntityDimensions dimensions = entity.getDimensions(entity.getPose());
+				yield dimensions.width <= 1 && dimensions.height <= 1;
+			}
+		};
 	}
 
 	@Environment(EnvType.CLIENT)

@@ -29,15 +29,20 @@
   "text.autoconfig.bingbingwahoo.option.groundPoundType.@Tooltip[3]": "DESTRUCTIVE - The same as ENABLED, but the Ground Pound will cause destruction.",
   "text.autoconfig.bingbingwahoo.option.groundPoundType.@Tooltip[4]": "Can be overridden by destructiveGroundPounds gamerule.",
   "text.autoconfig.bingbingwahoo.option.bonking": "Bonking",
+  "text.autoconfig.bingbingwahoo.option.capPickupType": "Cap Pickup Type",
+  "text.autoconfig.bingbingwahoo.option.capPickupType.@Tooltip[0]": "Which types of entities your cap can retrieve.",
+  "text.autoconfig.bingbingwahoo.option.capPickupType.@Tooltip[1]": "ALL only allows entities smaller that a block in size.",
   "text.autoconfig.bingbingwahoo.option.bonking.@Tooltip": "Whether bonks should happen or not.",
   "item.bingbingwahoo.mysterious_cap": "Mysterious Cap",
-  "bingbingwahoo.luigiNumberOne": "§a§oLuigi Number One!",
+  "item.bingbingwahoo.music_disc_slider": "Music Disc",
+  "item.bingbingwahoo.music_disc_slider.desc": "Koji Kondo - Slider",
+  "item.bingbingwahoo.music_disc_slider.desc2": "...but in the Minecraft soundfont",
+  "bingbingwahoo.luigiNumberOne": "Luigi Number One!",
   "argument.entity.options.sliding.description": "Players sliding",
   "gamerule.backwardsLongJumps": "Backwards Long Jumps",
   "gamerule.destructiveGroundPounds": "Destructive Ground Pounds",
   "gamerule.rapidFireLongJumps": "Rapid Fire Long Jumps",
   "gamerule.longJumpMaxSpeed": "Max long jump speed",
   "gamerule.longJumpSpeedMultiplier": "Long jump speed multiplier",
-  "gamerule.mysteriousCapRequired": "Mysterious Cap Required",
-  "bingbingwahoo.identity_disabled": "This feature has been disabled by Bing Bing Wahoo.\nSet the 'disableIdentitySwapping' gamerule to false to enable it."
+  "gamerule.mysteriousCapRequired": "Mysterious Cap Required"
 }

@@ -1,6 +1,7 @@
 package net.ignoramuses.bingBingWahoo;
 
 import me.shedaniel.autoconfig.AutoConfig;
+import me.shedaniel.autoconfig.ConfigHolder;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
@@ -8,21 +9,27 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.ignoramuses.bingBingWahoo.cap.CapPickupType;
 import net.ignoramuses.bingBingWahoo.cap.FlyingCapEntity;
 import net.ignoramuses.bingBingWahoo.cap.FlyingCapRenderer;
 import net.ignoramuses.bingBingWahoo.cap.MysteriousCapModel;
 import net.ignoramuses.bingBingWahoo.compat.TrinketsHandler;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.lwjgl.glfw.GLFW;
 
@@ -39,12 +46,22 @@ public class BingBingWahooClient implements ClientModInitializer {
 	public static final Map<String, Object> GAME_RULES = new HashMap<>();
 	public static BingBingWahooConfig CONFIG;
 	public static KeyMapping THROW_CAP = new KeyMapping("bingbingwahoo.key.throw_cap", GLFW.GLFW_KEY_G, "bingbingwahoo.key.category");
+	public static final MutableComponent LUIGI_NUMBER_ONE = new TranslatableComponent("bingbingwahoo.luigiNumberOne")
+			.withStyle(ChatFormatting.ITALIC, ChatFormatting.GREEN);
 	
 	@Override
 	public void onInitializeClient() {
 		AutoConfig.register(BingBingWahooConfig.class, GsonConfigSerializer::new);
-		CONFIG = AutoConfig.getConfigHolder(BingBingWahooConfig.class).getConfig();
-		
+		ConfigHolder<BingBingWahooConfig> holder = AutoConfig.getConfigHolder(BingBingWahooConfig.class);
+		CONFIG = holder.getConfig();
+		holder.registerSaveListener((configHolder, bingBingWahooConfig) -> {
+			CapPickupType type = bingBingWahooConfig.capPickupType;
+			BingBingWahoo.PLAYERS_TO_TYPES.put(Minecraft.getInstance().player.getStringUUID(), type);
+			int ordinal = type.ordinal();
+			ClientPlayNetworking.send(UPDATE_PICKUP_TYPE, PacketByteBufs.create().writeVarInt(ordinal));
+			return InteractionResult.PASS;
+		});
+
 		ClientPlayNetworking.registerGlobalReceiver(UPDATE_BOOLEAN_GAMERULE_PACKET, (client, handler, buf, responseSender) -> {
 			String gameRuleName = buf.readUtf();
 			boolean value = buf.readBoolean();
@@ -91,12 +108,16 @@ public class BingBingWahooClient implements ClientModInitializer {
 		ItemTooltipCallback.EVENT.register(((stack, context, lines) -> {
 			if (stack.is(BingBingWahoo.MYSTERIOUS_CAP)) {
 				if (BingBingWahoo.MYSTERIOUS_CAP.getColor(stack) == 0x80C71F) {
-					lines.add(1, new TranslatableComponent("bingbingwahoo.luigiNumberOne"));
+					lines.add(1, LUIGI_NUMBER_ONE);
 				}
 			}
 		}));
 		
 		KeyBindingHelper.registerKeyBinding(THROW_CAP);
+
+		ClientPlayConnectionEvents.JOIN.register(((handler, sender, client) ->
+				sender.sendPacket(UPDATE_PICKUP_TYPE, PacketByteBufs.create().writeVarInt(CONFIG.capPickupType.ordinal()))));
+
 		ClientTickEvents.START_CLIENT_TICK.register(client -> {
 			while (THROW_CAP.consumeClick()) {
 				LocalPlayer player = client.player;

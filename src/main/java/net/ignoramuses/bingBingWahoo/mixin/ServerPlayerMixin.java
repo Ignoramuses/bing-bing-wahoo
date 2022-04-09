@@ -53,8 +53,6 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 	@Unique
 	private boolean wahoo$diving = false;
 	@Unique
-	private long wahoo$ticksUntilAbilityApplies = 1;
-	@Unique
 	private boolean wahoo$destructionPermOverride = false;
 	@Unique
 	private boolean wahoo$sliding = false;
@@ -72,24 +70,6 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 	
 	@Inject(at = @At("HEAD"), method = "tick()V")
 	public void wahoo$tick(CallbackInfo ci) {
-		boolean wearingGreenCap = false;
-		if (getItemBySlot(EquipmentSlot.HEAD).is(MYSTERIOUS_CAP)) {
-			wearingGreenCap = BingBingWahoo.MYSTERIOUS_CAP.getColor(getItemBySlot(EquipmentSlot.HEAD)) == 0x80C71F;
-		} else if (TRINKETS_LOADED) {
-			ItemStack hatStack = TrinketsHandler.getCapStack(this);
-			if (hatStack != null) {
-				wearingGreenCap = BingBingWahoo.MYSTERIOUS_CAP.getColor(hatStack) == 0x80C71F; // luigi number 1!
-			}
-		}
-		
-		if (wahoo$ticksUntilAbilityApplies > 0) wahoo$ticksUntilAbilityApplies--;
-		if (wearingGreenCap) {
-			if (wahoo$ticksUntilAbilityApplies == 0) {
-				addEffect(new MobEffectInstance(MobEffects.JUMP, 200, 0, false, false, true));
-				wahoo$ticksUntilAbilityApplies = 199;
-			}
-		}
-		
 		if (wahoo$groundPounding) {
 			wahoo$ticksGroundPoundingFor++;
 			if (isOnGround() && wahoo$destructiveGroundPound && (level.getGameRules().getBoolean(DESTRUCTIVE_GROUND_POUND_RULE) || wahoo$destructionPermOverride)) {

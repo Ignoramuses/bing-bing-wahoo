@@ -61,11 +61,4 @@ public abstract class LivingEntityMixin extends Entity implements CapWearer {
 			});
 		}
 	}
-	
-	@Inject(at = @At("HEAD"), method = "dropCustomDeathLoot")
-	private void wahoo$dropEquipment(DamageSource source, int lootingMultiplier, boolean allowDrops, CallbackInfo ci) {
-		if (isWearingCap()) {
-			spawnAtLocation(getCap());
-		}
-	}
 }

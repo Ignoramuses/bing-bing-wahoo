@@ -178,15 +178,7 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 		}
 		super.updatePlayerPose();
 	}
-	
-	@Override
-	public void setPose(Pose pose) {
-		if (wahoo$diving) {
-			return;
-		}
-		super.setPose(pose);
-	}
-	
+
 	@Override
 	public void wahoo$setDestructionPermOverride(boolean value) {
 		wahoo$destructionPermOverride = value;

@@ -83,20 +83,7 @@ public class BingBingWahooClient implements ClientModInitializer {
 				}
 			});
 		});
-//		ClientPlayNetworking.registerGlobalReceiver(BingBingWahoo.BONK_PACKET, (client, handler, buf, sender) -> {
-//			boolean start = buf.readBoolean();
-//			UUID bonked = buf.readUuid();
-//			client.execute(() -> {
-//				PlayerEntity bonkedPlayer = client.world.getPlayerByUuid(bonked);
-//				if (start) {
-//					bonkedPlayer.setPose(EntityPose.SLEEPING);
-//					((PlayerEntityExtensions) bonkedPlayer).setBonked(true, bonked);
-//				} else {
-//					((PlayerEntityExtensions) bonkedPlayer).setBonked(false, bonked);
-//					bonkedPlayer.setPose(EntityPose.STANDING);
-//				}
-//			});
-//		});
+
 		EntityRendererRegistry.register(FLYING_CAP, FlyingCapRenderer::new);
 		EntityModelLayerRegistry.registerModelLayer(MysteriousCapModel.MODEL_LAYER, MysteriousCapModel::getTexturedModelData);
 		ColorProviderRegistry.ITEM.register((stack, tintIndex) ->

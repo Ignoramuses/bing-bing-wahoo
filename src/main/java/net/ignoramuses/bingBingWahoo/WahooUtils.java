@@ -267,7 +267,6 @@ public class WahooUtils {
 	}
 	
 	public interface PlayerExtensions {
-		void wahoo$setBonked(boolean value, UUID bonked);
 		boolean wahoo$getSliding();
 	}
 	

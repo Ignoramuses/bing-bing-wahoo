@@ -24,13 +24,6 @@ import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
 public class WahooCommands {
-	public static GameRules.Key<GameRules.BooleanValue> DISABLE_IDENTITY_SWAPPING_RULE = GameRuleRegistry.register("disableIdentitySwapping", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true, (server, rule) -> {
-		List<ServerPlayer> players = server.getPlayerList().getPlayers();
-		FriendlyByteBuf buffer = new FriendlyByteBuf(PacketByteBufs.create().writeUtf("disableIdentitySwapping").writeBoolean(rule.get()));
-		for (ServerPlayer player : players) {
-			ServerPlayNetworking.send(player, UPDATE_BOOLEAN_GAMERULE_PACKET, buffer);
-		}
-	}));
 	public static GameRules.Key<GameRules.BooleanValue> DESTRUCTIVE_GROUND_POUND_RULE = GameRuleRegistry.register("destructiveGroundPounds", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true, (server, rule) -> {
 		List<ServerPlayer> players = server.getPlayerList().getPlayers();
 		FriendlyByteBuf buffer = new FriendlyByteBuf(PacketByteBufs.create().writeUtf("destructiveGroundPounds").writeBoolean(rule.get()));

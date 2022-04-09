@@ -21,12 +21,15 @@ import net.minecraft.world.item.DyeableArmorItem;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.level.block.Block;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class BingBingWahoo implements ModInitializer {
 	public static final String ID = "bingbingwahoo";
+	public static final Logger LOGGER = LoggerFactory.getLogger(ID);
 	public static final boolean TRINKETS_LOADED = FabricLoader.getInstance().isModLoaded("trinkets");
 	public static final Map<String, CapPickupType> PLAYERS_TO_TYPES = new HashMap<>();
 	public static final TagKey<Block> SLIDES = TagKey.create(Registry.BLOCK_REGISTRY, id("slides"));

@@ -275,11 +275,15 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 			if (horizontalCollision && !inFront.isAir() && !WahooUtils.canGoUpSlope(inFront, moving)) {
 				if (wahoo$isDiving) exitDive();
 				if (wahoo$forwardSliding) exitForwardSlide();
-				if (!wahoo$ledgeGrabbing && !isCreative() && wahoo$bonkCooldown == 0 && !(Math.abs(getDeltaMovement().x()) < 0.07 && Math.abs(getDeltaMovement().y()) < 0.07)) {
-					BlockPos offset = blockPosition().relative(looking);
-					if (level.getBlockState(offset).isRedstoneConductor(level, offset) &&
-							level.getBlockState(offset.above()).isRedstoneConductor(level, offset.above())) {
-						bonk();
+				if (!wahoo$ledgeGrabbing && !isCreative() && wahoo$bonkCooldown == 0) {
+					Vec3 dMovement = getDeltaMovement();
+					boolean movingEnough = Math.abs(dMovement.x()) > 0.07 || Math.abs(dMovement.z()) > 0.07;
+					if (movingEnough) {
+						BlockPos offset = blockPosition().relative(looking);
+						if (level.getBlockState(offset).isRedstoneConductor(level, offset) &&
+								level.getBlockState(offset.above()).isRedstoneConductor(level, offset.above())) {
+							bonk();
+						}
 					}
 				}
 			}
@@ -640,15 +644,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		}
 		super.updatePlayerPose();
 	}
-	
-	@Override
-	public void setPose(Pose pose) {
-		if (wahoo$isGroundPounding) {
-			return;
-		}
-		super.setPose(pose);
-	}
-	
+
 	/**
 	 * Similar to {@link LocalPlayerMixin#updatePlayerPose}, allows for special handling of pitch changes
 	 */
@@ -864,7 +860,6 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		wahoo$bonked = true;
 		wahoo$bonkTime = 30;
 		wahoo$bonkCooldown = 20;
-//		ClientPlayNetworking.send(BONK_PACKET, new PacketByteBuf(PacketByteBufs.create().writeBoolean(true)).writeUuid(getUuid()));
 	}
 	
 	public void exitBonk() {
@@ -872,7 +867,6 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		wahoo$bonked = false;
 		wahoo$bonkTime = 0;
 		setXRot(0);
-//		ClientPlayNetworking.send(BONK_PACKET, new PacketByteBuf(PacketByteBufs.create().writeBoolean(false)).writeUuid(getUuid()));
 	}
 	
 	private void wallJump() {

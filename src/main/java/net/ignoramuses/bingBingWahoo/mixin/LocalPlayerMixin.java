@@ -183,13 +183,8 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 			wahoo$canWahoo = true;
 		}
 
-		// I think this can be simplified but I'm too scared it will catastrophically fail if I try to
-		if (wahoo$jumpHeldSinceLastJump) {
-			if (wahoo$lastJumping) {
-				if (!jumping) {
-					wahoo$jumpHeldSinceLastJump = false;
-				}
-			}
+		if (wahoo$jumpHeldSinceLastJump && wahoo$lastJumping && !jumping) {
+			wahoo$jumpHeldSinceLastJump = false;
 		}
 		
 		if (isPassenger()) {
@@ -202,8 +197,13 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		
 		// ----- TRIPLE JUMPS -----
 		
-		if (wahoo$midTripleJump) {// ALL I DID WAS CROUCH
+		if (wahoo$midTripleJump) {
 			wahoo$tripleJumpTicks++;
+			if (wahoo$tripleJumpTicks > 10) {
+				if (tryToStartFallFlying()) {
+					exitTripleJump();
+				}
+			}
 			if ((isOnGround() || !level.getFluidState(blockPosition()).isEmpty()) && wahoo$tripleJumpTicks > 3 || wahoo$isDiving || wahoo$isGroundPounding || getAbilities().flying) {
 				exitTripleJump();
 			}

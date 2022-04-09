@@ -24,6 +24,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ItemSupplier;
+import net.minecraft.world.item.ItemCooldowns;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -294,10 +295,13 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 	}
 	
 	public static void spawn(ServerPlayer thrower, ItemStack capStack, PreferredCapSlot preferredSlot) {
-		if (capStack != null && capStack.is(MYSTERIOUS_CAP)) {
+		ItemCooldowns cooldowns = thrower.getCooldowns();
+		if (capStack != null && capStack.is(MYSTERIOUS_CAP) && !cooldowns.isOnCooldown(MYSTERIOUS_CAP)) {
 			FlyingCapEntity cap = new FlyingCapEntity(thrower.level, capStack.copy(), thrower, thrower.getX(), thrower.getEyeY() - 0.1, thrower.getZ(), preferredSlot);
 			thrower.level.addFreshEntity(cap);
+			cooldowns.addCooldown(MYSTERIOUS_CAP, 20);
 			thrower.swing(InteractionHand.MAIN_HAND, true);
+			preferredSlot.equip(thrower, ItemStack.EMPTY);
 		}
 	}
 }

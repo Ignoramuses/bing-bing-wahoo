@@ -30,7 +30,6 @@ public class CapFlyingSoundInstance extends AbstractTickableSoundInstance {
 			this.z = this.capEntity.getZ();
 			LocalPlayer player = Minecraft.getInstance().player;
 			float distance = (float) player.position().distanceTo(capEntity.position());
-			System.out.println(distance);
 			this.volume = 1 / distance;
 		} else {
 			stop();

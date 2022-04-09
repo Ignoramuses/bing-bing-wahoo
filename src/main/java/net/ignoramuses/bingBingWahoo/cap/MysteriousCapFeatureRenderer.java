@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.monster.ZombifiedPiglin;
+import net.minecraft.world.entity.monster.piglin.AbstractPiglin;
 import net.minecraft.world.entity.monster.piglin.Piglin;
 import net.minecraft.world.entity.monster.piglin.PiglinBrute;
 
@@ -29,7 +30,7 @@ public class MysteriousCapFeatureRenderer<T extends Entity, M extends EntityMode
 		matrices.pushPose();
 		model.wearerHead.translateAndRotate(matrices);
 		if (model.wearerModel instanceof HumanoidModel) matrices.translate(0, -1.8, -0.1);
-		if (entity instanceof Piglin || entity instanceof PiglinBrute || entity instanceof ZombifiedPiglin)
+		if (entity instanceof AbstractPiglin || entity instanceof ZombifiedPiglin)
 			matrices.scale(1.2f, 1, 1);
 		WahooUtils.renderCap(matrices, vertexConsumers, wearer.getCap(), light, tickDelta, model);
 		matrices.popPose();

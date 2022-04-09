@@ -2,9 +2,17 @@ package net.ignoramuses.bingBingWahoo.cap;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.EnderMan;
+import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.piglin.AbstractPiglin;
+import net.minecraft.world.entity.monster.piglin.Piglin;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.DyeableArmorItem;
@@ -27,8 +35,26 @@ public class MysteriousCapItem extends DyeableArmorItem {
 		boolean client = world.isClientSide();
 		if (!client) {
 			FlyingCapEntity.spawn((ServerPlayer) user, held, PreferredCapSlot.HAND);
-			user.setItemInHand(hand, ItemStack.EMPTY);
 		}
 		return InteractionResultHolder.sidedSuccess(held, client);
+	}
+
+	@Override
+	public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity entity, InteractionHand hand) {
+		if (player.isCrouching() && !entity.isBaby() && entity.getItemBySlot(EquipmentSlot.HEAD).isEmpty()) {
+			// all bipeds
+			if (entity instanceof Zombie || entity instanceof EnderMan || entity instanceof AbstractPiglin) {
+				if (!player.level.isClientSide()) {
+					ItemStack toSet = stack.copy();
+					toSet.setCount(1);
+					entity.setItemSlot(EquipmentSlot.HEAD, toSet);
+					if (!player.isCreative())
+						stack.shrink(1);
+				}
+				player.level.playSound(null, entity.blockPosition(), SoundEvents.CHICKEN_EGG, SoundSource.NEUTRAL, 1, 1);
+				return InteractionResult.SUCCESS;
+			}
+		}
+		return InteractionResult.PASS;
 	}
 }

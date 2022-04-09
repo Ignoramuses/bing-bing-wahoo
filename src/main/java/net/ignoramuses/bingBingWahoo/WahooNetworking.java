@@ -55,11 +55,6 @@ public class WahooNetworking {
 			server.execute(() -> {
 				ItemStack cap = fromTrinketSlot ? TrinketsHandler.getCapStack(player) : player.getItemBySlot(EquipmentSlot.HEAD);
 				FlyingCapEntity.spawn(player, cap, fromTrinketSlot ? PreferredCapSlot.TRINKETS : PreferredCapSlot.HEAD);
-				if (fromTrinketSlot) {
-					TrinketsHandler.equipInHatSlot(player, ItemStack.EMPTY);
-				} else {
-					player.setItemSlot(EquipmentSlot.HEAD, ItemStack.EMPTY);
-				}
 			});
 		});
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {

@@ -52,7 +52,7 @@ public class BingBingWahooClient implements ClientModInitializer {
 		CONFIG = holder.getConfig();
 		holder.registerSaveListener((configHolder, bingBingWahooConfig) -> {
 			CapPickupType type = bingBingWahooConfig.capPickupType;
-			BingBingWahoo.PLAYERS_TO_TYPES.put(Minecraft.getInstance().player.getStringUUID(), type);
+			BingBingWahoo.PLAYERS_TO_TYPES.put(Minecraft.getInstance().player.getGameProfile().getId(), type);
 			int ordinal = type.ordinal();
 			ClientPlayNetworking.send(UPDATE_PICKUP_TYPE, PacketByteBufs.create().writeVarInt(ordinal));
 			return InteractionResult.PASS;

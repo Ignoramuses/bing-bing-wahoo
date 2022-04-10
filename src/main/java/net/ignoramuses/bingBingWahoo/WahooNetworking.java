@@ -49,7 +49,7 @@ public class WahooNetworking {
 		}));
 		ServerPlayNetworking.registerGlobalReceiver(UPDATE_PICKUP_TYPE, (server, player, handler, buf, responseSender) -> {
 			CapPickupType type = CapPickupType.values()[buf.readVarInt()];
-			server.execute(() -> BingBingWahoo.PLAYERS_TO_TYPES.put(player.getStringUUID(), type));
+			server.execute(() -> BingBingWahoo.PLAYERS_TO_TYPES.put(player.getGameProfile().getId(), type));
 		});
 		ServerPlayNetworking.registerGlobalReceiver(JUMP_TYPE_PACKET, (server, player, handler, buf, responseSender) -> {
 			JumpTypes jumpType = JumpTypes.fromBuf(buf);

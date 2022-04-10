@@ -5,6 +5,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.ignoramuses.bingBingWahoo.BingBingWahoo;
+import net.ignoramuses.bingBingWahoo.WahooUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -40,16 +41,16 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 
 	// synced
 	private ItemStack stack;
-	private String throwerId;
+	private UUID throwerId;
 	private Vec3 startAngle;
 	private Vec3 startPos;
-	private boolean leftThrower = false;
 	public int ticksAtEnd;
 	private PreferredCapSlot preferredSlot;
 	// not synced
 	@Nullable
 	private Player thrower;
 	private final List<Entity> carriedEntities = new ArrayList<>();
+	private boolean leftThrower = false;
 	@Environment(EnvType.CLIENT)
 	private CapFlyingSoundInstance whooshSound;
 	
@@ -61,8 +62,8 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 		super(BingBingWahoo.FLYING_CAP, world);
 		this.setItem(itemStack.copy());
 		this.thrower = thrower;
-		this.throwerId = thrower.getStringUUID();
-		this.startAngle = thrower.getViewVector(0).normalize().scale(0.1);
+		this.throwerId = thrower.getGameProfile().getId();
+		this.startAngle = adjustStartAngle(thrower.getViewVector(0).normalize().scale(0.1));
 		setPosRaw(x, y, z);
 		this.startPos = position();
 		this.preferredSlot = slot;
@@ -88,7 +89,7 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 	public void readAdditionalSaveData(CompoundTag nbt) {
 		ItemStack stack = ItemStack.of(nbt.getCompound("Item"));
 		setItem(stack);
-		this.throwerId = nbt.getString("Thrower");
+		this.throwerId = nbt.getUUID("Thrower");
 		this.startAngle = new Vec3(nbt.getDouble("StartAngleX"), nbt.getDouble("StartAngleY"), nbt.getDouble("StartAngleZ"));
 		this.startPos = new Vec3(nbt.getDouble("StartPosX"), nbt.getDouble("StartPosY"), nbt.getDouble("StartPosZ"));
 		this.leftThrower = nbt.getBoolean("LeftThrower");
@@ -99,7 +100,7 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 	@Override
 	public void addAdditionalSaveData(CompoundTag nbt) {
 		nbt.put("Item", getItem().save(new CompoundTag()));
-		nbt.putString("Thrower", throwerId);
+		nbt.putUUID("Thrower", throwerId);
 		nbt.putDouble("StartAngleX", startAngle.x());
 		nbt.putDouble("StartAngleY", startAngle.y());
 		nbt.putDouble("StartAngleZ", startAngle.z());
@@ -138,26 +139,31 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 		}
 
 		for (Entity entity : collisions) {
-			if (entity instanceof Player thrower) {
-				if ((leftThrower || ticksAtEnd != 0) && throwerId.equals(entity.getStringUUID())) {
-					giveThrowerItem();
-					dropCarried();
-					remove(KILLED); // bypass item drop
-					level.playSound(null,
-							thrower.getX(),
-							thrower.getY(),
-							thrower.getZ(),
-							SoundEvents.ITEM_PICKUP,
-							SoundSource.PLAYERS,
-							0.2F,
-							((thrower.getRandom().nextFloat() - thrower.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F
-					);
+			if (thrower != null) {
+				boolean client = level.isClientSide();
+				if (entity == thrower) {
+					if (!client && (leftThrower || ticksAtEnd != 0)) {
+						giveThrowerItem();
+						dropCarried();
+						remove(KILLED); // bypass item drop
+						level.playSound(null,
+								thrower.getX(),
+								thrower.getY(),
+								thrower.getZ(),
+								SoundEvents.ITEM_PICKUP,
+								SoundSource.PLAYERS,
+								0.2F,
+								((thrower.getRandom().nextFloat() - thrower.getRandom().nextFloat()) * 0.7F + 1.0F) * 2.0F
+						);
+					}
+				} else {
+					if (canPickupEntity(entity)) {
+						carriedEntities.add(entity);
+					} else if (entity instanceof LivingEntity living && !client) {
+						living.hurt(DamageSource.thrown(this, thrower), 3);
+						ticksAtEnd = 10;
+					}
 				}
-			} else if (canPickupEntity(entity)) {
-					carriedEntities.add(entity);
-			} else if (entity instanceof LivingEntity living) {
-				living.hurt(DamageSource.thrown(this, thrower), 3);
-				ticksAtEnd = 10;
 			}
 		}
 	}
@@ -202,7 +208,7 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 	private void tryFindThrower() {
 		if (thrower == null) {
 			for (Player player : level.players()) {
-				if (player.getStringUUID().equals(throwerId)) {
+				if (player.getGameProfile().getId().equals(throwerId)) {
 					thrower = player;
 				}
 			}
@@ -210,30 +216,28 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 	}
 	
 	private void tryMove() {
-		if (thrower != null) {
-			Vec3 toMove = Vec3.ZERO;
-			if (ticksAtEnd == 0) {
-				double mult = Math.cos(tickCount / 8f) * 10;
-				toMove = startAngle.scale(mult);
-				// valley of the cosine wave - slow down as it approaches the end
-				ticksAtEnd = mult <= 0 ? 1 : 0;
-			} else {
-				ticksAtEnd++;
-				if (ticksAtEnd > 10) {
-					Vec3 distance = thrower.getEyePosition().subtract(position());
-					toMove = distance.scale(0.2);
-				}
+		Vec3 toMove = Vec3.ZERO;
+		if (ticksAtEnd == 0) {
+			double mult = Math.cos(tickCount / 8f) * 10;
+			toMove = startAngle.scale(mult);
+			// valley of the cosine wave - slow down as it approaches the end
+			ticksAtEnd = mult <= 0 ? 1 : 0;
+		} else if (thrower != null) {
+			ticksAtEnd++;
+			if (ticksAtEnd > 10) {
+				Vec3 distance = thrower.getEyePosition().subtract(position());
+				toMove = distance.scale(0.2);
 			}
+		}
 
-			if (toMove != Vec3.ZERO) {
-				move(MoverType.SELF, toMove);
-			}
+		if (toMove != Vec3.ZERO) {
+			move(MoverType.SELF, toMove);
 		}
 	}
 
 	private boolean shouldLeaveThrower(List<Entity> collisions) {
 		for (Entity entity : collisions) {
-			if (entity.getStringUUID().equals(throwerId)) {
+			if (entity == thrower) {
 				return false;
 			}
 		}
@@ -272,12 +276,7 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 			mc.getSoundManager().play(whooshSound);
 		}
 	}
-	
-	@Override
-	public boolean isPickable() {
-		return true;
-	}
-	
+
 	@Override
 	public boolean canChangeDimensions() {
 		return false;
@@ -287,6 +286,11 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 	public void kill() {
 		super.kill();
 		spawnAtLocation(stack.copy());
+	}
+
+	@Override
+	public boolean isPickable() {
+		return super.isPickable();
 	}
 
 	@Override
@@ -303,7 +307,26 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 		buf.writeNbt(data);
 		return ServerPlayNetworking.createS2CPacket(CAP_ENTITY_SPAWN, buf);
 	}
-	
+
+	private static Vec3 adjustStartAngle(Vec3 startAngle) {
+		// x and z near zero, but not y
+		// you don't even want to know why this is needed.
+		// you want to know anyway? fine.
+		// somehow, only on dedicated servers, only when looking straight down with
+		// sub-pixel accuracy, 8 ghost-voxelshapes prevented the cap from moving down.
+		// I don't know how. I don't want to know how. All I know is that this slight
+		// offset is somehow able to fix it.
+		// Nearly a full day was spent figuring this out, I give up. You win, MC.
+		if (WahooUtils.aprox(startAngle.x, 0, 0.001)) {
+			if (WahooUtils.aprox(startAngle.z, 0, 0.001)) {
+				if (!WahooUtils.aprox(startAngle.y, 0, 0.001)) {
+					return new Vec3(0.001, startAngle.y, 0.001);
+				}
+			}
+		}
+		return startAngle;
+	}
+
 	public static void spawn(ServerPlayer thrower, ItemStack capStack, PreferredCapSlot preferredSlot) {
 		ItemCooldowns cooldowns = thrower.getCooldowns();
 		if (capStack != null && capStack.is(MYSTERIOUS_CAP) && !cooldowns.isOnCooldown(MYSTERIOUS_CAP)) {

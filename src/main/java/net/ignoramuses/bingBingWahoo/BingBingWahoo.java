@@ -26,12 +26,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class BingBingWahoo implements ModInitializer {
 	public static final String ID = "bingbingwahoo";
 	public static final Logger LOGGER = LoggerFactory.getLogger(ID);
 	public static final boolean TRINKETS_LOADED = FabricLoader.getInstance().isModLoaded("trinkets");
-	public static final Map<String, CapPickupType> PLAYERS_TO_TYPES = new HashMap<>();
+	public static final Map<UUID, CapPickupType> PLAYERS_TO_TYPES = new HashMap<>();
 	public static final TagKey<Block> SLIDES = TagKey.create(Registry.BLOCK_REGISTRY, id("slides"));
 	public static DyeableArmorItem MYSTERIOUS_CAP;
 	public static SoundEvent SLIDER_SOUND;

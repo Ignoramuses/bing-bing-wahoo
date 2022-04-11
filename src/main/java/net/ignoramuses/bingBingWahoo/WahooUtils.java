@@ -284,6 +284,13 @@ public class WahooUtils {
 		boolean wahoo$slidingOnSlope();
 		boolean wahoo$slidingOnGround();
 	}
+
+	public interface AbstractClientPlayerExtensions {
+		int wahoo$ticksFlipping();
+		void wahoo$setFlipping(boolean value);
+		void wahoo$setFlipDirection(boolean forwards);
+		boolean wahoo$flippingForwards();
+	}
 	
 	public interface KeyboardInputExtensions {
 		void wahoo$disableControl();

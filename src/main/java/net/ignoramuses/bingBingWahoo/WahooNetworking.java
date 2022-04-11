@@ -2,6 +2,7 @@ package net.ignoramuses.bingBingWahoo;
 
 import net.fabricmc.fabric.api.gamerule.v1.rule.DoubleRule;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.ignoramuses.bingBingWahoo.WahooUtils.ServerPlayerExtensions;
@@ -13,10 +14,13 @@ import net.ignoramuses.bingBingWahoo.movement.JumpTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
+
+import java.util.UUID;
 
 import static net.ignoramuses.bingBingWahoo.BingBingWahoo.id;
 import static net.ignoramuses.bingBingWahoo.WahooCommands.*;
@@ -33,8 +37,25 @@ public class WahooNetworking {
 	public static final ResourceLocation UPDATE_PICKUP_TYPE = id("update_pickup_type");
 	public static final ResourceLocation UPDATE_POSE = id("update_pose");
 	public static final ResourceLocation START_FALL_FLY = id("start_fall_fly");
+	public static final ResourceLocation UPDATE_FLIP = id("update_flip");
 	
 	public static void init() {
+		ServerPlayNetworking.registerGlobalReceiver(UPDATE_FLIP, (server, player, handler, buf, responseSender) -> {
+			boolean started = buf.readBoolean();
+			boolean forwards = started && buf.readBoolean();
+			server.execute(() -> {
+				UUID id = player.getGameProfile().getId();
+				for (ServerPlayer tracker : PlayerLookup.tracking(player)) {
+					if (tracker != player) {
+						FriendlyByteBuf buffer = PacketByteBufs.create();
+						buffer.writeBoolean(started);
+						if (started) buffer.writeBoolean(forwards);
+						buffer.writeUUID(id);
+						ServerPlayNetworking.send(tracker, UPDATE_FLIP, buffer);
+					}
+				}
+			});
+		});
 		ServerPlayNetworking.registerGlobalReceiver(BONK_PACKET, (server, player, handler, buf, responseSender) -> {
 			boolean started = buf.readBoolean();
 			server.execute(() ->

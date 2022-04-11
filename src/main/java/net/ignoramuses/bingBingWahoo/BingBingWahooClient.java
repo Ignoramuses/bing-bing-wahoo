@@ -15,13 +15,16 @@ import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.gamerule.v1.rule.DoubleRule;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.ignoramuses.bingBingWahoo.WahooUtils.AbstractClientPlayerExtensions;
 import net.ignoramuses.bingBingWahoo.cap.CapPickupType;
 import net.ignoramuses.bingBingWahoo.cap.FlyingCapEntity;
 import net.ignoramuses.bingBingWahoo.cap.FlyingCapRenderer;
 import net.ignoramuses.bingBingWahoo.cap.MysteriousCapModel;
 import net.ignoramuses.bingBingWahoo.compat.TrinketsHandler;
+import net.ignoramuses.bingBingWahoo.mixin.LocalPlayerMixin;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -33,6 +36,7 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static net.ignoramuses.bingBingWahoo.BingBingWahoo.FLYING_CAP;
 import static net.ignoramuses.bingBingWahoo.BingBingWahoo.TRINKETS_LOADED;
@@ -76,6 +80,20 @@ public class BingBingWahooClient implements ClientModInitializer {
 				FlyingCapEntity cap = (FlyingCapEntity) client.level.getEntity(addPacket.getId());
 				if (cap != null) {
 					cap.readAdditionalSaveData(data);
+				}
+			});
+		});
+		ClientPlayNetworking.registerGlobalReceiver(UPDATE_FLIP, (client, handler, buf, responseSender) -> {
+			boolean started = buf.readBoolean();
+			boolean forwards = started && buf.readBoolean();
+			UUID id = buf.readUUID();
+			client.execute(() -> {
+				for (AbstractClientPlayer player : client.level.players()) {
+					if (player.getGameProfile().getId().equals(id)) {
+						((AbstractClientPlayerExtensions) player).wahoo$setFlipping(started);
+						if (started) ((AbstractClientPlayerExtensions) player).wahoo$setFlipDirection(forwards);
+						break;
+					}
 				}
 			});
 		});

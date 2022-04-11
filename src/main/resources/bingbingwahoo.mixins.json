@@ -17,6 +17,7 @@
   "mixins": [
     "EntitySelectorOptionsAccessor",
     "LivingEntityMixin",
+    "RemotePlayerMixin",
     "ServerPlayerMixin"
   ]
 }

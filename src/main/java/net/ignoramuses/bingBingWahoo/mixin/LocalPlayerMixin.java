@@ -410,6 +410,9 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 			
 			if (wahoo$incipientGroundPound && wahoo$flipTimer == 0) {
 				wahoo$incipientGroundPound = false;
+				FriendlyByteBuf buf = PacketByteBufs.create();
+				buf.writeBoolean(false);
+				ClientPlayNetworking.send(UPDATE_FLIP, buf);
 				if (BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0 && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
 					setXRot(0);
 				}
@@ -833,7 +836,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 	}
 	
 	private void dive() {
-		if (!wahoo$canWahoo || wahoo$wasRiding || isFallFlying()) return;
+		if (!wahoo$canWahoo || wahoo$wasRiding || wahoo$isBackFlipping || isFallFlying()) return;
 		if (wahoo$midTripleJump) exitTripleJump();
 		if (wahoo$wallJumping) exitWallJump();
 		if (level.getBlockState(blockPosition()).isAir() && level.getBlockState(blockPosition().above()).isAir()) {
@@ -861,7 +864,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		buf.writeBoolean(false);
 		ClientPlayNetworking.send(UPDATE_FLIP, buf);
 		wahoo$ticksStillInDive = 0;
-		if (BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0 && wahoo$diveFlip) setXRot(0);
+		if (BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0 && wahoo$diveFlip && Minecraft.getInstance().options.getCameraType().isFirstPerson()) setXRot(0);
 		wahoo$diveFlip = false;
 		ClientPlayNetworking.send(DIVE_PACKET, new FriendlyByteBuf(PacketByteBufs.create().writeBoolean(false)));
 	}
@@ -1002,7 +1005,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		buf.writeBoolean(false);
 		ClientPlayNetworking.send(UPDATE_FLIP, buf);
 		wahoo$isBackFlipping = false;
-		if (BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0) setXRot(0);
+		if (BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0 && Minecraft.getInstance().options.getCameraType().isFirstPerson()) setXRot(0);
 	}
 	
 	private void startForwardSliding() {
@@ -1017,7 +1020,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		wahoo$slidingOnSlope = false;
 		wahoo$slidingOnGround = false;
 		wahoo$forwardSliding = false;
-		if (BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0 && wahoo$diveFlip) setXRot(0);
+		if (BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0 && wahoo$diveFlip && Minecraft.getInstance().options.getCameraType().isFirstPerson()) setXRot(0);
 		wahoo$diveFlip = false;
 		wahoo$flipTimer = 0;
 		FriendlyByteBuf flipBuf = PacketByteBufs.create();
@@ -1042,11 +1045,10 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 
 	@Override
 	public void wahoo$setFlipDirection(boolean forwards) {
-		wahoo$forwardsFlipping = forwards;
 	}
 
 	@Override
 	public boolean wahoo$flippingForwards() {
-		return wahoo$forwardsFlipping;
+		return wahoo$ticksFlipping() > 0 && !wahoo$isBackFlipping;
 	}
 }

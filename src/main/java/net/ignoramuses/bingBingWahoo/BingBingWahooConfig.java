@@ -29,5 +29,5 @@ public class BingBingWahooConfig implements ConfigData {
 	@ConfigEntry.Gui.Tooltip
 	public boolean bonking = true;
 	@ConfigEntry.Gui.Tooltip(count = 2)
-	public CapPickupType capPickupType = CapPickupType.ALL;
+	public CapPickupType capPickupType = CapPickupType.ITEMS_AND_EXP;
 }

@@ -33,9 +33,6 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
 	
 	@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/player/PlayerRenderer;getArmPose(Lnet/minecraft/client/player/AbstractClientPlayer;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/client/model/HumanoidModel$ArmPose;", shift = At.Shift.BEFORE), method = "setModelProperties")
 	private void wahoo$setModelPoseWhileGroundPoundingAndSliding(AbstractClientPlayer player, CallbackInfo ci) {
-		if (player instanceof AbstractClientPlayerExtensions ex && ex.wahoo$ticksFlipping() > 0) {
-
-		}
 		if (player instanceof LocalPlayerExtensions extendedPlayer && extendedPlayer.wahoo$groundPounding()) {
 			getModel().crouching = true;
 		}
@@ -51,8 +48,11 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
 				Vec3 lookVec = access.wahoo$calculateViewVector(0, yaw - 90);
 				Vector3f vec = new Vector3f(lookVec);
 				int mult = ex.wahoo$flippingForwards() ? 1 : -1;
+				if (entity instanceof LocalPlayer) { // some stuff is reversed locally.
+					partialTicks = -partialTicks;
+					mult = -mult;
+				}
 				vec.set(mult * vec.x(), 0, mult * vec.z());
-				if (entity instanceof LocalPlayer) partialTicks = -partialTicks; // it counts down locally instead of up
 				Quaternion q = vec.rotationDegrees((ticksFlipping + partialTicks) * 24); // magical speed number
 				matrixStack.mulPose(q);
 				matrixStack.translate(0, -0.9, 0); // roughly half the player's height

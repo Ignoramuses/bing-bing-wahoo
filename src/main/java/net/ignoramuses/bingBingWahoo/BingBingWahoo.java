@@ -4,7 +4,6 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.fabricmc.loader.api.FabricLoader;
-import net.ignoramuses.bingBingWahoo.cap.CapPickupType;
 import net.ignoramuses.bingBingWahoo.cap.FlyingCapEntity;
 import net.ignoramuses.bingBingWahoo.cap.MysteriousCapArmorMaterial;
 import net.ignoramuses.bingBingWahoo.cap.MysteriousCapItem;
@@ -24,15 +23,10 @@ import net.minecraft.world.level.block.Block;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 public class BingBingWahoo implements ModInitializer {
 	public static final String ID = "bingbingwahoo";
 	public static final Logger LOGGER = LoggerFactory.getLogger(ID);
 	public static final boolean TRINKETS_LOADED = FabricLoader.getInstance().isModLoaded("trinkets");
-	public static final Map<UUID, CapPickupType> PLAYERS_TO_TYPES = new HashMap<>();
 	public static final TagKey<Block> SLIDES = TagKey.create(Registry.BLOCK_REGISTRY, id("slides"));
 	public static DyeableArmorItem MYSTERIOUS_CAP;
 	public static SoundEvent SLIDER_SOUND;

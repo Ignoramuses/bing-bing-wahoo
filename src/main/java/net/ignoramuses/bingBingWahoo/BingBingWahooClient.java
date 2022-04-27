@@ -16,12 +16,10 @@ import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.gamerule.v1.rule.DoubleRule;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.ignoramuses.bingBingWahoo.WahooUtils.AbstractClientPlayerExtensions;
-import net.ignoramuses.bingBingWahoo.cap.CapPickupType;
 import net.ignoramuses.bingBingWahoo.cap.FlyingCapEntity;
 import net.ignoramuses.bingBingWahoo.cap.FlyingCapRenderer;
 import net.ignoramuses.bingBingWahoo.cap.MysteriousCapModel;
 import net.ignoramuses.bingBingWahoo.compat.TrinketsHandler;
-import net.ignoramuses.bingBingWahoo.mixin.LocalPlayerMixin;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -54,13 +52,6 @@ public class BingBingWahooClient implements ClientModInitializer {
 		AutoConfig.register(BingBingWahooConfig.class, GsonConfigSerializer::new);
 		ConfigHolder<BingBingWahooConfig> holder = AutoConfig.getConfigHolder(BingBingWahooConfig.class);
 		CONFIG = holder.getConfig();
-		holder.registerSaveListener((configHolder, bingBingWahooConfig) -> {
-			CapPickupType type = bingBingWahooConfig.capPickupType;
-			BingBingWahoo.PLAYERS_TO_TYPES.put(Minecraft.getInstance().player.getGameProfile().getId(), type);
-			int ordinal = type.ordinal();
-			ClientPlayNetworking.send(UPDATE_PICKUP_TYPE, PacketByteBufs.create().writeVarInt(ordinal));
-			return InteractionResult.PASS;
-		});
 
 		ClientPlayNetworking.registerGlobalReceiver(UPDATE_BOOLEAN_GAMERULE_PACKET, (client, handler, buf, responseSender) -> {
 			String gameRuleName = buf.readUtf();
@@ -107,9 +98,6 @@ public class BingBingWahooClient implements ClientModInitializer {
 				BingBingWahoo.MYSTERIOUS_CAP);
 
 		KeyBindingHelper.registerKeyBinding(THROW_CAP);
-
-		ClientPlayConnectionEvents.JOIN.register(((handler, sender, client) ->
-				sender.sendPacket(UPDATE_PICKUP_TYPE, PacketByteBufs.create().writeVarInt(CONFIG.capPickupType.ordinal()))));
 
 		ClientTickEvents.START_CLIENT_TICK.register(client -> {
 			while (THROW_CAP.consumeClick()) {

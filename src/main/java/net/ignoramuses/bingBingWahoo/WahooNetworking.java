@@ -6,7 +6,6 @@ import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.ignoramuses.bingBingWahoo.WahooUtils.ServerPlayerExtensions;
-import net.ignoramuses.bingBingWahoo.cap.CapPickupType;
 import net.ignoramuses.bingBingWahoo.cap.FlyingCapEntity;
 import net.ignoramuses.bingBingWahoo.cap.PreferredCapSlot;
 import net.ignoramuses.bingBingWahoo.compat.TrinketsHandler;
@@ -34,7 +33,6 @@ public class WahooNetworking {
 	public static final ResourceLocation CAP_THROW = id("cap_throw");
 	public static final ResourceLocation UPDATE_BOOLEAN_GAMERULE_PACKET = id("update_boolean_gamerule_packet");
 	public static final ResourceLocation CAP_ENTITY_SPAWN = id("cap_entity_spawn");
-	public static final ResourceLocation UPDATE_PICKUP_TYPE = id("update_pickup_type");
 	public static final ResourceLocation UPDATE_POSE = id("update_pose");
 	public static final ResourceLocation START_FALL_FLY = id("start_fall_fly");
 	public static final ResourceLocation UPDATE_FLIP = id("update_flip");
@@ -68,10 +66,6 @@ public class WahooNetworking {
 			Pose newPose = Pose.values()[buf.readVarInt()];
 			server.execute(() -> player.setPose(newPose));
 		}));
-		ServerPlayNetworking.registerGlobalReceiver(UPDATE_PICKUP_TYPE, (server, player, handler, buf, responseSender) -> {
-			CapPickupType type = CapPickupType.values()[buf.readVarInt()];
-			server.execute(() -> BingBingWahoo.PLAYERS_TO_TYPES.put(player.getGameProfile().getId(), type));
-		});
 		ServerPlayNetworking.registerGlobalReceiver(JUMP_TYPE_PACKET, (server, player, handler, buf, responseSender) -> {
 			JumpTypes jumpType = JumpTypes.fromBuf(buf);
 			server.execute(() -> ((ServerPlayerExtensions) player).wahoo$setPreviousJumpType(jumpType));

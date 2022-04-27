@@ -157,7 +157,7 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 						);
 					}
 				} else {
-					if (canPickupEntity(entity)) {
+					if (entity instanceof ItemEntity || entity instanceof ExperienceOrb) {
 						carriedEntities.add(entity);
 					} else if (entity instanceof LivingEntity living && !client) {
 						living.hurt(DamageSource.thrown(this, thrower), 3);
@@ -253,19 +253,6 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 			}
 		}
 		return false;
-	}
-
-	private boolean canPickupEntity(Entity entity) {
-		if (entity instanceof FlyingCapEntity) return false;
-		CapPickupType pickupType = BingBingWahoo.PLAYERS_TO_TYPES.computeIfAbsent(throwerId, $ -> CapPickupType.ALL);
-		return switch (pickupType) {
-			case NONE -> false;
-			case ITEMS_AND_EXP -> entity instanceof ItemEntity || entity instanceof ExperienceOrb;
-			case ALL -> {
-				EntityDimensions dimensions = entity.getDimensions(entity.getPose());
-				yield dimensions.width <= 1 && dimensions.height <= 1;
-			}
-		};
 	}
 
 	@Environment(EnvType.CLIENT)

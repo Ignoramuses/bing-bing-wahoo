@@ -1,5 +1,5 @@
 # Bing Bing Wahoo
-Bringing the physics of Super Mario 64 to Minecraft, one wahoo at a time.<br>
+Bringing the physics of Super Mario 64(+ more) to Minecraft, one wahoo at a time.<br>
 Made for ModFest 1.17.
 # Features
 Bing Bing Wahoo has a variety of features designed to fill your wahooing needs. To get started, craft yourself a Mysterious Cap with 5 wool in the helmet formation.<br>
@@ -29,6 +29,7 @@ The Mysterious Cap can also be worn in the hat slot when using Trinkets.
 - Bonking
     - Hitting a wall too hard will knock you over for a bit!
     - Disabled in creative mode.
+    - Toggleable in config.
     
 - Wall Jump
     - Once you jump into a wall, you have a short time to jump again, and 
@@ -54,6 +55,12 @@ The Mysterious Cap can also be worn in the hat slot when using Trinkets.
     - If you jump while sneaking and standing still, you will do a backflip 
       and be sent backwards!
     - Could be annoying, so it can be disabled through Mod Menu.
+
+- Cap throwing
+  - When held, the cap can be thrown by clicking.
+  - When worn, it can be thrown via the G key by default.
+  - The thrown cap will damage any entity it hits.
+  - It will also retrieve any items or experience it finds!
 
 - Slider music disc
   - A music disc which plays a version of Slider. This version has been modified to be in the Minecraft soundfont.

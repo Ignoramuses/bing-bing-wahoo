@@ -43,8 +43,8 @@ public class MysteriousCapItem extends DyeableArmorItem {
 	public InteractionResultHolder<ItemStack> use(Level world, Player user, InteractionHand hand) {
 		ItemStack held = user.getItemInHand(hand);
 		boolean client = world.isClientSide();
-		if (!client) {
-			FlyingCapEntity.spawn((ServerPlayer) user, held, PreferredCapSlot.HAND);
+		if (!client && user instanceof ServerPlayer player) {
+			FlyingCapEntity.spawn(player, held, PreferredCapSlot.fromHand(hand));
 		}
 		return InteractionResultHolder.sidedSuccess(held, client);
 	}

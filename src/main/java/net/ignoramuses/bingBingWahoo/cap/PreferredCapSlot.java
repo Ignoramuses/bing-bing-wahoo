@@ -36,20 +36,33 @@ public enum PreferredCapSlot {
 			entity.setItemSlot(EquipmentSlot.HEAD, stack);
 		}
 	},
-	HAND {
+	MAIN_HAND {
 		@Override
 		public boolean shouldEquip(LivingEntity entity, ItemStack stack) {
-			InteractionHand hand = entity.getUsedItemHand();
-			return entity.getItemInHand(hand).isEmpty();
+			return entity.getItemInHand(InteractionHand.MAIN_HAND).isEmpty();
 		}
 		
 		@Override
 		public void equip(LivingEntity entity, ItemStack stack) {
-			InteractionHand hand = entity.getUsedItemHand();
-			entity.setItemInHand(hand, stack);
+			entity.setItemInHand(InteractionHand.MAIN_HAND, stack);
+		}
+	},
+	OFFHAND {
+		@Override
+		public boolean shouldEquip(LivingEntity entity, ItemStack stack) {
+			return entity.getItemInHand(InteractionHand.OFF_HAND).isEmpty();
+		}
+
+		@Override
+		public void equip(LivingEntity entity, ItemStack stack) {
+			entity.setItemInHand(InteractionHand.OFF_HAND, stack);
 		}
 	};
 	
 	public abstract boolean shouldEquip(LivingEntity entity, ItemStack stack);
 	public abstract void equip(LivingEntity entity, ItemStack stack);
+
+	public static PreferredCapSlot fromHand(InteractionHand hand) {
+		return hand == InteractionHand.MAIN_HAND ? MAIN_HAND : OFFHAND;
+	}
 }

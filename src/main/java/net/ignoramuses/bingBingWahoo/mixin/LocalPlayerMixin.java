@@ -6,10 +6,12 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.ignoramuses.bingBingWahoo.*;
-import net.ignoramuses.bingBingWahoo.WahooUtils.AbstractClientPlayerExtensions;
-import net.ignoramuses.bingBingWahoo.WahooUtils.LocalPlayerExtensions;
-import net.ignoramuses.bingBingWahoo.WahooUtils.PlayerExtensions;
+import net.ignoramuses.bingBingWahoo.compat.AutomobilityCompat;
 import net.ignoramuses.bingBingWahoo.compat.TrinketsHandler;
+import net.ignoramuses.bingBingWahoo.extensions.AbstractClientPlayerExtensions;
+import net.ignoramuses.bingBingWahoo.extensions.KeyboardInputExtensions;
+import net.ignoramuses.bingBingWahoo.extensions.LocalPlayerExtensions;
+import net.ignoramuses.bingBingWahoo.extensions.PlayerExtensions;
 import net.ignoramuses.bingBingWahoo.movement.GroundPoundTypes;
 import net.ignoramuses.bingBingWahoo.movement.JumpTypes;
 import net.minecraft.client.Minecraft;
@@ -344,7 +346,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 				position().distanceTo(Vec3.atCenterOf(blockPosition().relative(facing))) < 1.2 &&
 				WahooUtils.voxelShapeEligibleForGrab(level.getBlockState(inFrontOfHead).getCollisionShape(level, inFrontOfHead), facing)) {
 			// slopes are kinda funky
-			if (WahooUtils.blockIsAutomobilitySlope(level.getBlockState(inFrontOfHead).getBlock())) {
+			if (AutomobilityCompat.isSlope(level.getBlockState(inFrontOfHead))) {
 				Direction blockFacing = level.getBlockState(inFrontOfHead).getValue(HorizontalDirectionalBlock.FACING);
 				if (!blockFacing.getOpposite().equals(facing)) {
 					ledgeGrab();
@@ -465,7 +467,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		wahoo$slidingOnSlope = true;
 		wahoo$slidingOnGround = false;
 		Direction facing = floor.getValue(HorizontalDirectionalBlock.FACING);
-		if (WahooUtils.blockIsAutomobilitySlope(floor)) {
+		if (AutomobilityCompat.isSlope(floor)) {
 			facing = facing.getOpposite();
 		}
 		double velocityToAdd = WahooUtils.getVelocityForSlopeDirection(facing);
@@ -873,7 +875,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 	
 	public void bonk() {
 		if (!wahoo$canWahoo || wahoo$wasRiding || !BingBingWahooConfig.bonking) return;
-		((WahooUtils.KeyboardInputExtensions) input).wahoo$disableControl();
+		((KeyboardInputExtensions) input).wahoo$disableControl();
 		if (wahoo$isDiving) exitDive();
 		if (wahoo$midTripleJump) {
 			exitTripleJump();
@@ -894,7 +896,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 	}
 	
 	public void exitBonk() {
-		((WahooUtils.KeyboardInputExtensions) input).wahoo$enableControl();
+		((KeyboardInputExtensions) input).wahoo$enableControl();
 		wahoo$bonked = false;
 		FriendlyByteBuf buf = PacketByteBufs.create();
 		buf.writeBoolean(false);

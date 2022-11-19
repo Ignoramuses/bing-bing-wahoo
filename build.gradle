@@ -45,9 +45,12 @@ dependencies {
 	modImplementation(include("maven.modrinth:midnightlib:${project.midnightlib_version}"))
 
 	// compat
-	modImplementation("dev.emi:trinkets:${project.trinkets_version}") { exclude(group: "com.terraformersmc") }
+	modCompileOnly("dev.emi:trinkets:${project.trinkets_version}") { exclude(group: "com.terraformersmc") }
+	modCompileOnly("maven.modrinth:automobility:${project.automobility_version}")
 
 	// dev
+	modLocalRuntime("dev.emi:trinkets:${project.trinkets_version}") { exclude(group: "com.terraformersmc") }
+	modLocalRuntime("maven.modrinth:automobility:${project.automobility_version}")
 	modLocalRuntime("com.terraformersmc:modmenu:${project.mod_menu_version}")
 	modLocalRuntime("maven.modrinth:lazydfu:0.1.3")
 	modLocalRuntime("maven.modrinth:here-be-no-dragons:1.0.0")

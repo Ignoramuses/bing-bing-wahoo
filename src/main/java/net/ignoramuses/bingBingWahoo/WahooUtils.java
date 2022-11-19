@@ -3,7 +3,7 @@ package net.ignoramuses.bingBingWahoo;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.ignoramuses.bingBingWahoo.cap.MysteriousCapModel;
-import net.ignoramuses.bingBingWahoo.movement.JumpTypes;
+import net.ignoramuses.bingBingWahoo.compat.AutomobilityCompat;
 import net.minecraft.client.model.HeadedModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.Model;
@@ -11,13 +11,11 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -27,8 +25,6 @@ import net.minecraft.world.level.block.state.properties.StairsShape;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.UUID;
 
 import static net.ignoramuses.bingBingWahoo.BingBingWahoo.MYSTERIOUS_CAP;
 
@@ -133,7 +129,7 @@ public class WahooUtils {
 			};
 			Direction tertiaryDirection = shape == StairsShape.STRAIGHT ? secondaryDirection.getOpposite() : null;
 			return playerMoving == blockFacing || playerMoving == secondaryDirection || playerMoving == tertiaryDirection;
-		} else if (blockIsAutomobilitySlope(state)) {
+		} else if (AutomobilityCompat.isSlope(state)) {
 			Direction blockFacing = state.getValue(HorizontalDirectionalBlock.FACING).getOpposite();
 			Direction left = blockFacing.getCounterClockWise();
 			Direction right = blockFacing.getClockWise();
@@ -143,21 +139,9 @@ public class WahooUtils {
 	}
 	
 	public static boolean blockIsSlope(BlockState state) {
-		return state.getBlock() instanceof StairBlock || blockIsAutomobilitySlope(state);
+		return state.getBlock() instanceof StairBlock || AutomobilityCompat.isSlope(state);
 	}
-	
-	public static boolean blockIsAutomobilitySlope(BlockState state) {
-		return blockIsAutomobilitySlope(state.getBlock());
-	}
-	
-	public static boolean blockIsAutomobilitySlope(Block block) {
-		String className = block.getClass().getName();
-		return className.equals("io.github.foundationgames.automobility.block.SlopeBlock") ||
-				className.equals("io.github.foundationgames.automobility.block.SlopedDashPanelBlock") ||
-				className.equals("io.github.foundationgames.automobility.block.SteepSlopeBlock") ||
-				className.equals("io.github.foundationgames.automobility.block.SteepSlopedDashPanelBlock");
-	}
-	
+
 	/**
 	 * Whether a number is close to another number or not.
 	 * @param number The number to compare
@@ -264,36 +248,5 @@ public class WahooUtils {
 			}
 			default -> throw new RuntimeException("this should never be called, if it did something has gone catastrophically wrong");
 		};
-	}
-	
-	public interface PlayerExtensions {
-		boolean wahoo$getSliding();
-	}
-	
-	public interface ServerPlayerExtensions {
-		void wahoo$setPreviousJumpType(JumpTypes type);
-		void wahoo$setBonked(boolean value);
-		void wahoo$setGroundPounding(boolean value, boolean breakBlocks);
-		void wahoo$setDiving(boolean value, @Nullable BlockPos startPos);
-		void wahoo$setSliding(boolean value);
-		void wahoo$setDestructionPermOverride(boolean value);
-	}
-	
-	public interface LocalPlayerExtensions {
-		boolean wahoo$groundPounding();
-		boolean wahoo$slidingOnSlope();
-		boolean wahoo$slidingOnGround();
-	}
-
-	public interface AbstractClientPlayerExtensions {
-		int wahoo$ticksFlipping();
-		void wahoo$setFlipping(boolean value);
-		void wahoo$setFlipDirection(boolean forwards);
-		boolean wahoo$flippingForwards();
-	}
-	
-	public interface KeyboardInputExtensions {
-		void wahoo$disableControl();
-		void wahoo$enableControl();
 	}
 }

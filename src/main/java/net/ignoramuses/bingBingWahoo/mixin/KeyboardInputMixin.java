@@ -2,8 +2,7 @@ package net.ignoramuses.bingBingWahoo.mixin;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.ignoramuses.bingBingWahoo.WahooUtils;
-import net.ignoramuses.bingBingWahoo.WahooUtils.KeyboardInputExtensions;
+import net.ignoramuses.bingBingWahoo.extensions.KeyboardInputExtensions;
 import net.minecraft.client.player.Input;
 import net.minecraft.client.player.KeyboardInput;
 import org.spongepowered.asm.mixin.Mixin;

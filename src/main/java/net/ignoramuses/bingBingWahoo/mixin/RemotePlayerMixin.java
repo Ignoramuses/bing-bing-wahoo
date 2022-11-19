@@ -1,6 +1,6 @@
 package net.ignoramuses.bingBingWahoo.mixin;
 
-import net.ignoramuses.bingBingWahoo.WahooUtils.AbstractClientPlayerExtensions;
+import net.ignoramuses.bingBingWahoo.extensions.AbstractClientPlayerExtensions;
 import net.minecraft.client.player.RemotePlayer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;

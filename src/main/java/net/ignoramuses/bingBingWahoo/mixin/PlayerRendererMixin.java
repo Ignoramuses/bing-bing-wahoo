@@ -5,8 +5,8 @@ import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.ignoramuses.bingBingWahoo.WahooUtils.AbstractClientPlayerExtensions;
-import net.ignoramuses.bingBingWahoo.WahooUtils.LocalPlayerExtensions;
+import net.ignoramuses.bingBingWahoo.extensions.AbstractClientPlayerExtensions;
+import net.ignoramuses.bingBingWahoo.extensions.LocalPlayerExtensions;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
@@ -14,15 +14,11 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
-import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.Comparator;
-import java.util.List;
 
 @Environment(EnvType.CLIENT)
 @Mixin(PlayerRenderer.class)

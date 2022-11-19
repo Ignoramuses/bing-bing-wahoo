@@ -1,8 +1,8 @@
 package net.ignoramuses.bingBingWahoo.mixin;
 
 import com.mojang.authlib.GameProfile;
-import net.ignoramuses.bingBingWahoo.WahooUtils.PlayerExtensions;
-import net.ignoramuses.bingBingWahoo.WahooUtils.ServerPlayerExtensions;
+import net.ignoramuses.bingBingWahoo.extensions.PlayerExtensions;
+import net.ignoramuses.bingBingWahoo.extensions.ServerPlayerExtensions;
 import net.ignoramuses.bingBingWahoo.movement.JumpTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;

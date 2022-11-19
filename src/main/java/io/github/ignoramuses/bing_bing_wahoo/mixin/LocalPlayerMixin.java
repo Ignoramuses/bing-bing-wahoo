@@ -3,10 +3,9 @@ package io.github.ignoramuses.bing_bing_wahoo.mixin;
 import com.mojang.authlib.GameProfile;
 import io.github.ignoramuses.bing_bing_wahoo.content.movement.FlipState;
 import io.github.ignoramuses.bing_bing_wahoo.packets.*;
+import io.github.ignoramuses.bing_bing_wahoo.synced_config.SyncedConfig;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import io.github.ignoramuses.bing_bing_wahoo.*;
 import io.github.ignoramuses.bing_bing_wahoo.compat.AutomobilityCompat;
 import io.github.ignoramuses.bing_bing_wahoo.compat.TrinketsCompat;
@@ -14,7 +13,6 @@ import io.github.ignoramuses.bing_bing_wahoo.extensions.AbstractClientPlayerExte
 import io.github.ignoramuses.bing_bing_wahoo.extensions.KeyboardInputExtensions;
 import io.github.ignoramuses.bing_bing_wahoo.extensions.LocalPlayerExtensions;
 import io.github.ignoramuses.bing_bing_wahoo.extensions.PlayerExtensions;
-import io.github.ignoramuses.bing_bing_wahoo.content.movement.GroundPoundType;
 import io.github.ignoramuses.bing_bing_wahoo.content.movement.JumpType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -24,7 +22,6 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Plane;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -48,7 +45,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.List;
 
 import static io.github.ignoramuses.bing_bing_wahoo.BingBingWahoo.*;
-import static io.github.ignoramuses.bing_bing_wahoo.WahooCommands.*;
 
 @Environment(EnvType.CLIENT)
 @Mixin(LocalPlayer.class)
@@ -188,7 +184,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		updateJumpTicks();
 		
 		wahoo$canWahoo = false;
-		if (BingBingWahooClient.getBooleanValue(HAT_REQUIRED_RULE)) {
+		if (SyncedConfig.CAP_REQUIRED.get()) {
 			if (getItemBySlot(EquipmentSlot.HEAD).is(WahooRegistry.MYSTERIOUS_CAP)
 			|| TrinketsCompat.capTrinketEquipped(this)) {
 				wahoo$canWahoo = true;
@@ -561,7 +557,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 					push(0, 0.25, 0);
 					setDeltaMovement(getDeltaMovement().multiply(1.25, 1, 1.25));
 					UpdateFlipStatePacket.send(FlipState.FORWARDS);
-				} else if (((BingBingWahooConfig.rapidFireLongJumps && BingBingWahooClient.getBooleanValue(RAPID_FIRE_LONG_JUMPS_RULE)) || wahoo$ticksLeftToLongJump > 0) && (isShiftKeyDown() || wasShiftKeyDown) && wahoo$previousJumpType.canLongJumpFrom() && (isSprinting() || hasEnoughImpulseToStartSprinting() || input.down)) {
+				} else if (((SyncedConfig.RAPID_FIRE_LONG_JUMPS.get()) || wahoo$ticksLeftToLongJump > 0) && (isShiftKeyDown() || wasShiftKeyDown) && wahoo$previousJumpType.canLongJumpFrom() && (isSprinting() || hasEnoughImpulseToStartSprinting() || input.down)) {
 					longJump();
 				} else if (wahoo$ticksLeftToDoubleJump > 0 && !wahoo$jumpHeldSinceLastJump && wahoo$previousJumpType == JumpType.NORMAL) {
 					doubleJump();
@@ -770,11 +766,11 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		double newVelXAbs;
 		double newVelZAbs;
 		
-		double multiplier = Math.min(BingBingWahooConfig.longJumpSpeedMultiplier, BingBingWahooClient.getDoubleValue(LONG_JUMP_SPEED_MULTIPLIER_RULE));
-		double maxSpeed = Math.min(BingBingWahooConfig.maxLongJumpSpeed, BingBingWahooClient.getDoubleValue(MAX_LONG_JUMP_SPEED_RULE));
+		double multiplier = SyncedConfig.LONG_JUMP_SPEED_MULTIPLIER.get();
+		double maxSpeed = SyncedConfig.MAX_LONG_JUMP_SPEED.get();
 		
 		if (degreesDiff > 170) { // BLJ
-			if (BingBingWahooClient.getBooleanValue(BACKWARDS_LONG_JUMPS_RULE) && BingBingWahooConfig.blj) {
+			if (SyncedConfig.BACKWARDS_LONG_JUMPS.get()) {
 				newVelXAbs = Math.abs(getDeltaMovement().x()) * multiplier;
 				newVelZAbs = Math.abs(getDeltaMovement().z()) * multiplier;
 			} else {

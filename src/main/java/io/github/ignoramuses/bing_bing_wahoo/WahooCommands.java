@@ -19,55 +19,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameRules;
 import java.util.List;
 
-import static io.github.ignoramuses.bing_bing_wahoo.WahooNetworking.UPDATE_BOOLEAN_GAMERULE_PACKET;
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
 public class WahooCommands {
-	public static GameRules.Key<GameRules.BooleanValue> DESTRUCTIVE_GROUND_POUND_RULE = GameRuleRegistry.register("destructiveGroundPounds", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true, (server, rule) -> {
-		List<ServerPlayer> players = server.getPlayerList().getPlayers();
-		FriendlyByteBuf buffer = new FriendlyByteBuf(PacketByteBufs.create().writeUtf("destructiveGroundPounds").writeBoolean(rule.get()));
-		for (ServerPlayer player : players) {
-			ServerPlayNetworking.send(player, UPDATE_BOOLEAN_GAMERULE_PACKET, buffer);
-		}
-	}));
-	public static GameRules.Key<GameRules.BooleanValue> BACKWARDS_LONG_JUMPS_RULE = GameRuleRegistry.register("backwardsLongJumps", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true, (server, rule) -> {
-		List<ServerPlayer> players = server.getPlayerList().getPlayers();
-		FriendlyByteBuf buffer = new FriendlyByteBuf(PacketByteBufs.create().writeUtf("backwardsLongJumps").writeBoolean(rule.get()));
-		for (ServerPlayer player : players) {
-			ServerPlayNetworking.send(player, UPDATE_BOOLEAN_GAMERULE_PACKET, buffer);
-		}
-	}));
-	public static GameRules.Key<GameRules.BooleanValue> RAPID_FIRE_LONG_JUMPS_RULE = GameRuleRegistry.register("rapidFireLongJumps", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true, (server, rule) -> {
-		List<ServerPlayer> players = server.getPlayerList().getPlayers();
-		FriendlyByteBuf buffer = new FriendlyByteBuf(PacketByteBufs.create().writeUtf("rapidFireLongJumps").writeBoolean(rule.get()));
-		for (ServerPlayer player : players) {
-			ServerPlayNetworking.send(player, UPDATE_BOOLEAN_GAMERULE_PACKET, buffer);
-		}
-	}));
-	public static GameRules.Key<GameRules.BooleanValue> HAT_REQUIRED_RULE = GameRuleRegistry.register("mysteriousCapRequired", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true, (server, rule) -> {
-		List<ServerPlayer> players = server.getPlayerList().getPlayers();
-		FriendlyByteBuf buffer = new FriendlyByteBuf(PacketByteBufs.create().writeUtf("mysteriousCapRequired").writeBoolean(rule.get()));
-		for (ServerPlayer player : players) {
-			ServerPlayNetworking.send(player, UPDATE_BOOLEAN_GAMERULE_PACKET, buffer);
-		}
-	}));
-	public static final ResourceLocation UPDATE_DOUBLE_GAMERULE_PACKET = BingBingWahoo.id("update_double_gamerule_packet");
-	public static GameRules.Key<DoubleRule> MAX_LONG_JUMP_SPEED_RULE = GameRuleRegistry.register("longJumpMaxSpeed", GameRules.Category.PLAYER, GameRuleFactory.createDoubleRule(1.5, (server, rule) -> {
-		List<ServerPlayer> players = server.getPlayerList().getPlayers();
-		FriendlyByteBuf buffer = new FriendlyByteBuf(PacketByteBufs.create().writeUtf("longJumpMaxSpeed").writeDouble(rule.get()));
-		for (ServerPlayer player : players) {
-			ServerPlayNetworking.send(player, UPDATE_DOUBLE_GAMERULE_PACKET, buffer);
-		}
-	}));
-	public static GameRules.Key<DoubleRule> LONG_JUMP_SPEED_MULTIPLIER_RULE = GameRuleRegistry.register("longJumpSpeedMultiplier", GameRules.Category.PLAYER, GameRuleFactory.createDoubleRule(10, (server, rule) -> {
-		List<ServerPlayer> players = server.getPlayerList().getPlayers();
-		FriendlyByteBuf buffer = new FriendlyByteBuf(PacketByteBufs.create().writeUtf("longJumpSpeedMultiplier").writeDouble(rule.get()));
-		for (ServerPlayer player : players) {
-			ServerPlayNetworking.send(player, UPDATE_DOUBLE_GAMERULE_PACKET, buffer);
-		}
-	}));
-	
 	public static void init() {
 		EntitySelectorOptionsAccessor.wahoo$register("sliding", reader -> {
 			boolean sliding = reader.getReader().readBoolean();

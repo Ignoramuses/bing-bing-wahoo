@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import io.github.ignoramuses.bing_bing_wahoo.extensions.PlayerExtensions;
 import io.github.ignoramuses.bing_bing_wahoo.extensions.ServerPlayerExtensions;
 import io.github.ignoramuses.bing_bing_wahoo.content.movement.JumpType;
+import io.github.ignoramuses.bing_bing_wahoo.synced_config.SyncedConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
@@ -25,8 +26,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import static io.github.ignoramuses.bing_bing_wahoo.WahooCommands.DESTRUCTIVE_GROUND_POUND_RULE;
 
 @Mixin(ServerPlayer.class)
 public abstract class ServerPlayerMixin extends Player implements ServerPlayerExtensions, PlayerExtensions {
@@ -70,7 +69,7 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 	public void wahoo$tick(CallbackInfo ci) {
 		if (wahoo$groundPounding) {
 			wahoo$ticksGroundPoundingFor++;
-			if (isOnGround() && wahoo$destructiveGroundPound && (level.getGameRules().getBoolean(DESTRUCTIVE_GROUND_POUND_RULE) || wahoo$destructionPermOverride)) {
+			if (isOnGround() && wahoo$destructiveGroundPound && (level.getGameRules().getBoolean(SyncedConfig.DESTRUCTIVE_GROUND_POUNDS.ruleKey) || wahoo$destructionPermOverride)) {
 				for (int x = (int) Math.floor(getBoundingBox().minX); x <= Math.floor(getBoundingBox().maxX); x++) {
 					for (int z = (int) Math.floor(getBoundingBox().minZ); z <= Math.floor(getBoundingBox().maxZ); z++) {
 						wahoo$groundPoundBlockBreakPos.set(x, blockPosition().below().getY(), z);

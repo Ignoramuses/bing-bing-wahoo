@@ -1,5 +1,7 @@
 package io.github.ignoramuses.bing_bing_wahoo;
 
+import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
+import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import io.github.ignoramuses.bing_bing_wahoo.content.SliderRecordItem;
@@ -16,6 +18,9 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.DyeableArmorItem;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.RecordItem;
+import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.GameRules.BooleanValue;
+import net.minecraft.world.level.GameRules.Category;
 
 public class WahooRegistry {
 
@@ -42,7 +47,7 @@ public class WahooRegistry {
 			)
 	);
 
-	public static RecordItem MUSIC_DISC_SLIDER = Registry.register(
+	public static final RecordItem MUSIC_DISC_SLIDER = Registry.register(
 			Registry.ITEM,
 			BingBingWahoo.id("music_disc_slider"),
 			new SliderRecordItem(
@@ -57,7 +62,7 @@ public class WahooRegistry {
 
 	// entity
 
-	public static EntityType<FlyingCapEntity> FLYING_CAP = Registry.register(
+	public static final EntityType<FlyingCapEntity> FLYING_CAP = Registry.register(
 			Registry.ENTITY_TYPE,
 			BingBingWahoo.id("flying_cap"),
 			FabricEntityTypeBuilder.<FlyingCapEntity>create(MobCategory.MISC, FlyingCapEntity::new)

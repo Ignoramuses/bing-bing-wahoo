@@ -41,16 +41,16 @@ public class BingBingWahooConfig extends MidnightConfig {
 
 	@Comment(centered = true)
 	public static Comment spacer6, maxLongJumpSpeedComment0, maxLongJumpSpeedComment1;
-	@Entry // 2
+	@Entry(min = 0)
 	public static double maxLongJumpSpeed = 1.5;
 
 	@Comment(centered = true)
 	public static Comment spacer7, longJumpSpeedMultiplierComment0, longJumpSpeedMultiplierComment1;
-	@Entry // 2
+	@Entry(min = 0)
 	public static double longJumpSpeedMultiplier = 10;
 
 	@Comment(centered = true)
 	public static Comment spacer8, flipSpeedMultiplierComment0, flipSpeedMultiplierComment1;
-	@Entry // 2
+	@Entry(min = 0)
 	public static float flipSpeedMultiplier = 1;
 }

@@ -1,6 +1,9 @@
 package io.github.ignoramuses.bing_bing_wahoo;
 
 import eu.midnightdust.lib.config.MidnightConfig;
+import io.github.ignoramuses.bing_bing_wahoo.packets.CapSpawnPacket;
+import io.github.ignoramuses.bing_bing_wahoo.packets.CapThrowPacket;
+import io.github.ignoramuses.bing_bing_wahoo.packets.UpdateFlipStatePacket;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -11,17 +14,13 @@ import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.gamerule.v1.rule.DoubleRule;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import io.github.ignoramuses.bing_bing_wahoo.content.cap.FlyingCapEntity;
 import io.github.ignoramuses.bing_bing_wahoo.content.cap.FlyingCapRenderer;
 import io.github.ignoramuses.bing_bing_wahoo.content.cap.MysteriousCapModel;
 import io.github.ignoramuses.bing_bing_wahoo.compat.TrinketsCompat;
-import io.github.ignoramuses.bing_bing_wahoo.extensions.AbstractClientPlayerExtensions;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.level.GameRules;
@@ -29,7 +28,6 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import static io.github.ignoramuses.bing_bing_wahoo.WahooCommands.UPDATE_DOUBLE_GAMERULE_PACKET;
 import static io.github.ignoramuses.bing_bing_wahoo.WahooNetworking.*;
@@ -53,31 +51,9 @@ public class BingBingWahooClient implements ClientModInitializer {
 			double value = buf.readDouble();
 			client.execute(() -> GAME_RULES.put(gameRuleName, value));
 		});
-		ClientPlayNetworking.registerGlobalReceiver(CAP_ENTITY_SPAWN, (client, handler, buf, sender) -> {
-			ClientboundAddEntityPacket addPacket = new ClientboundAddEntityPacket(buf);
-			CompoundTag data = buf.readNbt();
-			client.execute(() -> {
-				addPacket.handle(handler);
-				FlyingCapEntity cap = (FlyingCapEntity) client.level.getEntity(addPacket.getId());
-				if (cap != null) {
-					cap.readAdditionalSaveData(data);
-				}
-			});
-		});
-		ClientPlayNetworking.registerGlobalReceiver(UPDATE_FLIP, (client, handler, buf, responseSender) -> {
-			boolean started = buf.readBoolean();
-			boolean forwards = started && buf.readBoolean();
-			UUID id = buf.readUUID();
-			client.execute(() -> {
-				for (AbstractClientPlayer player : client.level.players()) {
-					if (player.getGameProfile().getId().equals(id)) {
-						((AbstractClientPlayerExtensions) player).wahoo$setFlipping(started);
-						if (started) ((AbstractClientPlayerExtensions) player).wahoo$setFlipDirection(forwards);
-						break;
-					}
-				}
-			});
-		});
+
+		CapSpawnPacket.clientInit();
+		UpdateFlipStatePacket.initClient();
 
 		EntityRendererRegistry.register(WahooRegistry.FLYING_CAP, FlyingCapRenderer::new);
 		EntityModelLayerRegistry.registerModelLayer(MysteriousCapModel.MODEL_LAYER, MysteriousCapModel::getTexturedModelData);
@@ -93,16 +69,12 @@ public class BingBingWahooClient implements ClientModInitializer {
 			while (THROW_CAP.consumeClick()) {
 				LocalPlayer player = client.player;
 				if (player != null) {
-					FriendlyByteBuf buf = null;
-					if (TrinketsCompat.capTrinketEquipped(player)) {
-						buf = PacketByteBufs.create();
-						buf.writeBoolean(true);
-					} else if (player.getItemBySlot(EquipmentSlot.HEAD).is(WahooRegistry.MYSTERIOUS_CAP)) {
-						buf = PacketByteBufs.create();
-						buf.writeBoolean(false);
+					boolean trinketEquipped = TrinketsCompat.capTrinketEquipped(player);
+					// trinket takes priority
+					boolean capEquipped = trinketEquipped || player.getItemBySlot(EquipmentSlot.HEAD).is(WahooRegistry.MYSTERIOUS_CAP);
+					if (trinketEquipped || capEquipped) {
+						CapThrowPacket.send(trinketEquipped);
 					}
-					if (buf != null)
-						ClientPlayNetworking.send(WahooNetworking.CAP_THROW, buf);
 				}
 			}
 		});

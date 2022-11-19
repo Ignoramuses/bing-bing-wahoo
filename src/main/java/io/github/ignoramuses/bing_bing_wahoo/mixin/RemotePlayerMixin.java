@@ -1,5 +1,6 @@
 package io.github.ignoramuses.bing_bing_wahoo.mixin;
 
+import io.github.ignoramuses.bing_bing_wahoo.content.movement.FlipState;
 import io.github.ignoramuses.bing_bing_wahoo.extensions.AbstractClientPlayerExtensions;
 import net.minecraft.client.player.RemotePlayer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -26,13 +27,9 @@ public abstract class RemotePlayerMixin implements AbstractClientPlayerExtension
 	}
 
 	@Override
-	public void wahoo$setFlipping(boolean value) {
-		wahoo$ticksFlipping = value ? 1 : 0;
-	}
-
-	@Override
-	public void wahoo$setFlipDirection(boolean forwards) {
-		wahoo$forwardsFlipping = forwards;
+	public void wahoo$setFlipState(FlipState state) {
+		wahoo$ticksFlipping = state != FlipState.NONE ? 1 : 0;
+		wahoo$forwardsFlipping = state == FlipState.FORWARDS;
 	}
 
 	@Override

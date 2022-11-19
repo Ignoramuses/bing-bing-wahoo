@@ -1,9 +1,6 @@
 package io.github.ignoramuses.bing_bing_wahoo.content.movement;
 
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.network.FriendlyByteBuf;
-
-public enum JumpTypes {
+public enum JumpType {
 	NORMAL,
 	LONG,
 	DOUBLE,
@@ -11,11 +8,7 @@ public enum JumpTypes {
 	DIVE,
 	WALL,
 	BACK_FLIP;
-	
-	public static JumpTypes fromBuf(FriendlyByteBuf buf) {
-		return values()[buf.readByte()];
-	}
-	
+
 	public boolean isRegularJump() {
 		return this == NORMAL || this == DOUBLE || this == TRIPLE || this == LONG;
 	}
@@ -26,9 +19,5 @@ public enum JumpTypes {
 	
 	public boolean canLongJumpFrom() {
 		return isRegularJump() && this != TRIPLE && this != DIVE;
-	}
-	
-	public FriendlyByteBuf toBuf() {
-		return new FriendlyByteBuf(PacketByteBufs.create().writeByte(ordinal()));
 	}
 }

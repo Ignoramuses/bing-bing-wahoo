@@ -38,9 +38,9 @@
   "bingbingwahoo.midnightconfig.groundPoundTypeComment3": "Destructive - The same as Enabled, but the Ground Pound will cause destruction.",
   "bingbingwahoo.midnightconfig.groundPoundTypeComment4": "Can be overridden by destructiveGroundPounds gamerule.",
 
-  "bingbingwahoo.midnightconfig.enum.GroundPoundTypes.ENABLED": "Enabled",
-  "bingbingwahoo.midnightconfig.enum.GroundPoundTypes.DISABLED": "Disabled",
-  "bingbingwahoo.midnightconfig.enum.GroundPoundTypes.DESTRUCTIVE": "Destructive",
+  "bingbingwahoo.midnightconfig.enum.GroundPoundType.ENABLED": "Enabled",
+  "bingbingwahoo.midnightconfig.enum.GroundPoundType.DISABLED": "Disabled",
+  "bingbingwahoo.midnightconfig.enum.GroundPoundType.DESTRUCTIVE": "Destructive",
 
   "bingbingwahoo.midnightconfig.bonking": "Bonking",
   "bingbingwahoo.midnightconfig.bonkingComment": "Whether bonks should happen or not.",

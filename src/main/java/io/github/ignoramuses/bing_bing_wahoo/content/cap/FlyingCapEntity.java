@@ -1,5 +1,6 @@
 package io.github.ignoramuses.bing_bing_wahoo.content.cap;
 
+import io.github.ignoramuses.bing_bing_wahoo.packets.CapSpawnPacket;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
@@ -288,12 +289,7 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 	
 	@Override
 	public Packet<?> getAddEntityPacket() {
-		FriendlyByteBuf buf = PacketByteBufs.create();
-		new ClientboundAddEntityPacket(this).write(buf);
-		CompoundTag data = new CompoundTag();
-		addAdditionalSaveData(data);
-		buf.writeNbt(data);
-		return ServerPlayNetworking.createS2CPacket(WahooNetworking.CAP_ENTITY_SPAWN, buf);
+		return CapSpawnPacket.makePacket(this);
 	}
 
 	public RandomSource getRandom() {

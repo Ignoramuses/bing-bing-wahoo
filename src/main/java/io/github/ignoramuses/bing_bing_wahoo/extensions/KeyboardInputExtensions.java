@@ -5,6 +5,11 @@ import net.fabricmc.api.Environment;
 
 @Environment(EnvType.CLIENT)
 public interface KeyboardInputExtensions {
-	void wahoo$disableControl();
-	void wahoo$enableControl();
+	default void wahoo$disableControl() {
+		throw new IllegalStateException("Not implemented");
+	}
+
+	default void wahoo$enableControl() {
+		throw new IllegalStateException("Not implemented");
+	}
 }

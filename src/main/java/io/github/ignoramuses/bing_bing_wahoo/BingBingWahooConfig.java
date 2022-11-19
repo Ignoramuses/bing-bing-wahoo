@@ -1,7 +1,7 @@
 package io.github.ignoramuses.bing_bing_wahoo;
 
 import eu.midnightdust.lib.config.MidnightConfig;
-import io.github.ignoramuses.bing_bing_wahoo.content.movement.GroundPoundTypes;
+import io.github.ignoramuses.bing_bing_wahoo.content.movement.GroundPoundType;
 
 public class BingBingWahooConfig extends MidnightConfig {
 	@Comment(centered = true)
@@ -37,7 +37,7 @@ public class BingBingWahooConfig extends MidnightConfig {
 	@Comment(centered = true)
 	public static Comment spacer5, groundPoundTypeComment0, groundPoundTypeComment1, groundPoundTypeComment2, groundPoundTypeComment3, groundPoundTypeComment4;
 	@Entry
-	public static GroundPoundTypes groundPoundType = GroundPoundTypes.DESTRUCTIVE;
+	public static GroundPoundType groundPoundType = GroundPoundType.DESTRUCTIVE;
 
 	@Comment(centered = true)
 	public static Comment spacer6, maxLongJumpSpeedComment0, maxLongJumpSpeedComment1;

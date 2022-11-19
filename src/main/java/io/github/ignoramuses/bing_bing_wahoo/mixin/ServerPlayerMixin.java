@@ -3,7 +3,7 @@ package io.github.ignoramuses.bing_bing_wahoo.mixin;
 import com.mojang.authlib.GameProfile;
 import io.github.ignoramuses.bing_bing_wahoo.extensions.PlayerExtensions;
 import io.github.ignoramuses.bing_bing_wahoo.extensions.ServerPlayerExtensions;
-import io.github.ignoramuses.bing_bing_wahoo.content.movement.JumpTypes;
+import io.github.ignoramuses.bing_bing_wahoo.content.movement.JumpType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
@@ -42,7 +42,7 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 	@Unique
 	private final BlockPos.MutableBlockPos wahoo$divingStartPos = new BlockPos.MutableBlockPos();
 	@Unique
-	private JumpTypes wahoo$previousJumpType = JumpTypes.NORMAL;
+	private JumpType wahoo$previousJumpType = JumpType.NORMAL;
 	@Unique
 	private boolean wahoo$groundPounding = false;
 	@Unique
@@ -88,7 +88,7 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 	
 	@Override
 	protected boolean isStayingOnGroundSurface() {
-		if (wahoo$previousJumpType == JumpTypes.LONG) return false;
+		if (wahoo$previousJumpType == JumpType.LONG) return false;
 		return super.isStayingOnGroundSurface();
 	}
 	
@@ -129,7 +129,7 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 	}
 
 	@Override
-	public void wahoo$setPreviousJumpType(JumpTypes type) {
+	public void wahoo$setPreviousJumpType(JumpType type) {
 		wahoo$previousJumpType = type;
 	}
 	

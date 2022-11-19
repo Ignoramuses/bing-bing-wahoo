@@ -30,12 +30,19 @@
   "text.autoconfig.bingbingwahoo.option.groundPoundType.@Tooltip[4]": "Can be overridden by destructiveGroundPounds gamerule.",
   "text.autoconfig.bingbingwahoo.option.bonking": "Bonking",
   "text.autoconfig.bingbingwahoo.option.bonking.@Tooltip": "Whether bonks should happen or not.",
+
   "item.bingbingwahoo.mysterious_cap": "Mysterious Cap",
+  "bingbingwahoo.key.throw_cap": "Throw Cap",
+  "bingbingwahoo.key.category": "Bing Bing Wahoo",
+
   "item.bingbingwahoo.music_disc_slider": "Music Disc",
   "item.bingbingwahoo.music_disc_slider.desc": "Koji Kondo - Slider",
   "item.bingbingwahoo.music_disc_slider.desc2": "...but in the Minecraft soundfont",
+
   "bingbingwahoo.luigi_number_one": "Luigi Number One!",
+
   "argument.entity.options.sliding.description": "Players sliding",
+
   "gamerule.backwardsLongJumps": "Backwards Long Jumps",
   "gamerule.destructiveGroundPounds": "Destructive Ground Pounds",
   "gamerule.rapidFireLongJumps": "Rapid Fire Long Jumps",

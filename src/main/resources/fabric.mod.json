@@ -19,10 +19,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.ignoramuses.bing_bing_wahoo.BingBingWahoo"
+      "io.github.ignoramuses.bing_bing_wahoo.BingBingWahoo"
     ],
     "client": [
-      "net.ignoramuses.bing_bing_wahoo.BingBingWahooClient"
+      "io.github.ignoramuses.bing_bing_wahoo.BingBingWahooClient"
     ]
   },
   "mixins": [
@@ -38,5 +38,24 @@
   },
   "recommends": {
     "modmenu": "*"
+  },
+  "custom": {
+    "loom:injected_interfaces": {
+      "net/minecraft/class_3222": [
+        "io/github/ignoramuses/bing_bing_wahoo/extensions/PlayerExtensions",
+        "io/github/ignoramuses/bing_bing_wahoo/extensions/ServerPlayerExtensions"
+      ],
+      "net/minecraft/class_746": [
+        "io/github/ignoramuses/bing_bing_wahoo/extensions/AbstractClientPlayerExtensions",
+        "io/github/ignoramuses/bing_bing_wahoo/extensions/LocalPlayerExtensions",
+        "io/github/ignoramuses/bing_bing_wahoo/extensions/PlayerExtensions"
+      ],
+      "net/minecraft/class_745": [
+        "io/github/ignoramuses/bing_bing_wahoo/extensions/AbstractClientPlayerExtensions"
+      ],
+      "net/minecraft/class_743": [
+        "io/github/ignoramuses/bing_bing_wahoo/extensions/KeyboardInputExtensions"
+      ]
+    }
   }
 }

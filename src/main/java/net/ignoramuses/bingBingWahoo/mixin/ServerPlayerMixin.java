@@ -11,6 +11,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.ProfilePublicKey;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -56,9 +57,9 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 	private boolean wahoo$sliding = false;
 	@Unique
 	private boolean wahoo$bonked = false;
-	
-	public ServerPlayerMixin(Level world, BlockPos pos, float yaw, GameProfile profile) {
-		super(world, pos, yaw, profile);
+
+	public ServerPlayerMixin(Level level, BlockPos pos, float yRot, GameProfile gameProfile, @Nullable ProfilePublicKey profilePublicKey) {
+		super(level, pos, yRot, gameProfile, profilePublicKey);
 	}
 
 	public boolean wahoo$getSliding() {

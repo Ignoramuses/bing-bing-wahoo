@@ -4,7 +4,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -27,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class MysteriousCapItem extends DyeableArmorItem {
-	public static final MutableComponent LUIGI_NUMBER_ONE = new TranslatableComponent("bingbingwahoo.luigi_number_one")
+	public static final MutableComponent LUIGI_NUMBER_ONE = Component.translatable("bingbingwahoo.luigi_number_one")
 			.withStyle(ChatFormatting.ITALIC, ChatFormatting.GREEN);
 
 	public MysteriousCapItem(ArmorMaterial armorMaterial, EquipmentSlot equipmentSlot, Properties settings) {

@@ -17,6 +17,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
@@ -312,6 +313,10 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 			}
 		}
 		return startAngle;
+	}
+
+	public RandomSource getRandom() {
+		return this.random;
 	}
 
 	public static void spawn(ServerPlayer thrower, ItemStack capStack, PreferredCapSlot preferredSlot) {

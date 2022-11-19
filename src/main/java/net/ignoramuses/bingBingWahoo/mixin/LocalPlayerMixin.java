@@ -25,6 +25,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.player.ProfilePublicKey;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.StairBlock;
@@ -32,6 +33,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -132,11 +134,11 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 	private long wahoo$ticksSlidingOnGround = 0;
 	@Unique
 	private boolean wahoo$forwardsFlipping;
-	
-	private LocalPlayerMixin(ClientLevel world, GameProfile profile) {
-		super(world, profile);
+
+	public LocalPlayerMixin(ClientLevel clientLevel, GameProfile gameProfile, @Nullable ProfilePublicKey profilePublicKey) {
+		super(clientLevel, gameProfile, profilePublicKey);
 	}
-	
+
 	@Shadow
 	public abstract boolean isShiftKeyDown();
 	

@@ -7,14 +7,13 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
 
 @Environment(EnvType.CLIENT)
 public class CapFlyingSoundInstance extends AbstractTickableSoundInstance {
 	protected FlyingCapEntity capEntity;
 
 	public CapFlyingSoundInstance(FlyingCapEntity capEntity) {
-		super(SoundEvents.ELYTRA_FLYING, SoundSource.NEUTRAL);
+		super(SoundEvents.ELYTRA_FLYING, SoundSource.NEUTRAL, capEntity.getRandom());
 		this.capEntity = capEntity;
 		this.looping = true;
 		this.delay = 0;

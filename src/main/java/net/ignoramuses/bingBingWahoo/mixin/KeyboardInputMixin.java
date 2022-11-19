@@ -18,8 +18,8 @@ public abstract class KeyboardInputMixin extends Input implements KeyboardInputE
 	@Unique
 	private boolean wahoo$disableControl = false;
 	
-	@Inject(at = @At("TAIL"), method = "tick(Z)V")
-	public void wahoo$tick(boolean slowDown, CallbackInfo ci) {
+	@Inject(at = @At("TAIL"), method = "tick")
+	public void wahoo$tick(boolean slowDown, float f, CallbackInfo ci) {
 		if (wahoo$disableControl) {
 			up = false;
 			down = false;

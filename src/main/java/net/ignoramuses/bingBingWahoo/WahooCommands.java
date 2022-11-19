@@ -1,7 +1,7 @@
 package net.ignoramuses.bingBingWahoo;
 
 import com.mojang.brigadier.arguments.BoolArgumentType;
-import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.gamerule.v1.rule.DoubleRule;
@@ -13,7 +13,7 @@ import net.ignoramuses.bingBingWahoo.mixin.EntitySelectorOptionsAccessor;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameRules;
@@ -80,9 +80,9 @@ public class WahooCommands {
 				}
 				return false;
 			});
-		}, entitySelectorReader -> true, new TranslatableComponent("argument.entity.options.sliding.description"));
+		}, entitySelectorReader -> true, Component.translatable("argument.entity.options.sliding.description"));
 		
-		CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> dispatcher.register(literal("bingbingwahoo:setDestructionPerms")
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("bingbingwahoo:setDestructionPerms")
 				.requires(source -> source.hasPermission(2))
 				.then(argument("target", EntityArgument.player())
 						.then(argument("value", BoolArgumentType.bool())

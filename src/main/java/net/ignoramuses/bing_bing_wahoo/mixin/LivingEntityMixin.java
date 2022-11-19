@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static net.ignoramuses.bing_bing_wahoo.BingBingWahoo.MYSTERIOUS_CAP;
+import static net.ignoramuses.bing_bing_wahoo.WahooRegistry.MYSTERIOUS_CAP;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity implements CapWearer {

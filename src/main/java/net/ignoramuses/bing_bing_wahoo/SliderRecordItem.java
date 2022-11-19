@@ -3,6 +3,7 @@ package net.ignoramuses.bing_bing_wahoo;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.RecordItem;
@@ -13,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class SliderRecordItem extends RecordItem {
+	public static final ResourceLocation SOUND_ID = BingBingWahoo.id("music_disc_slider");
 	public static final int LENGTH_SECONDS = (60 * 2) + 43; // 2:43
 	public static final MutableComponent SLIDER_DESC_2 = Component.translatable("item.bingbingwahoo.music_disc_slider.desc2")
 			.withStyle(ChatFormatting.GRAY);

@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static net.ignoramuses.bing_bing_wahoo.BingBingWahoo.FLYING_CAP;
 import static net.ignoramuses.bing_bing_wahoo.WahooCommands.UPDATE_DOUBLE_GAMERULE_PACKET;
 import static net.ignoramuses.bing_bing_wahoo.WahooNetworking.*;
 
@@ -80,13 +79,13 @@ public class BingBingWahooClient implements ClientModInitializer {
 			});
 		});
 
-		EntityRendererRegistry.register(FLYING_CAP, FlyingCapRenderer::new);
+		EntityRendererRegistry.register(WahooRegistry.FLYING_CAP, FlyingCapRenderer::new);
 		EntityModelLayerRegistry.registerModelLayer(MysteriousCapModel.MODEL_LAYER, MysteriousCapModel::getTexturedModelData);
 		ColorProviderRegistry.ITEM.register((stack, tintIndex) ->
 				tintIndex == 0
-						? BingBingWahoo.MYSTERIOUS_CAP.getColor(stack)
+						? WahooRegistry.MYSTERIOUS_CAP.getColor(stack)
 						: 0xFFFFFF,
-				BingBingWahoo.MYSTERIOUS_CAP);
+				WahooRegistry.MYSTERIOUS_CAP);
 
 		KeyBindingHelper.registerKeyBinding(THROW_CAP);
 
@@ -98,7 +97,7 @@ public class BingBingWahooClient implements ClientModInitializer {
 					if (TrinketsCompat.capTrinketEquipped(player)) {
 						buf = PacketByteBufs.create();
 						buf.writeBoolean(true);
-					} else if (player.getItemBySlot(EquipmentSlot.HEAD).is(BingBingWahoo.MYSTERIOUS_CAP)) {
+					} else if (player.getItemBySlot(EquipmentSlot.HEAD).is(WahooRegistry.MYSTERIOUS_CAP)) {
 						buf = PacketByteBufs.create();
 						buf.writeBoolean(false);
 					}

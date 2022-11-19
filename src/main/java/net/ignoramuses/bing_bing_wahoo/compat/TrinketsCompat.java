@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-import static net.ignoramuses.bing_bing_wahoo.BingBingWahoo.MYSTERIOUS_CAP;
+import static net.ignoramuses.bing_bing_wahoo.WahooRegistry.MYSTERIOUS_CAP;
 
 public class TrinketsCompat {
 	public static final boolean TRINKETS_LOADED = FabricLoader.getInstance().isModLoaded("trinkets");

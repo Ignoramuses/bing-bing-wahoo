@@ -26,11 +26,11 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-import static net.ignoramuses.bing_bing_wahoo.BingBingWahoo.MYSTERIOUS_CAP;
-
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Vector3f;
+
+import static net.ignoramuses.bing_bing_wahoo.WahooRegistry.MYSTERIOUS_CAP;
 
 public class WahooUtils {
 	public static final double SIXTEENTH = 1 / 16f;

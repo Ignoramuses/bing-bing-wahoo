@@ -188,7 +188,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		
 		wahoo$canWahoo = false;
 		if (BingBingWahooClient.getBooleanValue(HAT_REQUIRED_RULE)) {
-			if (getItemBySlot(EquipmentSlot.HEAD).is(MYSTERIOUS_CAP)
+			if (getItemBySlot(EquipmentSlot.HEAD).is(WahooRegistry.MYSTERIOUS_CAP)
 			|| TrinketsCompat.capTrinketEquipped(this)) {
 				wahoo$canWahoo = true;
 			}

@@ -5,6 +5,8 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.ignoramuses.bing_bing_wahoo.BingBingWahoo;
+import net.ignoramuses.bing_bing_wahoo.WahooNetworking;
+import net.ignoramuses.bing_bing_wahoo.WahooRegistry;
 import net.ignoramuses.bing_bing_wahoo.WahooUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
@@ -33,8 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static net.ignoramuses.bing_bing_wahoo.BingBingWahoo.MYSTERIOUS_CAP;
-import static net.ignoramuses.bing_bing_wahoo.WahooNetworking.CAP_ENTITY_SPAWN;
+import static net.ignoramuses.bing_bing_wahoo.WahooRegistry.MYSTERIOUS_CAP;
 import static net.minecraft.world.entity.Entity.RemovalReason.*;
 
 public class FlyingCapEntity extends Entity implements ItemSupplier {
@@ -60,7 +61,7 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 	}
 	
 	public FlyingCapEntity(Level world, ItemStack itemStack, Player thrower, double x, double y, double z, PreferredCapSlot slot) {
-		super(BingBingWahoo.FLYING_CAP, world);
+		super(WahooRegistry.FLYING_CAP, world);
 		this.setItem(itemStack.copy());
 		this.thrower = thrower;
 		this.throwerId = thrower.getGameProfile().getId();
@@ -293,7 +294,7 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 		CompoundTag data = new CompoundTag();
 		addAdditionalSaveData(data);
 		buf.writeNbt(data);
-		return ServerPlayNetworking.createS2CPacket(CAP_ENTITY_SPAWN, buf);
+		return ServerPlayNetworking.createS2CPacket(WahooNetworking.CAP_ENTITY_SPAWN, buf);
 	}
 
 	private static Vec3 adjustStartAngle(Vec3 startAngle) {

@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.ignoramuses.bing_bing_wahoo.BingBingWahoo;
+import net.ignoramuses.bing_bing_wahoo.WahooRegistry;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
@@ -28,7 +29,7 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, M extends 
 	private void wahoo$renderArmorPiece(PoseStack matrices, MultiBufferSource vertexConsumers, T entity, EquipmentSlot armorSlot, int light, A model, CallbackInfo ci) {
 		if (armorSlot == EquipmentSlot.HEAD) {
 			ItemStack itemStack = entity.getItemBySlot(armorSlot);
-			if (itemStack.is(BingBingWahoo.MYSTERIOUS_CAP)) {
+			if (itemStack.is(WahooRegistry.MYSTERIOUS_CAP)) {
 				ci.cancel();
 			}
 		}

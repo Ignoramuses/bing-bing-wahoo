@@ -37,6 +37,6 @@
     "midnightlib": ">=${midnightlib_version}"
   },
   "recommends": {
-    "modmenu": ">=3.0.0"
+    "modmenu": "*"
   }
 }

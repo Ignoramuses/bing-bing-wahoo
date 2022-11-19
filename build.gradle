@@ -1,9 +1,8 @@
 //file:noinspection GroovyAssignabilityCheck
 //file:noinspection GroovyAccessibility
 plugins {
-	id "fabric-loom" version "0.12-SNAPSHOT"
+	id "fabric-loom" version "1.0.+"
 	id "io.github.juuxel.loom-quiltflower" version "1.+" // Quiltflower, a better decompiler
-	id "org.quiltmc.quilt-mappings-on-loom" version "4.2.+" // Quilt Mappings, for parameters and javadoc. Also hashed mojmap.
 	id "io.github.p03w.machete" version "1.+" // automatic jar compressing on build
 	id "org.ajoberstar.grgit" version "4.1.1"
 	id "maven-publish"
@@ -74,6 +73,8 @@ task buildOrPublish {
 }
 
 processResources {
+	exclude("assets/bingbingwahoo/icon_compressed.png")
+
 	Map<String, String> properties = new HashMap<>()
 	properties.put("version", project.version)
 	properties.put("loader_version", project.loader_version)

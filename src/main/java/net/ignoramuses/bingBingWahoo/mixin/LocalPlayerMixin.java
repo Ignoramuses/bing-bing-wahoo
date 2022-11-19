@@ -7,7 +7,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.ignoramuses.bingBingWahoo.*;
 import net.ignoramuses.bingBingWahoo.compat.AutomobilityCompat;
-import net.ignoramuses.bingBingWahoo.compat.TrinketsHandler;
+import net.ignoramuses.bingBingWahoo.compat.TrinketsCompat;
 import net.ignoramuses.bingBingWahoo.extensions.AbstractClientPlayerExtensions;
 import net.ignoramuses.bingBingWahoo.extensions.KeyboardInputExtensions;
 import net.ignoramuses.bingBingWahoo.extensions.LocalPlayerExtensions;
@@ -188,12 +188,9 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		
 		wahoo$canWahoo = false;
 		if (BingBingWahooClient.getBooleanValue(HAT_REQUIRED_RULE)) {
-			if (getItemBySlot(EquipmentSlot.HEAD).is(MYSTERIOUS_CAP)) {
+			if (getItemBySlot(EquipmentSlot.HEAD).is(MYSTERIOUS_CAP)
+			|| TrinketsCompat.capTrinketEquipped(this)) {
 				wahoo$canWahoo = true;
-			} else if (TRINKETS_LOADED) {
-				if (TrinketsHandler.capEquipped(this)) {
-					wahoo$canWahoo = true;
-				}
 			}
 		} else {
 			wahoo$canWahoo = true;

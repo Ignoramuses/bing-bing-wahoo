@@ -15,7 +15,7 @@ import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.ignoramuses.bingBingWahoo.cap.FlyingCapEntity;
 import net.ignoramuses.bingBingWahoo.cap.FlyingCapRenderer;
 import net.ignoramuses.bingBingWahoo.cap.MysteriousCapModel;
-import net.ignoramuses.bingBingWahoo.compat.TrinketsHandler;
+import net.ignoramuses.bingBingWahoo.compat.TrinketsCompat;
 import net.ignoramuses.bingBingWahoo.extensions.AbstractClientPlayerExtensions;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import static net.ignoramuses.bingBingWahoo.BingBingWahoo.FLYING_CAP;
-import static net.ignoramuses.bingBingWahoo.BingBingWahoo.TRINKETS_LOADED;
 import static net.ignoramuses.bingBingWahoo.WahooCommands.UPDATE_DOUBLE_GAMERULE_PACKET;
 import static net.ignoramuses.bingBingWahoo.WahooNetworking.*;
 
@@ -96,7 +95,7 @@ public class BingBingWahooClient implements ClientModInitializer {
 				LocalPlayer player = client.player;
 				if (player != null) {
 					FriendlyByteBuf buf = null;
-					if (TRINKETS_LOADED && TrinketsHandler.capEquipped(player)) {
+					if (TrinketsCompat.capTrinketEquipped(player)) {
 						buf = PacketByteBufs.create();
 						buf.writeBoolean(true);
 					} else if (player.getItemBySlot(EquipmentSlot.HEAD).is(BingBingWahoo.MYSTERIOUS_CAP)) {

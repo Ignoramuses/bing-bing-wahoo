@@ -7,7 +7,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.ignoramuses.bingBingWahoo.cap.FlyingCapEntity;
 import net.ignoramuses.bingBingWahoo.cap.PreferredCapSlot;
-import net.ignoramuses.bingBingWahoo.compat.TrinketsHandler;
+import net.ignoramuses.bingBingWahoo.compat.TrinketsCompat;
 import net.ignoramuses.bingBingWahoo.extensions.ServerPlayerExtensions;
 import net.ignoramuses.bingBingWahoo.movement.JumpTypes;
 import net.minecraft.core.BlockPos;
@@ -91,7 +91,7 @@ public class WahooNetworking {
 		ServerPlayNetworking.registerGlobalReceiver(CAP_THROW, (server, player, handler, buf, responseSender) -> {
 			boolean fromTrinketSlot = buf.readBoolean();
 			server.execute(() -> {
-				ItemStack cap = fromTrinketSlot ? TrinketsHandler.getCapStack(player) : player.getItemBySlot(EquipmentSlot.HEAD);
+				ItemStack cap = fromTrinketSlot ? TrinketsCompat.getCapTrinketStack(player) : player.getItemBySlot(EquipmentSlot.HEAD);
 				FlyingCapEntity.spawn(player, cap, fromTrinketSlot ? PreferredCapSlot.TRINKETS : PreferredCapSlot.HEAD);
 			});
 		});

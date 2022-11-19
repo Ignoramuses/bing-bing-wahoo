@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 public class BingBingWahoo implements ModInitializer {
 	public static final String ID = "bingbingwahoo";
 	public static final Logger LOGGER = LoggerFactory.getLogger(ID);
-	public static final boolean TRINKETS_LOADED = FabricLoader.getInstance().isModLoaded("trinkets");
 	public static final TagKey<Block> SLIDES = TagKey.create(Registry.BLOCK_REGISTRY, id("slides"));
 	public static DyeableArmorItem MYSTERIOUS_CAP;
 	public static SoundEvent SLIDER_SOUND;

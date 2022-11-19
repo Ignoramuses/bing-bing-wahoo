@@ -1,7 +1,6 @@
 package net.ignoramuses.bingBingWahoo.cap;
 
-import net.ignoramuses.bingBingWahoo.BingBingWahoo;
-import net.ignoramuses.bingBingWahoo.compat.TrinketsHandler;
+import net.ignoramuses.bingBingWahoo.compat.TrinketsCompat;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -12,17 +11,12 @@ public enum PreferredCapSlot {
 	TRINKETS {
 		@Override
 		public boolean shouldEquip(LivingEntity entity, ItemStack stack) {
-			if (BingBingWahoo.TRINKETS_LOADED) {
-				return TrinketsHandler.getCapStack(entity) == null;
-			}
-			return false;
+			return TrinketsCompat.getCapTrinketStack(entity) == null;
 		}
 		
 		@Override
 		public void equip(LivingEntity entity, ItemStack stack) {
-			if (BingBingWahoo.TRINKETS_LOADED) {
-				TrinketsHandler.equipInHatSlot(entity, stack);
-			}
+			TrinketsCompat.equipInHatTrinketSlot(entity, stack);
 		}
 	},
 	HEAD {

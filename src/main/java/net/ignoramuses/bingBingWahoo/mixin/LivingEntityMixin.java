@@ -1,7 +1,7 @@
 package net.ignoramuses.bingBingWahoo.mixin;
 
 import net.ignoramuses.bingBingWahoo.cap.CapWearer;
-import net.ignoramuses.bingBingWahoo.compat.TrinketsHandler;
+import net.ignoramuses.bingBingWahoo.compat.TrinketsCompat;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -17,7 +17,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static net.ignoramuses.bingBingWahoo.BingBingWahoo.MYSTERIOUS_CAP;
-import static net.ignoramuses.bingBingWahoo.BingBingWahoo.TRINKETS_LOADED;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity implements CapWearer {
@@ -35,8 +34,8 @@ public abstract class LivingEntityMixin extends Entity implements CapWearer {
 	@Override
 	public boolean isWearingCap() {
 		ItemStack head = getItemBySlot(EquipmentSlot.HEAD);
-		if ((head == null || head.isEmpty() || !head.is(MYSTERIOUS_CAP)) && TRINKETS_LOADED) {
-			head = TrinketsHandler.getCapStack((LivingEntity) (Object) this);
+		if ((head == null || head.isEmpty() || !head.is(MYSTERIOUS_CAP))) {
+			head = TrinketsCompat.getCapTrinketStack((LivingEntity) (Object) this);
 		}
 		return head != null && head.is(MYSTERIOUS_CAP);
 	}
@@ -44,8 +43,8 @@ public abstract class LivingEntityMixin extends Entity implements CapWearer {
 	@Override
 	public ItemStack getCap() {
 		ItemStack head = getItemBySlot(EquipmentSlot.HEAD);
-		if ((head == null || head.isEmpty() || !head.is(MYSTERIOUS_CAP)) && TRINKETS_LOADED) {
-			head = TrinketsHandler.getCapStack((LivingEntity) (Object) this);
+		if ((head == null || head.isEmpty() || !head.is(MYSTERIOUS_CAP))) {
+			head = TrinketsCompat.getCapTrinketStack((LivingEntity) (Object) this);
 		}
 		return head != null ? head : ItemStack.EMPTY;
 	}

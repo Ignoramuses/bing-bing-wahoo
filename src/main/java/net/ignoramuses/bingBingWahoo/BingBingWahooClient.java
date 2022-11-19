@@ -1,14 +1,11 @@
 package net.ignoramuses.bingBingWahoo;
 
-import me.shedaniel.autoconfig.AutoConfig;
-import me.shedaniel.autoconfig.ConfigHolder;
-import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
+import eu.midnightdust.lib.config.MidnightConfig;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
@@ -21,13 +18,11 @@ import net.ignoramuses.bingBingWahoo.cap.FlyingCapRenderer;
 import net.ignoramuses.bingBingWahoo.cap.MysteriousCapModel;
 import net.ignoramuses.bingBingWahoo.compat.TrinketsHandler;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.level.GameRules;
 import org.lwjgl.glfw.GLFW;
@@ -44,14 +39,11 @@ import static net.ignoramuses.bingBingWahoo.WahooNetworking.*;
 @Environment(EnvType.CLIENT)
 public class BingBingWahooClient implements ClientModInitializer {
 	private static final Map<String, Object> GAME_RULES = new HashMap<>();
-	public static BingBingWahooConfig CONFIG;
 	public static KeyMapping THROW_CAP = new KeyMapping("bingbingwahoo.key.throw_cap", GLFW.GLFW_KEY_G, "bingbingwahoo.key.category");
 	
 	@Override
 	public void onInitializeClient() {
-		AutoConfig.register(BingBingWahooConfig.class, GsonConfigSerializer::new);
-		ConfigHolder<BingBingWahooConfig> holder = AutoConfig.getConfigHolder(BingBingWahooConfig.class);
-		CONFIG = holder.getConfig();
+		MidnightConfig.init("bingbingwahoo", BingBingWahooConfig.class);
 
 		ClientPlayNetworking.registerGlobalReceiver(UPDATE_BOOLEAN_GAMERULE_PACKET, (client, handler, buf, responseSender) -> {
 			String gameRuleName = buf.readUtf();

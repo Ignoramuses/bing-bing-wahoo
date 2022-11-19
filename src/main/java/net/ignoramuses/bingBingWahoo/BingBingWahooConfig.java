@@ -1,30 +1,56 @@
 package net.ignoramuses.bingBingWahoo;
 
-import me.shedaniel.autoconfig.ConfigData;
-import me.shedaniel.autoconfig.annotation.Config;
-import me.shedaniel.autoconfig.annotation.ConfigEntry;
+import eu.midnightdust.lib.config.MidnightConfig;
 import net.ignoramuses.bingBingWahoo.movement.GroundPoundTypes;
 
-@Config(name = "bingbingwahoo")
-public class BingBingWahooConfig implements ConfigData {
-	@ConfigEntry.Gui.Tooltip(count = 2)
-	public boolean blj = true;
-	@ConfigEntry.Gui.Tooltip(count = 3)
-	public boolean rapidFireLongJumps = false;
-	@ConfigEntry.Gui.Tooltip(count = 5)
-	public GroundPoundTypes groundPoundType = GroundPoundTypes.DESTRUCTIVE;
-	@ConfigEntry.Gui.Tooltip(count = 2)
-	public double maxLongJumpSpeed = 1.5;
-	@ConfigEntry.Gui.Tooltip(count = 2)
-	public double longJumpSpeedMultiplier = 10;
-	@ConfigEntry.Gui.Tooltip(count = 2)
-	public float flipSpeedMultiplier = 1;
-	@ConfigEntry.Gui.Tooltip
-	public boolean allowNormalWallJumps = false;
-	@ConfigEntry.Gui.Tooltip
-	public boolean backFlips = true;
-	@ConfigEntry.Gui.Tooltip
-	public boolean groundedDives = true;
-	@ConfigEntry.Gui.Tooltip
-	public boolean bonking = true;
+public class BingBingWahooConfig extends MidnightConfig {
+	@Comment(centered = true)
+	public static Comment bljComment0, bljComment1;
+	@Entry
+	public static boolean blj = true;
+
+	@Comment(centered = true)
+	public static Comment spacer0, rapidFireLongJumpsComment0, rapidFireLongJumpsComment1, rapidFireLongJumpsComment2;
+	@Entry
+	public static boolean rapidFireLongJumps = false;
+
+	@Comment(centered = true)
+	public static Comment spacer1, allowNormalWallJumpsComment;
+	@Entry
+	public static boolean allowNormalWallJumps = false;
+	
+	@Comment(centered = true)
+	public static Comment spacer2, backFlipsComment;
+	@Entry
+	public static boolean backFlips = true;
+	
+	@Comment(centered = true)
+	public static Comment spacer3, groundedDivesComment;
+	@Entry
+	public static boolean groundedDives = true;
+
+	@Comment(centered = true)
+	public static Comment spacer4, bonkingComment;
+	@Entry
+	public static boolean bonking = true;
+
+	@Comment(centered = true)
+	public static Comment spacer5, groundPoundTypeComment0, groundPoundTypeComment1, groundPoundTypeComment2, groundPoundTypeComment3, groundPoundTypeComment4;
+	@Entry
+	public static GroundPoundTypes groundPoundType = GroundPoundTypes.DESTRUCTIVE;
+
+	@Comment(centered = true)
+	public static Comment spacer6, maxLongJumpSpeedComment0, maxLongJumpSpeedComment1;
+	@Entry // 2
+	public static double maxLongJumpSpeed = 1.5;
+
+	@Comment(centered = true)
+	public static Comment spacer7, longJumpSpeedMultiplierComment0, longJumpSpeedMultiplierComment1;
+	@Entry // 2
+	public static double longJumpSpeedMultiplier = 10;
+
+	@Comment(centered = true)
+	public static Comment spacer8, flipSpeedMultiplierComment0, flipSpeedMultiplierComment1;
+	@Entry // 2
+	public static float flipSpeedMultiplier = 1;
 }

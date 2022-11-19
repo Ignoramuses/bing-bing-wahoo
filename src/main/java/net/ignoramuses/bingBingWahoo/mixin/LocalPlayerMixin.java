@@ -304,7 +304,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		// Initiates Diving
 		// ugly but it works
 		if (wahoo$diveCooldown == 0 && isSprinting() && !wahoo$isDiving && !wahoo$diveFlip && getPose() != Pose.SWIMMING && wahoo$previousJumpType != JumpTypes.LONG && wahoo$previousJumpType != JumpTypes.DIVE && !handsBusy && (isOnGround()
-				? BingBingWahooClient.CONFIG.groundedDives && Minecraft.getInstance().options.keyAttack.isDown()
+				? BingBingWahooConfig.groundedDives && Minecraft.getInstance().options.keyAttack.isDown()
 				: Minecraft.getInstance().options.keyAttack.isDown())) {
 			dive();
 			wahoo$previousJumpType = JumpTypes.DIVE;
@@ -373,7 +373,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		// runs on the first tick a player collides with a wall
 		if (horizontalCollision) {
 			if (wahoo$ticksLeftToWallJump <= 0 && !wahoo$isDiving && !isOnGround() && (
-					BingBingWahooClient.CONFIG.allowNormalWallJumps
+					BingBingWahooConfig.allowNormalWallJumps
 							? wahoo$previousJumpType.canWallJumpFrom() || wahoo$previousJumpType == JumpTypes.NORMAL
 							: wahoo$previousJumpType.canWallJumpFrom())) {
 				wahoo$ticksLeftToWallJump = 4;
@@ -382,7 +382,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		
 		// this is ugly but it works
 		if (wahoo$ticksLeftToWallJump > 0 && !wahoo$isDiving && input.jumping && !wahoo$jumpHeldSinceLastJump && (
-				BingBingWahooClient.CONFIG.allowNormalWallJumps
+				BingBingWahooConfig.allowNormalWallJumps
 						? wahoo$previousJumpType.canWallJumpFrom() || wahoo$previousJumpType == JumpTypes.NORMAL
 						: wahoo$previousJumpType.canWallJumpFrom()) && !getAbilities().flying && !isInWater()) {
 			wallJump();
@@ -394,7 +394,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		
 		// ----- GROUND POUND -----
 		
-		if (BingBingWahooClient.CONFIG.groundPoundType.enabled() && !isOnGround() && isShiftKeyDown() && !wasShiftKeyDown && !wahoo$longJumping && !getAbilities().flying && !handsBusy && !wahoo$lastRiding && !isInWater() && !level.getBlockState(blockPosition().below()).isRedstoneConductor(level, blockPosition().below())) {
+		if (BingBingWahooConfig.groundPoundType.enabled() && !isOnGround() && isShiftKeyDown() && !wasShiftKeyDown && !wahoo$longJumping && !getAbilities().flying && !handsBusy && !wahoo$lastRiding && !isInWater() && !level.getBlockState(blockPosition().below()).isRedstoneConductor(level, blockPosition().below())) {
 			List<Entity> entities = level.getEntities(this, new AABB(blockPosition()).inflate(1.5, 1, 1.5));
 			boolean canPound = entities.size() == 0;
 			if (canPound) {
@@ -415,7 +415,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 				FriendlyByteBuf buf = PacketByteBufs.create();
 				buf.writeBoolean(false);
 				ClientPlayNetworking.send(UPDATE_FLIP, buf);
-				if (BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0 && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
+				if (BingBingWahooConfig.flipSpeedMultiplier != 0 && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
 					setXRot(0);
 				}
 			}
@@ -565,13 +565,13 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 					FriendlyByteBuf buf = PacketByteBufs.create();
 					buf.writeBoolean(true).writeBoolean(true);
 					ClientPlayNetworking.send(UPDATE_FLIP, buf);
-				} else if (((BingBingWahooClient.CONFIG.rapidFireLongJumps && BingBingWahooClient.getBooleanValue(RAPID_FIRE_LONG_JUMPS_RULE)) || wahoo$ticksLeftToLongJump > 0) && (isShiftKeyDown() || wasShiftKeyDown) && wahoo$previousJumpType.canLongJumpFrom() && (isSprinting() || hasEnoughImpulseToStartSprinting() || input.down)) {
+				} else if (((BingBingWahooConfig.rapidFireLongJumps && BingBingWahooClient.getBooleanValue(RAPID_FIRE_LONG_JUMPS_RULE)) || wahoo$ticksLeftToLongJump > 0) && (isShiftKeyDown() || wasShiftKeyDown) && wahoo$previousJumpType.canLongJumpFrom() && (isSprinting() || hasEnoughImpulseToStartSprinting() || input.down)) {
 					longJump();
 				} else if (wahoo$ticksLeftToDoubleJump > 0 && !wahoo$jumpHeldSinceLastJump && wahoo$previousJumpType == JumpTypes.NORMAL) {
 					doubleJump();
 				} else if (wahoo$ticksLeftToTripleJump > 0 && wahoo$ticksLeftToTripleJump < 5 && wahoo$previousJumpType == JumpTypes.DOUBLE && (isSprinting() || hasEnoughImpulseToStartSprinting() || input.down)) {
 					tripleJump();
-				} else if (isShiftKeyDown() && getDeltaMovement().x() == 0 && getDeltaMovement().z() == 0 && !wahoo$jumpHeldSinceLastJump && BingBingWahooClient.CONFIG.backFlips) {
+				} else if (isShiftKeyDown() && getDeltaMovement().x() == 0 && getDeltaMovement().z() == 0 && !wahoo$jumpHeldSinceLastJump && BingBingWahooConfig.backFlips) {
 					backFlip();
 				} else {
 					wahoo$previousJumpType = JumpTypes.NORMAL;
@@ -670,8 +670,8 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 	public void setXRot(float pitch) {
 		float tickDelta = Minecraft.getInstance().getFrameTime();
 		if (wahoo$isBackFlipping && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
-			if (BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0) {
-				((EntityAccessor) this).wahoo$setXRotRaw(-(Math.max(0, wahoo$flipTimer - tickDelta) * BingBingWahooClient.CONFIG.flipSpeedMultiplier * -24) - 90);
+			if (BingBingWahooConfig.flipSpeedMultiplier != 0) {
+				((EntityAccessor) this).wahoo$setXRotRaw(-(Math.max(0, wahoo$flipTimer - tickDelta) * BingBingWahooConfig.flipSpeedMultiplier * -24) - 90);
 			} else {
 				super.setXRot(pitch);
 			}
@@ -679,8 +679,8 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		}
 		
 		if (wahoo$midTripleJump && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
-			if (BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0) {
-				((EntityAccessor) this).wahoo$setXRotRaw(Math.max(0, wahoo$flipTimer - tickDelta) * BingBingWahooClient.CONFIG.flipSpeedMultiplier * -24);
+			if (BingBingWahooConfig.flipSpeedMultiplier != 0) {
+				((EntityAccessor) this).wahoo$setXRotRaw(Math.max(0, wahoo$flipTimer - tickDelta) * BingBingWahooConfig.flipSpeedMultiplier * -24);
 			} else {
 				super.setXRot(pitch);
 			}
@@ -696,8 +696,8 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 				if (wahoo$forwardSliding) exitForwardSlide();
 			}
 			
-			if (Minecraft.getInstance().options.getCameraType().isFirstPerson() && BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0) {
-				((EntityAccessor) this).wahoo$setXRotRaw(Math.max(0, wahoo$flipTimer - tickDelta) * BingBingWahooClient.CONFIG.flipSpeedMultiplier * -24);
+			if (Minecraft.getInstance().options.getCameraType().isFirstPerson() && BingBingWahooConfig.flipSpeedMultiplier != 0) {
+				((EntityAccessor) this).wahoo$setXRotRaw(Math.max(0, wahoo$flipTimer - tickDelta) * BingBingWahooConfig.flipSpeedMultiplier * -24);
 			}
 			return;
 		}
@@ -707,8 +707,8 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		}
 		
 		if (wahoo$isGroundPounding && wahoo$incipientGroundPound) {
-			if (Minecraft.getInstance().options.getCameraType().isFirstPerson() && BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0) {
-				((EntityAccessor) this).wahoo$setXRotRaw(Math.max(0, wahoo$flipTimer - tickDelta) * BingBingWahooClient.CONFIG.flipSpeedMultiplier * -24);
+			if (Minecraft.getInstance().options.getCameraType().isFirstPerson() && BingBingWahooConfig.flipSpeedMultiplier != 0) {
+				((EntityAccessor) this).wahoo$setXRotRaw(Math.max(0, wahoo$flipTimer - tickDelta) * BingBingWahooConfig.flipSpeedMultiplier * -24);
 			}
 			return;
 		}
@@ -774,11 +774,11 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		double newVelXAbs;
 		double newVelZAbs;
 		
-		double multiplier = Math.min(BingBingWahooClient.CONFIG.longJumpSpeedMultiplier, BingBingWahooClient.getDoubleValue(LONG_JUMP_SPEED_MULTIPLIER_RULE));
-		double maxSpeed = Math.min(BingBingWahooClient.CONFIG.maxLongJumpSpeed, BingBingWahooClient.getDoubleValue(MAX_LONG_JUMP_SPEED_RULE));
+		double multiplier = Math.min(BingBingWahooConfig.longJumpSpeedMultiplier, BingBingWahooClient.getDoubleValue(LONG_JUMP_SPEED_MULTIPLIER_RULE));
+		double maxSpeed = Math.min(BingBingWahooConfig.maxLongJumpSpeed, BingBingWahooClient.getDoubleValue(MAX_LONG_JUMP_SPEED_RULE));
 		
 		if (degreesDiff > 170) { // BLJ
-			if (BingBingWahooClient.getBooleanValue(BACKWARDS_LONG_JUMPS_RULE) && BingBingWahooClient.CONFIG.blj) {
+			if (BingBingWahooClient.getBooleanValue(BACKWARDS_LONG_JUMPS_RULE) && BingBingWahooConfig.blj) {
 				newVelXAbs = Math.abs(getDeltaMovement().x()) * multiplier;
 				newVelZAbs = Math.abs(getDeltaMovement().z()) * multiplier;
 			} else {
@@ -832,7 +832,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		FriendlyByteBuf buf = PacketByteBufs.create();
 		buf.writeBoolean(false);
 		ClientPlayNetworking.send(UPDATE_FLIP, buf);
-		if (BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0 && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
+		if (BingBingWahooConfig.flipSpeedMultiplier != 0 && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
 			setXRot(0);
 		}
 	}
@@ -866,13 +866,13 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		buf.writeBoolean(false);
 		ClientPlayNetworking.send(UPDATE_FLIP, buf);
 		wahoo$ticksStillInDive = 0;
-		if (BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0 && wahoo$diveFlip && Minecraft.getInstance().options.getCameraType().isFirstPerson()) setXRot(0);
+		if (BingBingWahooConfig.flipSpeedMultiplier != 0 && wahoo$diveFlip && Minecraft.getInstance().options.getCameraType().isFirstPerson()) setXRot(0);
 		wahoo$diveFlip = false;
 		ClientPlayNetworking.send(DIVE_PACKET, new FriendlyByteBuf(PacketByteBufs.create().writeBoolean(false)));
 	}
 	
 	public void bonk() {
-		if (!wahoo$canWahoo || wahoo$wasRiding || !BingBingWahooClient.CONFIG.bonking) return;
+		if (!wahoo$canWahoo || wahoo$wasRiding || !BingBingWahooConfig.bonking) return;
 		((WahooUtils.KeyboardInputExtensions) input).wahoo$disableControl();
 		if (wahoo$isDiving) exitDive();
 		if (wahoo$midTripleJump) {
@@ -972,7 +972,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		buf.writeBoolean(true).writeBoolean(true);
 		ClientPlayNetworking.send(UPDATE_FLIP, buf);
 		ClientPlayNetworking.send(GROUND_POUND_PACKET, new FriendlyByteBuf(PacketByteBufs.create().writeBoolean(true)
-				.writeBoolean(BingBingWahooClient.CONFIG.groundPoundType == GroundPoundTypes.DESTRUCTIVE)));
+				.writeBoolean(BingBingWahooConfig.groundPoundType == GroundPoundTypes.DESTRUCTIVE)));
 	}
 	
 	private void exitGroundPound() {
@@ -985,7 +985,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		ClientPlayNetworking.send(UPDATE_FLIP, buf);
 		wahoo$ticksGroundPounded = 0;
 		ClientPlayNetworking.send(GROUND_POUND_PACKET, new FriendlyByteBuf(PacketByteBufs.create().writeBoolean(false)
-				.writeBoolean(BingBingWahooClient.CONFIG.groundPoundType == GroundPoundTypes.DESTRUCTIVE)));
+				.writeBoolean(BingBingWahooConfig.groundPoundType == GroundPoundTypes.DESTRUCTIVE)));
 	}
 	
 	private void backFlip() {
@@ -1007,7 +1007,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		buf.writeBoolean(false);
 		ClientPlayNetworking.send(UPDATE_FLIP, buf);
 		wahoo$isBackFlipping = false;
-		if (BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0 && Minecraft.getInstance().options.getCameraType().isFirstPerson()) setXRot(0);
+		if (BingBingWahooConfig.flipSpeedMultiplier != 0 && Minecraft.getInstance().options.getCameraType().isFirstPerson()) setXRot(0);
 	}
 	
 	private void startForwardSliding() {
@@ -1022,7 +1022,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		wahoo$slidingOnSlope = false;
 		wahoo$slidingOnGround = false;
 		wahoo$forwardSliding = false;
-		if (BingBingWahooClient.CONFIG.flipSpeedMultiplier != 0 && wahoo$diveFlip && Minecraft.getInstance().options.getCameraType().isFirstPerson()) setXRot(0);
+		if (BingBingWahooConfig.flipSpeedMultiplier != 0 && wahoo$diveFlip && Minecraft.getInstance().options.getCameraType().isFirstPerson()) setXRot(0);
 		wahoo$diveFlip = false;
 		wahoo$flipTimer = 0;
 		FriendlyByteBuf flipBuf = PacketByteBufs.create();

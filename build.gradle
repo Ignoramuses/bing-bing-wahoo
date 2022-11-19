@@ -40,12 +40,15 @@ dependencies {
 	})
 	modImplementation("net.fabricmc:fabric-loader:${project.loader_version}")
 
+	// deps
 	modImplementation("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
-	modImplementation("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") { exclude(group: "net.fabricmc.fabric-api") }
+	modImplementation(include("maven.modrinth:midnightlib:${project.midnightlib_version}"))
 
+	// compat
 	modImplementation("dev.emi:trinkets:${project.trinkets_version}") { exclude(group: "com.terraformersmc") }
-	modImplementation("com.terraformersmc:modmenu:${project.mod_menu_version}")
 
+	// dev
+	modLocalRuntime("com.terraformersmc:modmenu:${project.mod_menu_version}")
 	modLocalRuntime("maven.modrinth:lazydfu:0.1.3")
 	modLocalRuntime("maven.modrinth:here-be-no-dragons:1.0.0")
 }
@@ -69,7 +72,7 @@ processResources {
 	properties.put("fabric_version", project.fabric_version)
 	properties.put("minecraft_version", project.minecraft_version)
 	properties.put("java_version", sourceCompatibility)
-	properties.put("cloth_config_version", project.cloth_config_version)
+	properties.put("midnightlib_version", project.midnightlib_version)
 
 	properties.forEach((k, v) -> inputs.property(k, v))
 

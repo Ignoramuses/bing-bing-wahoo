@@ -19,10 +19,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.ignoramuses.bingBingWahoo.BingBingWahoo"
+      "net.ignoramuses.bing_bing_wahoo.BingBingWahoo"
     ],
     "client": [
-      "net.ignoramuses.bingBingWahoo.BingBingWahooClient"
+      "net.ignoramuses.bing_bing_wahoo.BingBingWahooClient"
     ]
   },
   "mixins": [

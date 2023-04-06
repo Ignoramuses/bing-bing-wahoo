@@ -18,7 +18,6 @@ String buildNumber = System.getenv("GITHUB_RUN_NUMBER")
 version = project.mod_version + (buildNumber != null ? "-${buildNumber}" : "")
 
 repositories {
-	maven { url = "https://storage.googleapis.com/devan-maven/" }
 	maven { url = "https://maven.quiltmc.org/repository/release" }
 	maven { url = "https://api.modrinth.com/maven" }
 	maven { url = "https://maven.shedaniel.me/" }
@@ -51,9 +50,9 @@ dependencies {
 	// dev
 	modLocalRuntime("dev.emi:trinkets:${project.trinkets_version}") { exclude(group: "com.terraformersmc") }
 
-	modLocalRuntime("maven.modrinth:automobility:${project.automobility_version}")
-	modLocalRuntime("net.devtech:arrp:${project.arrp_version}")
-	modLocalRuntime("maven.modrinth:jsonem:${project.jsonem_version}")
+//	modLocalRuntime("maven.modrinth:automobility:${project.automobility_version}")
+//	modLocalRuntime("net.devtech:arrp:${project.arrp_version}")
+//	modLocalRuntime("maven.modrinth:jsonem:${project.jsonem_version}")
 
 	modLocalRuntime("com.terraformersmc:modmenu:${project.mod_menu_version}")
 	modLocalRuntime("maven.modrinth:lazydfu:0.1.3")

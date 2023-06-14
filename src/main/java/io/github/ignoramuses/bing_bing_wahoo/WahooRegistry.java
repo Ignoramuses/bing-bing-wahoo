@@ -18,6 +18,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.ArmorItem.Type;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.GameRules.BooleanValue;
 import net.minecraft.world.level.GameRules.Category;
@@ -39,7 +40,7 @@ public class WahooRegistry {
 			BingBingWahoo.id("mysterious_cap"),
 			new MysteriousCapItem(
 					MysteriousCapArmorMaterial.INSTANCE,
-					EquipmentSlot.HEAD,
+					Type.HELMET,
 					new FabricItemSettings()
 							.rarity(Rarity.RARE)
 							.durability(128)

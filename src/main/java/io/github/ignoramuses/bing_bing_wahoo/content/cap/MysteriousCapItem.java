@@ -11,6 +11,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlot.Type;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.entity.monster.Zombie;
@@ -29,8 +30,8 @@ public class MysteriousCapItem extends DyeableArmorItem {
 	public static final MutableComponent LUIGI_NUMBER_ONE = Component.translatable("bingbingwahoo.luigi_number_one")
 			.withStyle(ChatFormatting.ITALIC, ChatFormatting.GREEN);
 
-	public MysteriousCapItem(ArmorMaterial armorMaterial, EquipmentSlot equipmentSlot, Properties settings) {
-		super(armorMaterial, equipmentSlot, settings);
+	public MysteriousCapItem(ArmorMaterial armorMaterial, Type type, Properties settings) {
+		super(armorMaterial, type, settings);
 	}
 	
 	public int getColor(ItemStack stack) {
@@ -53,14 +54,15 @@ public class MysteriousCapItem extends DyeableArmorItem {
 		if (player.isCrouching() && !entity.isBaby() && entity.getItemBySlot(EquipmentSlot.HEAD).isEmpty()) {
 			// all bipeds
 			if (entity instanceof Zombie || entity instanceof EnderMan || entity instanceof AbstractPiglin) {
-				if (!player.level.isClientSide()) {
+				Level level = player.level();
+				if (!level.isClientSide()) {
 					ItemStack toSet = stack.copy();
 					toSet.setCount(1);
 					entity.setItemSlot(EquipmentSlot.HEAD, toSet);
 					if (!player.isCreative())
 						stack.shrink(1);
 				}
-				player.level.playSound(null, entity.blockPosition(), SoundEvents.CHICKEN_EGG, SoundSource.NEUTRAL, 1, 1);
+				level.playSound(null, entity.blockPosition(), SoundEvents.CHICKEN_EGG, SoundSource.NEUTRAL, 1, 1);
 				return InteractionResult.SUCCESS;
 			}
 		}

@@ -11,13 +11,14 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.resources.ResourceLocation;
 
 public class CapSpawnPacket {
 	public static final ResourceLocation ID = BingBingWahoo.id("cap_entity_spawn");
 
-	public static Packet<?> makePacket(FlyingCapEntity entity) {
+	public static Packet<ClientGamePacketListener> makePacket(FlyingCapEntity entity) {
 		FriendlyByteBuf buf = PacketByteBufs.create();
 		new ClientboundAddEntityPacket(entity).write(buf);
 		CompoundTag data = new CompoundTag();

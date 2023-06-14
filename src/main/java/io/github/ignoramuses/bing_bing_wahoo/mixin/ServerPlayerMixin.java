@@ -15,6 +15,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.ProfilePublicKey;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.Level.ExplosionInteraction;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -57,10 +58,11 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 	@Unique
 	private boolean wahoo$bonked = false;
 
-	public ServerPlayerMixin(Level level, BlockPos pos, float yRot, GameProfile gameProfile, @Nullable ProfilePublicKey profilePublicKey) {
-		super(level, pos, yRot, gameProfile, profilePublicKey);
+	public ServerPlayerMixin(Level world, BlockPos pos, float yaw, GameProfile gameProfile) {
+		super(world, pos, yaw, gameProfile);
 	}
 
+	@Override
 	public boolean wahoo$getSliding() {
 		return wahoo$diving || wahoo$sliding;
 	}
@@ -69,7 +71,8 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 	public void wahoo$tick(CallbackInfo ci) {
 		if (wahoo$groundPounding) {
 			wahoo$ticksGroundPoundingFor++;
-			if (isOnGround() && wahoo$destructiveGroundPound && (level.getGameRules().getBoolean(SyncedConfig.DESTRUCTIVE_GROUND_POUNDS.ruleKey) || wahoo$destructionPermOverride)) {
+			Level level = level();
+			if (onGround() && wahoo$destructiveGroundPound && (level.getGameRules().getBoolean(SyncedConfig.DESTRUCTIVE_GROUND_POUNDS.ruleKey) || wahoo$destructionPermOverride)) {
 				for (int x = (int) Math.floor(getBoundingBox().minX); x <= Math.floor(getBoundingBox().maxX); x++) {
 					for (int z = (int) Math.floor(getBoundingBox().minZ); z <= Math.floor(getBoundingBox().maxZ); z++) {
 						wahoo$groundPoundBlockBreakPos.set(x, blockPosition().below().getY(), z);
@@ -140,10 +143,12 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 			wahoo$groundPoundStartPos.set(blockPosition());
 		} else {
 			if (destruction) {
+				Level level = level();
+				Vec3 pos = position();
 				if (wahoo$ticksGroundPoundingFor > 60) {
-					level.explode(this, position().x(), position().y(), position().z(), 2, Explosion.BlockInteraction.NONE);
+					level.explode(this, pos.x(), pos.y(), pos.z(), 2, ExplosionInteraction.NONE);
 				} else {
-					AABB box = new AABB(position().x() - 1, position().y() - 1, position().z() - 1, position().x() + 1, position().y() + 1, position().z() + 1);
+					AABB box = new AABB(pos.x() - 1, pos.y() - 1, pos.z() - 1, pos.x() + 1, pos.y() + 1, pos.z() + 1);
 					int damage = wahoo$ticksGroundPoundingFor >= 15
 							? wahoo$ticksGroundPoundingFor >= 30
 							? wahoo$ticksGroundPoundingFor >= 45
@@ -155,7 +160,8 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 					if (wahoo$ticksGroundPoundingFor >= 15) {
 						for (Entity entity : level.getEntities(this, box)) {
 							if (entity instanceof LivingEntity) {
-								entity.hurt(DamageSource.ANVIL, damage);
+								DamageSource source = level.damageSources().anvil(this);
+								entity.hurt(source, damage);
 							}
 						}
 					}

@@ -1,7 +1,7 @@
 {
 	"parent": "item/generated",
 	"textures": {
-		"layer0": "bingbingwahoo:items/mysterious_cap",
-		"layer1": "bingbingwahoo:items/mysterious_cap_overlay"
+		"layer0": "bingbingwahoo:item/mysterious_cap",
+		"layer1": "bingbingwahoo:item/mysterious_cap_overlay"
 	}
 }

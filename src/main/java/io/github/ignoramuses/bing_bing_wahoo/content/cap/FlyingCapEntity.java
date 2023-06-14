@@ -12,6 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -122,7 +123,7 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 		moveCarriedEntities();
 		handleCollisions();
 
-		if (level.isClientSide()) {
+		if (level().isClientSide()) {
 			playWhoosh();
 		} else {
 			if (tickCount > 500) kill();
@@ -130,6 +131,7 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 	}
 
 	private void handleCollisions() {
+		Level level = level();
 		List<Entity> collisions = level.getEntities(
 				this,
 				getBoundingBox().expandTowards(getDeltaMovement()).inflate(1),
@@ -162,7 +164,8 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 					if (entity instanceof ItemEntity || entity instanceof ExperienceOrb) {
 						carriedEntities.add(entity);
 					} else if (entity instanceof LivingEntity living && !client) {
-						living.hurt(DamageSource.thrown(this, thrower), 3);
+						DamageSource source = level.damageSources().thrown(this, thrower);
+						living.hurt(source, 3);
 						ticksAtEnd = 10;
 					}
 				}
@@ -209,7 +212,7 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 	
 	private void tryFindThrower() {
 		if (thrower == null) {
-			for (Player player : level.players()) {
+			for (Player player : level().players()) {
 				if (player.getGameProfile().getId().equals(throwerId)) {
 					thrower = player;
 				}
@@ -288,7 +291,7 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 	}
 	
 	@Override
-	public Packet<?> getAddEntityPacket() {
+	public Packet<ClientGamePacketListener> getAddEntityPacket() {
 		return CapSpawnPacket.makePacket(this);
 	}
 
@@ -318,8 +321,9 @@ public class FlyingCapEntity extends Entity implements ItemSupplier {
 	public static void spawn(ServerPlayer thrower, ItemStack capStack, PreferredCapSlot preferredSlot) {
 		ItemCooldowns cooldowns = thrower.getCooldowns();
 		if (capStack != null && capStack.is(MYSTERIOUS_CAP) && !cooldowns.isOnCooldown(MYSTERIOUS_CAP)) {
-			FlyingCapEntity cap = new FlyingCapEntity(thrower.level, capStack.copy(), thrower, thrower.getX(), thrower.getEyeY() - 0.1, thrower.getZ(), preferredSlot);
-			thrower.level.addFreshEntity(cap);
+			Level level = thrower.level();
+			FlyingCapEntity cap = new FlyingCapEntity(level, capStack.copy(), thrower, thrower.getX(), thrower.getEyeY() - 0.1, thrower.getZ(), preferredSlot);
+			level.addFreshEntity(cap);
 			cooldowns.addCooldown(MYSTERIOUS_CAP, 20);
 			thrower.swing(InteractionHand.MAIN_HAND, true);
 			preferredSlot.equip(thrower, ItemStack.EMPTY);

@@ -27,6 +27,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.ProfilePublicKey;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.StairBlock;
@@ -134,8 +135,8 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 	@Unique
 	private boolean wahoo$forwardsFlipping;
 
-	public LocalPlayerMixin(ClientLevel clientLevel, GameProfile gameProfile, @Nullable ProfilePublicKey profilePublicKey) {
-		super(clientLevel, gameProfile, profilePublicKey);
+	public LocalPlayerMixin(ClientLevel world, GameProfile profile) {
+		super(world, profile);
 	}
 
 	@Shadow
@@ -200,11 +201,13 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		if (isPassenger()) {
 			wahoo$wasRiding = true;
 		} else if (wahoo$wasRiding) {
-			if (isOnGround()) {
+			if (onGround()) {
 				wahoo$wasRiding = false;
 			}
 		}
-		
+
+		Level level = level();
+
 		// ----- TRIPLE JUMPS -----
 		
 		if (wahoo$midTripleJump) {
@@ -212,7 +215,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 			if (wahoo$tripleJumpTicks > 10) {
 				StartFallFlyPacket.send();
 			}
-			if ((isOnGround() || !level.getFluidState(blockPosition()).isEmpty()) && wahoo$tripleJumpTicks > 3 || wahoo$isDiving || wahoo$isGroundPounding || getAbilities().flying) {
+			if ((onGround() || !level.getFluidState(blockPosition()).isEmpty()) && wahoo$tripleJumpTicks > 3 || wahoo$isDiving || wahoo$isGroundPounding || getAbilities().flying) {
 				exitTripleJump();
 			}
 			
@@ -227,7 +230,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 				floorPos = blockPosition().below();
 				floor = level.getBlockState(floorPos);
 			}
-			if (isOnGround()) {
+			if (onGround()) {
 				if (floor.is(SLIDES)) {
 					if (floor.getBlock() instanceof HorizontalDirectionalBlock || floor.getBlock() instanceof StairBlock) {
 						handleSlidingOnSlope(floor);
@@ -299,7 +302,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		
 		// Initiates Diving
 		// ugly but it works
-		if (wahoo$diveCooldown == 0 && isSprinting() && !wahoo$isDiving && !wahoo$diveFlip && getPose() != Pose.SWIMMING && wahoo$previousJumpType != JumpType.LONG && wahoo$previousJumpType != JumpType.DIVE && !handsBusy && (isOnGround()
+		if (wahoo$diveCooldown == 0 && isSprinting() && !wahoo$isDiving && !wahoo$diveFlip && getPose() != Pose.SWIMMING && wahoo$previousJumpType != JumpType.LONG && wahoo$previousJumpType != JumpType.DIVE && !handsBusy && (onGround()
 				? BingBingWahooConfig.groundedDives && Minecraft.getInstance().options.keyAttack.isDown()
 				: Minecraft.getInstance().options.keyAttack.isDown())) {
 			dive();
@@ -331,7 +334,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		BlockPos aboveHead = blockPosition().above(2);
 		BlockPos inFrontOfHead = head.relative(facing);
 		// checks block above and block adjacent to it in look direction
-		if (!wahoo$isDiving && !wahoo$ledgeGrabbing && !wahoo$isGroundPounding && !isOnGround() && !getAbilities().flying && !onClimbable() && !isSwimming() && wahoo$ledgeGrabCooldown == 0 &&
+		if (!wahoo$isDiving && !wahoo$ledgeGrabbing && !wahoo$isGroundPounding && !onGround() && !getAbilities().flying && !onClimbable() && !isSwimming() && wahoo$ledgeGrabCooldown == 0 &&
 				level.getBlockState(head).isAir() &&
 				level.getBlockState(aboveHead).isAir() &&
 				level.getBlockState(aboveHead.relative(facing)).isAir() &&
@@ -368,7 +371,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		
 		// runs on the first tick a player collides with a wall
 		if (horizontalCollision) {
-			if (wahoo$ticksLeftToWallJump <= 0 && !wahoo$isDiving && !isOnGround() && (
+			if (wahoo$ticksLeftToWallJump <= 0 && !wahoo$isDiving && !onGround() && (
 					BingBingWahooConfig.allowNormalWallJumps
 							? wahoo$previousJumpType.canWallJumpFrom() || wahoo$previousJumpType == JumpType.NORMAL
 							: wahoo$previousJumpType.canWallJumpFrom())) {
@@ -384,13 +387,13 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 			wallJump();
 		}
 		
-		if (wahoo$wallJumping && isOnGround()) {
+		if (wahoo$wallJumping && onGround()) {
 			exitWallJump();
 		}
 		
 		// ----- GROUND POUND -----
 		
-		if (BingBingWahooConfig.groundPoundType.enabled() && !isOnGround() && isShiftKeyDown() && !wasShiftKeyDown && !wahoo$longJumping && !getAbilities().flying && !handsBusy && !wahoo$lastRiding && !isInWater() && !level.getBlockState(blockPosition().below()).isRedstoneConductor(level, blockPosition().below())) {
+		if (BingBingWahooConfig.groundPoundType.enabled() && !onGround() && isShiftKeyDown() && !wasShiftKeyDown && !wahoo$longJumping && !getAbilities().flying && !handsBusy && !wahoo$lastRiding && !isInWater() && !level.getBlockState(blockPosition().below()).isRedstoneConductor(level, blockPosition().below())) {
 			List<Entity> entities = level.getEntities(this, new AABB(blockPosition()).inflate(1.5, 1, 1.5));
 			boolean canPound = entities.size() == 0;
 			if (canPound) {
@@ -437,13 +440,13 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		
 		// ----- BACK FLIPS -----
 		
-		if (isOnGround() && wahoo$isBackFlipping) {
+		if (onGround() && wahoo$isBackFlipping) {
 			exitBackFlip();
 		}
 		
 		// ----- LONG JUMPS -----
 		
-		if (wahoo$longJumping && isOnGround()) {
+		if (wahoo$longJumping && onGround()) {
 			exitLongJump();
 		}
 		
@@ -550,7 +553,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		
 		super.jumpFromGround();
 		if (input.jumping) {
-			if ((isOnGround())) {
+			if ((onGround())) {
 				if (wahoo$isDiving || wahoo$forwardSliding) {
 					wahoo$diveFlip = true;
 					wahoo$flipTimer = 15;
@@ -580,7 +583,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 	 */
 	public void updateJumpTicks() {
 		// double jump
-		if (!lastOnGround && isOnGround()) {
+		if (!lastOnGround && onGround()) {
 			wahoo$ticksLeftToDoubleJump = 6;
 		}
 		if (wahoo$ticksLeftToDoubleJump > 0) {
@@ -588,7 +591,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		}
 		
 		// triple jump
-		if (!lastOnGround && isOnGround()) {
+		if (!lastOnGround && onGround()) {
 			wahoo$ticksLeftToTripleJump = 6;
 		}
 		if (wahoo$ticksLeftToTripleJump > 0) {
@@ -613,6 +616,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 			
 			if (wahoo$ticksLeftToWallJump == 0 && wahoo$previousJumpType != JumpType.NORMAL && !wahoo$wallJumping && !wahoo$ledgeGrabbing && !isCreative() && wahoo$bonkCooldown == 0 && !(Math.abs(getDeltaMovement().x()) < 0.07 && Math.abs(getDeltaMovement().y()) < 0.07)) {
 				Direction looking = Direction.fromYRot(getYRot());
+				Level level = level();
 				if (level.getBlockState(blockPosition().relative(looking)).isRedstoneConductor(level, blockPosition().relative(looking)) &&
 						level.getBlockState(blockPosition().relative(looking).above()).isRedstoneConductor(level, blockPosition().relative(looking).above())) {
 					bonk();
@@ -829,6 +833,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		if (!wahoo$canWahoo || wahoo$wasRiding || wahoo$isBackFlipping || isFallFlying()) return;
 		if (wahoo$midTripleJump) exitTripleJump();
 		if (wahoo$wallJumping) exitWallJump();
+		Level level = level();
 		if (level.getBlockState(blockPosition()).isAir() && level.getBlockState(blockPosition().above()).isAir()) {
 			setPosRaw(position().x(), position().y() + 1, position().z());
 		}
@@ -896,7 +901,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		Direction directionOfNearestWall = Direction.UP;
 		double distanceToNearestWall = 1;
 		for (Direction direction : Plane.HORIZONTAL) {
-			BlockState adjacentState = level.getBlockState(blockPosition().relative(direction));
+			BlockState adjacentState = level().getBlockState(blockPosition().relative(direction));
 			if (!adjacentState.isAir()) {
 				double distance = position().distanceTo(Vec3.atCenterOf(blockPosition().relative(direction)));
 				if (distance <= distanceToNearestWall) {

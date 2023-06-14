@@ -1,7 +1,7 @@
 package io.github.ignoramuses.bing_bing_wahoo.content.cap;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import io.github.ignoramuses.bing_bing_wahoo.BingBingWahoo;
 import io.github.ignoramuses.bing_bing_wahoo.WahooUtils;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -26,10 +26,10 @@ public class FlyingCapRenderer extends EntityRenderer<FlyingCapEntity> {
 		ItemStack stack = entity.getItem();
 		if (stack == null || stack.isEmpty()) return;
 		matrices.pushPose();
-		matrices.mulPose(Vector3f.ZP.rotationDegrees(180));
+		matrices.mulPose(Axis.ZP.rotationDegrees(180));
 		matrices.translate(0, -1.55, 0);
 		float rotation = (entity.tickCount + tickDelta) * 50;
-		matrices.mulPose(Vector3f.YP.rotationDegrees(rotation));
+		matrices.mulPose(Axis.YP.rotationDegrees(rotation));
 //		if (entity.ticksAtEnd > 0 && entity.ticksAtEnd <= 10) matrices.scale(2.5f, 1, 2.5f); // larger surface to jump on
 		WahooUtils.renderCap(matrices, vertexConsumers, stack, light, tickDelta, model);
 		matrices.popPose();

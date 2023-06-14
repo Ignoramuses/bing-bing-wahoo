@@ -1,5 +1,6 @@
 package io.github.ignoramuses.bing_bing_wahoo;
 
+import com.mojang.math.Axis;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import io.github.ignoramuses.bing_bing_wahoo.content.cap.MysteriousCapModel;
@@ -28,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Vector3f;
 
 import static io.github.ignoramuses.bing_bing_wahoo.WahooRegistry.MYSTERIOUS_CAP;
 
@@ -54,7 +54,7 @@ public class WahooUtils {
 		float g = (color >> 8 & 255) / 255.0F;
 		float b = (color & 255) / 255.0F;
 		matrices.pushPose();
-		matrices.mulPose(Vector3f.YP.rotationDegrees(90));
+		matrices.mulPose(Axis.YP.rotationDegrees(90));
 		VertexConsumer capConsumer = ItemRenderer.getArmorFoilBuffer(vertexConsumers, RenderType.armorCutoutNoCull(CAP_TEXTURE), false, hatStack.hasFoil());
 		model.renderToBuffer(matrices, capConsumer, light, 1, r, g, b, 1);
 		VertexConsumer emblemConsumer = ItemRenderer.getArmorFoilBuffer(vertexConsumers, RenderType.armorCutoutNoCull(EMBLEM_TEXTURE), false, hatStack.hasFoil());

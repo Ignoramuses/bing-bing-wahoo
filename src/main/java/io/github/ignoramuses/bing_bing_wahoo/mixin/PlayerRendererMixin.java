@@ -1,8 +1,6 @@
 package io.github.ignoramuses.bing_bing_wahoo.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Quaternion;
-import com.mojang.math.Vector3f;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import io.github.ignoramuses.bing_bing_wahoo.extensions.AbstractClientPlayerExtensions;
@@ -15,6 +13,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -42,15 +41,15 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
 			if (ticksFlipping != 0) {
 				float yaw = entity.getYRot();
 				Vec3 lookVec = access.wahoo$calculateViewVector(0, yaw - 90);
-				Vector3f vec = new Vector3f(lookVec);
+				Vector3f vec = lookVec.toVector3f();
 				int mult = ex.wahoo$flippingForwards() ? 1 : -1;
 				if (entity instanceof LocalPlayer) { // some stuff is reversed locally.
 					partialTicks = -partialTicks;
 					mult = -mult;
 				}
 				vec.set(mult * vec.x(), 0, mult * vec.z());
-				Quaternion q = vec.rotationDegrees((ticksFlipping + partialTicks) * 24); // magical speed number
-				matrixStack.mulPose(q);
+				//Quaternion q = vec.rotationDegrees((ticksFlipping + partialTicks) * 24); // magical speed number
+				//matrixStack.mulPose(q);
 				matrixStack.translate(0, -0.9, 0); // roughly half the player's height
 			}
 		}

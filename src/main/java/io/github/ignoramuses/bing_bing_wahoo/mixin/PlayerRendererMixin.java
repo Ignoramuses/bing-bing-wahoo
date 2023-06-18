@@ -27,22 +27,22 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
 	}
 	
 	@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/player/PlayerRenderer;getArmPose(Lnet/minecraft/client/player/AbstractClientPlayer;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/client/model/HumanoidModel$ArmPose;", shift = At.Shift.BEFORE), method = "setModelProperties")
-	private void wahoo$setModelPoseWhileGroundPoundingAndSliding(AbstractClientPlayer player, CallbackInfo ci) {
-		if (player instanceof LocalPlayerExtensions extendedPlayer && extendedPlayer.wahoo$groundPounding()) {
+	private void setModelPoseWhileGroundPoundingAndSliding(AbstractClientPlayer player, CallbackInfo ci) {
+		if (player instanceof LocalPlayerExtensions extendedPlayer && extendedPlayer.groundPounding()) {
 			getModel().crouching = true;
 		}
 	}
 
 	@Inject(method = "render(Lnet/minecraft/client/player/AbstractClientPlayer;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
 			at = @At("HEAD"))
-	private void wahoo$flip(AbstractClientPlayer entity, float entityYaw, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int packedLight, CallbackInfo ci) {
+	private void flip(AbstractClientPlayer entity, float entityYaw, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int packedLight, CallbackInfo ci) {
 		if (entity instanceof AbstractClientPlayerExtensions ex && entity instanceof EntityAccessor access) {
-			int ticksFlipping = ex.wahoo$ticksFlipping();
+			int ticksFlipping = ex.ticksFlipping();
 			if (ticksFlipping != 0) {
 				float yaw = entity.getYRot();
-				Vec3 lookVec = access.wahoo$calculateViewVector(0, yaw - 90);
+				Vec3 lookVec = access.callCalculateViewVector(0, yaw - 90);
 				Vector3f vec = lookVec.toVector3f();
-				int mult = ex.wahoo$flippingForwards() ? 1 : -1;
+				int mult = ex.flippingForwards() ? 1 : -1;
 				if (entity instanceof LocalPlayer) { // some stuff is reversed locally.
 					partialTicks = -partialTicks;
 					mult = -mult;

@@ -12,28 +12,28 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(RemotePlayer.class)
 public abstract class RemotePlayerMixin implements AbstractClientPlayerExtensions {
 	@Unique
-	private int wahoo$ticksFlipping;
+	private int ticksFlipping;
 	@Unique
-	private boolean wahoo$forwardsFlipping;
+	private boolean forwardsFlipping;
 
 	@Inject(method = "tick", at = @At("TAIL"))
-	private void wahoo$updateFlipCounter(CallbackInfo ci) {
-		if (wahoo$ticksFlipping > 0) wahoo$ticksFlipping++;
+	private void updateFlipCounter(CallbackInfo ci) {
+		if (ticksFlipping > 0) ticksFlipping++;
 	}
 
 	@Override
-	public int wahoo$ticksFlipping() {
-		return wahoo$ticksFlipping;
+	public int ticksFlipping() {
+		return ticksFlipping;
 	}
 
 	@Override
-	public void wahoo$setFlipState(FlipState state) {
-		wahoo$ticksFlipping = state != FlipState.NONE ? 1 : 0;
-		wahoo$forwardsFlipping = state == FlipState.FORWARDS;
+	public void setFlipState(FlipState state) {
+		ticksFlipping = state != FlipState.NONE ? 1 : 0;
+		forwardsFlipping = state == FlipState.FORWARDS;
 	}
 
 	@Override
-	public boolean wahoo$flippingForwards() {
-		return wahoo$forwardsFlipping;
+	public boolean flippingForwards() {
+		return forwardsFlipping;
 	}
 }

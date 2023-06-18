@@ -5,27 +5,27 @@ import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
 public interface ServerPlayerExtensions {
-	default void wahoo$setPreviousJumpType(JumpType type) {
+	default void setPreviousJumpType(JumpType type) {
 		throw new IllegalStateException("Not implemented");
 	}
 
-	default void wahoo$setBonked(boolean value) {
+	default void setBonked(boolean value) {
 		throw new IllegalStateException("Not implemented");
 	}
 
-	default void wahoo$setGroundPounding(boolean value, boolean breakBlocks) {
+	default void setGroundPounding(boolean value, boolean breakBlocks) {
 		throw new IllegalStateException("Not implemented");
 	}
 
-	default void wahoo$setDiving(boolean value, @Nullable BlockPos startPos) {
+	default void setDiving(boolean value, @Nullable BlockPos startPos) {
 		throw new IllegalStateException("Not implemented");
 	}
 
-	default void wahoo$setSliding(boolean value) {
+	default void setSliding(boolean value) {
 		throw new IllegalStateException("Not implemented");
 	}
 
-	default void wahoo$setDestructionPermOverride(boolean value) {
+	default void setDestructionPermOverride(boolean value) {
 		throw new IllegalStateException("Not implemented");
 	}
 }

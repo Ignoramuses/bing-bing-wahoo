@@ -6,15 +6,15 @@ import net.fabricmc.api.Environment;
 
 @Environment(EnvType.CLIENT)
 public interface AbstractClientPlayerExtensions {
-	default int wahoo$ticksFlipping() {
+	default int ticksFlipping() {
 		throw new IllegalStateException("Not implemented");
 	}
 
-	default void wahoo$setFlipState(FlipState state) {
+	default void setFlipState(FlipState state) {
 		throw new IllegalStateException("Not implemented");
 	}
 
-	default boolean wahoo$flippingForwards() {
+	default boolean flippingForwards() {
 		throw new IllegalStateException("Not implemented");
 	}
 }

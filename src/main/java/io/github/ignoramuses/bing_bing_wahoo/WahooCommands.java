@@ -24,14 +24,14 @@ import static net.minecraft.commands.Commands.literal;
 
 public class WahooCommands {
 	public static void init() {
-		EntitySelectorOptionsAccessor.wahoo$register("sliding", reader -> {
+		EntitySelectorOptionsAccessor.callRegister("sliding", reader -> {
 			boolean sliding = reader.getReader().readBoolean();
 			reader.setIncludesEntities(false);
 			reader.setWorldLimited();
 			reader.setSuggestions((suggestionsBuilder, suggestionsBuilderConsumer) -> SharedSuggestionProvider.suggest(new String[]{"true", "false"}, suggestionsBuilder));
 			reader.addPredicate(entity -> {
 				if (entity instanceof PlayerExtensions extendedPlayer) {
-					return extendedPlayer.wahoo$getSliding() == sliding;
+					return extendedPlayer.getSliding() == sliding;
 				}
 				return false;
 			});
@@ -44,7 +44,7 @@ public class WahooCommands {
 								.then(argument("value", BoolArgumentType.bool())
 										.executes(context -> {
 											ServerPlayer target = EntityArgument.getPlayer(context, "target");
-											((ServerPlayerExtensions) target).wahoo$setDestructionPermOverride(BoolArgumentType.getBool(context, "value"));
+											((ServerPlayerExtensions) target).setDestructionPermOverride(BoolArgumentType.getBool(context, "value"));
 											return 0;
 										})
 								)

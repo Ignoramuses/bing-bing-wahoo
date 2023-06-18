@@ -50,7 +50,7 @@ public abstract class LivingEntityMixin extends Entity implements CapWearer {
 	}
 	
 	@Inject(at = @At("HEAD"), method = {"hurtHelmet", "hurtArmor"})
-	private void wahoo$damageCap(DamageSource source, float amount, CallbackInfo ci) {
+	private void damageCap(DamageSource source, float amount, CallbackInfo ci) {
 		if (isWearingCap()) {
 			getCap().hurtAndBreak((int) amount, (LivingEntity) (Object) this, (entity) -> {
 				if (entity instanceof Player player) {

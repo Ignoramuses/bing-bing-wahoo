@@ -16,7 +16,7 @@ public class UpdateBonkPacket {
 		ServerPlayNetworking.registerGlobalReceiver(ID, (server, player, handler, buf, responseSender) -> {
 			boolean started = buf.readBoolean();
 			server.execute(() ->
-					player.wahoo$setBonked(started));
+					player.setBonked(started));
 		});
 	}
 

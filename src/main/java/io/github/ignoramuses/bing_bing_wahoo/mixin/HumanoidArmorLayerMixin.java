@@ -25,7 +25,7 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, M extends 
 	}
 	
 	@Inject(at = @At("HEAD"), method = "renderArmorPiece", cancellable = true)
-	private void wahoo$renderArmorPiece(PoseStack matrices, MultiBufferSource vertexConsumers, T entity, EquipmentSlot armorSlot, int light, A model, CallbackInfo ci) {
+	private void renderArmorPiece(PoseStack matrices, MultiBufferSource vertexConsumers, T entity, EquipmentSlot armorSlot, int light, A model, CallbackInfo ci) {
 		if (armorSlot == EquipmentSlot.HEAD) {
 			ItemStack itemStack = entity.getItemBySlot(armorSlot);
 			if (itemStack.is(WahooRegistry.MYSTERIOUS_CAP)) {

@@ -44,7 +44,7 @@ public class UpdateFlipStatePacket {
 			client.execute(() -> {
 				for (AbstractClientPlayer player : client.level.players()) {
 					if (player instanceof AbstractClientPlayerExtensions ex && player.getGameProfile().getId().equals(id)) {
-						ex.wahoo$setFlipState(state);
+						ex.setFlipState(state);
 						break;
 					}
 				}

@@ -34,17 +34,17 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
 	}
 
 	@Inject(at = @At("RETURN"), method = "<init>")
-	public void wahoo$LivingEntityRenderer(EntityRendererProvider.Context ctx, M model, float shadowRadius, CallbackInfo ci) {
+	public void LivingEntityRenderer(EntityRendererProvider.Context ctx, M model, float shadowRadius, CallbackInfo ci) {
 		addLayer(new MysteriousCapFeatureRenderer<>(this, new MysteriousCapModel(ctx, this.model)));
 	}
 	
 	@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isBaby()Z"), method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V")
-	private void wahoo$render(T livingEntity, float f, float g, PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i, CallbackInfo ci) {
+	private void render(T livingEntity, float f, float g, PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i, CallbackInfo ci) {
 		if (livingEntity instanceof LocalPlayerExtensions extendedPlayer) {
-			if (extendedPlayer.wahoo$slidingOnGround()) {
+			if (extendedPlayer.slidingOnGround()) {
 				model.riding = true;
 				matrixStack.translate(0, -0.25, 0);
-			} else if (extendedPlayer.wahoo$slidingOnSlope()) {
+			} else if (extendedPlayer.slidingOnSlope()) {
 				model.riding = true;
 				matrixStack.translate(0, -0.5, 0);
 			}

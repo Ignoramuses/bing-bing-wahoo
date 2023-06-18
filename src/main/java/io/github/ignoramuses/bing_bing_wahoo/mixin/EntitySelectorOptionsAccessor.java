@@ -10,8 +10,9 @@ import net.minecraft.network.chat.Component;
 
 @Mixin(EntitySelectorOptions.class)
 public interface EntitySelectorOptionsAccessor {
-	@Invoker("register")
-	static void wahoo$register(String id, EntitySelectorOptions.Modifier handler, Predicate<EntitySelectorParser> condition, Component description) {
+	@Invoker
+	static void callRegister(String id, EntitySelectorOptions.Modifier handler,
+							 Predicate<EntitySelectorParser> condition, Component description) {
 		throw new RuntimeException("mixin failed!");
 	}
 }

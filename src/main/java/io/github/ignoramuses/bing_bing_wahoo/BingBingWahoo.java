@@ -1,7 +1,6 @@
 package io.github.ignoramuses.bing_bing_wahoo;
 
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;

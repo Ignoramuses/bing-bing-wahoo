@@ -5,15 +5,15 @@ import net.fabricmc.api.Environment;
 
 @Environment(EnvType.CLIENT)
 public interface LocalPlayerExtensions {
-	default boolean wahoo$groundPounding() {
+	default boolean groundPounding() {
 		throw new IllegalStateException("Not implemented");
 	}
 
-	default boolean wahoo$slidingOnSlope() {
+	default boolean slidingOnSlope() {
 		throw new IllegalStateException("Not implemented");
 	}
 
-	default boolean wahoo$slidingOnGround() {
+	default boolean slidingOnGround() {
 		throw new IllegalStateException("Not implemented");
 	}
 }

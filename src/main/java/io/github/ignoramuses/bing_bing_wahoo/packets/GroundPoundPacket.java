@@ -18,7 +18,7 @@ public class GroundPoundPacket {
 		ServerPlayNetworking.registerGlobalReceiver(ID, (server, player, handler, buf, responseSender) -> {
 			boolean groundPounding = buf.readBoolean();
 			boolean destruction = buf.readBoolean();
-			server.execute(() -> player.wahoo$setGroundPounding(groundPounding, destruction));
+			server.execute(() -> player.setGroundPounding(groundPounding, destruction));
 		});
 	}
 

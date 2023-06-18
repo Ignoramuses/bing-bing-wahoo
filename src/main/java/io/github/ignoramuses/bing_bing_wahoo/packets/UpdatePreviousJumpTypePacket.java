@@ -16,7 +16,7 @@ public class UpdatePreviousJumpTypePacket {
 	public static void init() {
 		ServerPlayNetworking.registerGlobalReceiver(ID, (server, player, handler, buf, responseSender) -> {
 			JumpType jumpType = buf.readEnum(JumpType.class);
-			server.execute(() -> player.wahoo$setPreviousJumpType(jumpType));
+			server.execute(() -> player.setPreviousJumpType(jumpType));
 		});
 	}
 

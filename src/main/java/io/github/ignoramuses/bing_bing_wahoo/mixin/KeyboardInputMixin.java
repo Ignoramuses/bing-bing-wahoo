@@ -15,11 +15,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(KeyboardInput.class)
 public abstract class KeyboardInputMixin extends Input implements KeyboardInputExtensions {
 	@Unique
-	private boolean wahoo$disableControl = false;
+	private boolean disableControl = false;
 	
 	@Inject(at = @At("TAIL"), method = "tick")
-	public void wahoo$tick(boolean slowDown, float f, CallbackInfo ci) {
-		if (wahoo$disableControl) {
+	public void tick(boolean slowDown, float f, CallbackInfo ci) {
+		if (disableControl) {
 			up = false;
 			down = false;
 			left = false;
@@ -32,12 +32,12 @@ public abstract class KeyboardInputMixin extends Input implements KeyboardInputE
 	}
 	
 	@Override
-	public void wahoo$disableControl() {
-		wahoo$disableControl = true;
+	public void disableControl() {
+		disableControl = true;
 	}
 	
 	@Override
-	public void wahoo$enableControl() {
-		wahoo$disableControl = false;
+	public void enableControl() {
+		disableControl = false;
 	}
 }

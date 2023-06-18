@@ -15,7 +15,7 @@ public class UpdateSlidePacket {
 	public static void init() {
 		ServerPlayNetworking.registerGlobalReceiver(ID, (server, player, handler, buf, responseSender) -> {
 			boolean start = buf.readBoolean();
-			server.execute(() -> player.wahoo$setSliding(start));
+			server.execute(() -> player.setSliding(start));
 		});
 	}
 

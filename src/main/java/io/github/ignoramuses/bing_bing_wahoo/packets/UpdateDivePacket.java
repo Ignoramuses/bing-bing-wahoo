@@ -21,7 +21,7 @@ public class UpdateDivePacket {
 				startPos = buf.readBlockPos();
 			}
 			BlockPos finalStartPos = startPos;
-			server.execute(() -> player.wahoo$setDiving(start, finalStartPos));
+			server.execute(() -> player.setDiving(start, finalStartPos));
 		});
 	}
 

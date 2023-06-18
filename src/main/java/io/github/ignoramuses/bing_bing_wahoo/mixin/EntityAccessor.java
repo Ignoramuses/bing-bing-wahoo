@@ -9,8 +9,8 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(Entity.class)
 public interface EntityAccessor {
 	@Accessor("xRot")
-	void wahoo$setXRotRaw(float pitch);
+	void setXRotRaw(float pitch);
 
-	@Invoker("calculateViewVector")
-	Vec3 wahoo$calculateViewVector(float pitch, float yaw);
+	@Invoker
+	Vec3 callCalculateViewVector(float pitch, float yaw);
 }

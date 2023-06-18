@@ -20,6 +20,7 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.Input;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Plane;
 import net.minecraft.util.Mth;
@@ -47,119 +48,71 @@ import static io.github.ignoramuses.bing_bing_wahoo.BingBingWahoo.*;
 
 @Environment(EnvType.CLIENT)
 @Mixin(LocalPlayer.class)
-public abstract class LocalPlayerMixin extends AbstractClientPlayer implements PlayerExtensions, LocalPlayerExtensions, AbstractClientPlayerExtensions {
-	@Unique
-	private final BlockPos.MutableBlockPos lastPos = new BlockPos.MutableBlockPos();
-	@Shadow
-	public Input input;
-	@Unique
-	private boolean jumpHeldSinceLastJump = false;
-	@Unique
-	private boolean lastJumping = false;
-	@Shadow
-	private boolean lastOnGround;
-	@Unique
-	private long ticksSinceSneakingChanged = 0;
-	@Unique
-	private long ticksLeftToLongJump = 0;
-	@Unique
-	private long ticksLeftToDoubleJump = 0;
-	@Unique
-	private long ticksLeftToTripleJump = 0;
-	@Unique
-	private JumpType previousJumpType = JumpType.NORMAL;
-	@Unique
-	private boolean midTripleJump = false;
-	@Unique
-	private long tripleJumpTicks = 0;
-	@Unique
-	private boolean isDiving = false;
-	@Unique
-	private Vec3 currentDivingVelocity = Vec3.ZERO;
-	@Unique
-	private boolean bonked = false;
-	@Unique
-	private long bonkTime = 0;
-	@Unique
-	private boolean diveFlip = false;
-	@Unique
-	private int flipTimer = 0;
-	@Unique
-	private long ticksLeftToWallJump = 0;
-	@Unique
-	private boolean incipientGroundPound = false; // variables are not the place to show off your vocabulary
-	@Unique
-	private long ticksInAirDuringGroundPound = 0;
-	@Unique
-	private double groundPoundSpeedMultiplier = 1.0;
-	@Unique
-	private boolean wallJumping = false;
-	@Unique
-	private boolean isGroundPounding = false;
-	@Unique
-	private boolean hasGroundPounded = false;
-	@Unique
-	private boolean ledgeGrabbing = false;
-	@Unique
-	private long ledgeGrabCooldown = 0;
-	@Unique
-	private long ledgeGrabExitCooldown = 0;
-	@Unique
-	private boolean longJumping = false;
-	@Unique
-	private boolean isBackFlipping = false;
-	@Unique
-	private long ticksGroundPounded = 0;
-	@Unique
-	private long diveCooldown = 0;
-	@Unique
-	private long bonkCooldown = 0;
-	@Unique
-	private boolean lastRiding = false;
-	@Unique
-	private boolean slidingOnGround = false;
-	@Unique
-	private boolean slidingOnSlope = false;
-	@Unique
-	private boolean wasRiding = false;
-	@Unique
-	private boolean canWahoo = false;
-	@Unique
-	private long ticksStillInDive = 0;
-	@Unique
-	private boolean forwardSliding = false;
-	@Unique
-	private long ticksSlidingOnGround = 0;
-	@Unique
-	private boolean forwardsFlipping;
+public abstract class LocalPlayerMixin extends AbstractClientPlayer
+		implements PlayerExtensions, LocalPlayerExtensions, AbstractClientPlayerExtensions {
+	@Shadow public Input input;
+	@Shadow private boolean lastOnGround;
+	@Shadow private boolean handsBusy;
+	@Shadow private boolean wasShiftKeyDown;
 
 	public LocalPlayerMixin(ClientLevel world, GameProfile profile) {
 		super(world, profile);
 	}
 
-	@Shadow
-	public abstract boolean isShiftKeyDown();
-	
-	@Shadow
-	public abstract float getViewXRot(float tickDelta);
+	@Shadow public abstract boolean isShiftKeyDown();
+	@Shadow public abstract float getViewXRot(float tickDelta);
+	@Shadow public abstract float getViewYRot(float tickDelta);
+	@Shadow public abstract boolean startRiding(Entity entity, boolean force);
+	@Shadow protected abstract boolean hasEnoughImpulseToStartSprinting();
 
-	@Shadow
-	public abstract float getViewYRot(float tickDelta);
-	
-	@Shadow
-	public abstract boolean startRiding(Entity entity, boolean force);
-	
-	@Shadow
-	private boolean handsBusy;
-	
-	@Shadow
-	private boolean wasShiftKeyDown;
-	
-	@Shadow
-	protected abstract boolean hasEnoughImpulseToStartSprinting();
+	@Unique private final MutableBlockPos lastPos = new MutableBlockPos();
+	@Unique private boolean jumpHeldSinceLastJump = false;
+	@Unique private boolean lastJumping = false;
+	@Unique private long ticksSinceSneakingChanged = 0;
+	@Unique private long ticksLeftToLongJump = 0;
+	@Unique private long ticksLeftToDoubleJump = 0;
+	@Unique private long ticksLeftToTripleJump = 0;
+	@Unique private JumpType previousJumpType = JumpType.NORMAL;
+	@Unique private boolean midTripleJump = false;
+	@Unique private long tripleJumpTicks = 0;
+	@Unique private boolean isDiving = false;
+	@Unique private Vec3 currentDivingVelocity = Vec3.ZERO;
+	@Unique private boolean bonked = false;
+	@Unique private long bonkTime = 0;
+	@Unique private boolean diveFlip = false;
+	@Unique private int flipTimer = 0;
+	@Unique private long ticksLeftToWallJump = 0;
+	@Unique private boolean startingGroundPound = false;
+	@Unique private long ticksInAirDuringGroundPound = 0;
+	@Unique private double groundPoundSpeedMultiplier = 1.0;
+	@Unique private boolean wallJumping = false;
+	@Unique private boolean isGroundPounding = false;
+	@Unique private boolean hasGroundPounded = false;
+	@Unique private boolean ledgeGrabbing = false;
+	@Unique private long ledgeGrabCooldown = 0;
+	@Unique private long ledgeGrabExitCooldown = 0;
+	@Unique private boolean longJumping = false;
+	@Unique private boolean isBackFlipping = false;
+	@Unique private long ticksGroundPounded = 0;
+	@Unique private long diveCooldown = 0;
+	@Unique private long bonkCooldown = 0;
+	@Unique private boolean lastRiding = false;
+	@Unique private boolean slidingOnGround = false;
+	@Unique private boolean slidingOnSlope = false;
+	@Unique private boolean wasRiding = false;
+	@Unique private boolean canWahoo = false;
+	@Unique private long ticksStillInDive = 0;
+	@Unique private boolean forwardSliding = false;
+	@Unique private long ticksSlidingOnGround = 0;
 
-	@Inject(method = "onSyncedDataUpdated", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/sounds/ElytraOnPlayerSoundInstance;<init>(Lnet/minecraft/client/player/LocalPlayer;)V"))
-	public void syncedDataUpdated(CallbackInfo ci) {
+	@Inject(
+			method = "onSyncedDataUpdated",
+			at = @At(
+					value = "INVOKE",
+					target = "Lnet/minecraft/client/resources/sounds/ElytraOnPlayerSoundInstance;<init>(Lnet/minecraft/client/player/LocalPlayer;)V"
+			)
+	)
+	public void onFallFlyingStatusChange(CallbackInfo ci) {
 		if (isDiving)
 			exitDive();
 		if (isGroundPounding)
@@ -169,18 +122,15 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 	}
 
 	@Inject(at = @At("HEAD"), method = "aiStep")
-	public void aiStepHEAD(CallbackInfo ci) {
+	public void savePreviousValues(CallbackInfo ci) {
 		lastRiding = handsBusy;
 		lastJumping = input.jumping;
 		lastPos.set(blockPosition());
 	}
-	
-	/**
-	 * Handles most tick-based physics, and when stuff should happen
-	 */
+
 	@Inject(at = @At("RETURN"), method = "aiStep")
-	public void aiStep(CallbackInfo ci) {
-		updateJumpTicks();
+	public void wahooLogic(CallbackInfo ci) {
+		tickTimers();
 		
 		canWahoo = false;
 		if (SyncedConfig.CAP_REQUIRED.get()) {
@@ -403,19 +353,19 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 			UpdatePosePacket.send(Pose.CROUCHING);
 			hasGroundPounded = true;
 			ticksInAirDuringGroundPound++;
-			if (incipientGroundPound) {
+			if (startingGroundPound) {
 				setDeltaMovement(0, 0, 0);
 			}
 			
-			if (incipientGroundPound && flipTimer == 0) {
-				incipientGroundPound = false;
+			if (startingGroundPound && flipTimer == 0) {
+				startingGroundPound = false;
 				UpdateFlipStatePacket.send(FlipState.NONE);
 				if (BingBingWahooConfig.flipSpeedMultiplier != 0 && Minecraft.getInstance().options.getCameraType().isFirstPerson()) {
 					setXRot(0);
 				}
 			}
 			
-			if (!incipientGroundPound) {
+			if (!startingGroundPound) {
 				if (ticksInAirDuringGroundPound > 6) {
 					setDeltaMovement(0, -0.5 * groundPoundSpeedMultiplier, 0);
 					if (groundPoundSpeedMultiplier < 4) {
@@ -424,14 +374,14 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 				}
 			}
 			
-			if (hasGroundPounded && !incipientGroundPound && lastPos.equals(blockPosition())) {
+			if (hasGroundPounded && !startingGroundPound && lastPos.equals(blockPosition())) {
 				ticksGroundPounded++;
 				if (ticksGroundPounded > 5) {
 					exitGroundPound();
 				}
 			}
 			
-			if (hasGroundPounded && !incipientGroundPound && ticksGroundPounded > 0 && !lastPos.equals(blockPosition())) {
+			if (hasGroundPounded && !startingGroundPound && ticksGroundPounded > 0 && !lastPos.equals(blockPosition())) {
 				ticksGroundPounded = 0;
 			}
 		}
@@ -455,6 +405,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		}
 	}
 
+	@Unique
 	private void handleSlidingOnSlope(BlockState floor) {
 		ticksSlidingOnGround = 0;
 		slidingOnSlope = true;
@@ -487,9 +438,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		setDeltaMovement(newVelocity);
 	}
 	
-	/**
-	 * @param slide Whether the floor is in the slide tag or not
-	 */
+	@Unique
 	private void handleSlidingOnGround(boolean slide) {
 		ticksSlidingOnGround++;
 		slidingOnSlope = false;
@@ -576,10 +525,8 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		UpdatePreviousJumpTypePacket.send(previousJumpType);
 	}
 	
-	/**
-	 * Keeps track of timers for jumps
-	 */
-	public void updateJumpTicks() {
+	@Unique
+	private void tickTimers() {
 		// double jump
 		if (!lastOnGround && onGround()) {
 			ticksLeftToDoubleJump = 6;
@@ -645,10 +592,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 			flipTimer--;
 		}
 	}
-	
-	/**
-	 * An override of updatePose to allow for custom handling, sleeping for bonking and swimming for diving, etc.
-	 */
+
 	@Override
 	protected void updatePlayerPose() {
 		if (isDiving || bonked || isGroundPounding) {
@@ -657,9 +601,6 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		super.updatePlayerPose();
 	}
 
-	/**
-	 * Similar to {@link LocalPlayerMixin#updatePlayerPose}, allows for special handling of pitch changes
-	 */
 	@Override
 	public void setXRot(float pitch) {
 		float tickDelta = Minecraft.getInstance().getFrameTime();
@@ -700,7 +641,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 			return;
 		}
 		
-		if (isGroundPounding && incipientGroundPound) {
+		if (isGroundPounding && startingGroundPound) {
 			if (Minecraft.getInstance().options.getCameraType().isFirstPerson() && BingBingWahooConfig.flipSpeedMultiplier != 0) {
 				((EntityAccessor) this).setXRotRaw(Math.max(0, flipTimer - tickDelta) * BingBingWahooConfig.flipSpeedMultiplier * -24);
 			}
@@ -709,10 +650,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		
 		super.setXRot(pitch);
 	}
-	
-	/**
-	 * Similar to {@link LocalPlayerMixin#updatePlayerPose}, allows for special handling of yaw changes
-	 */
+
 	@Override
 	public void setYRot(float yaw) {
 		if (bonked || ledgeGrabbing) {
@@ -951,7 +889,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer implements P
 		if (isDiving) exitDive();
 		
 		isGroundPounding = true;
-		incipientGroundPound = true;
+		startingGroundPound = true;
 		flipTimer = 15;
 		UpdateFlipStatePacket.send(FlipState.FORWARDS);
 		GroundPoundPacket.send(true);

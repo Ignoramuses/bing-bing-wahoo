@@ -3,6 +3,14 @@
   "values": [
     "#minecraft:ice",
     "#minecraft:snow",
-    "#minecraft:stairs"
+    "#minecraft:stairs",
+    {
+      "required": "false",
+      "id": "automobility:slope"
+    },
+    {
+      "required": "false",
+      "id": "automobility:steep_slope"
+    }
   ]
 }

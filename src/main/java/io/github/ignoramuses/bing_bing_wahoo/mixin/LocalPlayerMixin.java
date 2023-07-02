@@ -180,7 +180,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 			}
 			if (onGround()) {
 				if (floor.is(SLIDES)) {
-					if (floor.getBlock() instanceof HorizontalDirectionalBlock || floor.getBlock() instanceof StairBlock) {
+					if (WahooUtils.blockIsSlope(floor)) {
 						handleSlidingOnSlope(floor);
 					} else {
 						// assume flat surface

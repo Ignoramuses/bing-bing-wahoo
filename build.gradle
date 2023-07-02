@@ -49,23 +49,21 @@ dependencies {
 	// dev
 	modLocalRuntime("dev.emi:trinkets:${project.trinkets_version}") { exclude(group: "com.terraformersmc") }
 
-//	modLocalRuntime("maven.modrinth:automobility:${project.automobility_version}")
-//	modLocalRuntime("net.devtech:arrp:${project.arrp_version}")
-//	modLocalRuntime("maven.modrinth:jsonem:${project.jsonem_version}")
+	modLocalRuntime("maven.modrinth:automobility:${project.automobility_version}")
+	modLocalRuntime("maven.modrinth:jsonem:${project.jsonem_version}")
 
 	modLocalRuntime("com.terraformersmc:modmenu:${project.mod_menu_version}")
-	modLocalRuntime("maven.modrinth:lazydfu:0.1.3")
 	modLocalRuntime("maven.modrinth:here-be-no-dragons:1.0.0")
 }
 
-task buildOrPublish {
+tasks.register("buildOrPublish") {
 	group = "build"
-	String mavenUser = System.getenv().MAVEN_USER
+	String mavenUser = System.getenv("MAVEN_USER")
 	if (mavenUser != null && !mavenUser.isEmpty()) {
-		dependsOn(tasks.getByName("publish"))
+		dependsOn(tasks.named("publish"))
 		println("prepared for publish")
 	} else {
-		dependsOn(tasks.getByName("build"))
+		dependsOn(tasks.named("build"))
 		println("prepared for build")
 	}
 }
@@ -111,10 +109,10 @@ publishing {
 
 	repositories {
 		maven {
-			url = "https://mvn.devos.one/${System.getenv().PUBLISH_SUFFIX}/"
+			url = "https://mvn.devos.one/${System.getenv("PUBLISH_SUFFIX")}/"
 			credentials {
-				username = System.getenv().MAVEN_USER
-				password = System.getenv().MAVEN_PASS
+				username = System.getenv("MAVEN_USER")
+				password = System.getenv("MAVEN_PASS")
 			}
 			authentication {
 				basic(BasicAuthentication)

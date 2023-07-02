@@ -125,16 +125,17 @@ modrinth {
 	versionNumber = version
 	versionName = "Bing Bing Wahoo " + version
 	versionType = "release"
-	changelog = getChangelog()
+	changelog = readChangelog()
 	uploadFile = file("build/libs/${remapJar.archiveBaseName.get()}-${version}.jar")
 	gameVersions = compatible_minecraft_versions.split(",").toList()
 	loaders = [ "fabric", "quilt" ]
 	dependencies {
 		required.project("fabric-api")
 	}
+	debugMode = true
 }
 
-String getChangelog() {
+String readChangelog() {
 	String text = Files.readString(project.file("CHANGELOG.txt").toPath())
 	String[] split = text.split("----------")
 	if (split.length != 2)

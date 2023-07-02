@@ -12,6 +12,8 @@ public class BingBingWahoo implements ModInitializer {
 	public static final String ID = "bingbingwahoo";
 	public static final Logger LOGGER = LoggerFactory.getLogger(ID);
 	public static final TagKey<Block> SLIDES = TagKey.create(Registries.BLOCK, id("slides"));
+	public static final TagKey<Block> GROUND_POUND_BLACKLIST = TagKey.create(Registries.BLOCK, id("ground_pound_blacklist"));
+	public static final TagKey<Block> GROUND_POUND_WHITELIST = TagKey.create(Registries.BLOCK, id("ground_pound_whitelist"));
 
 	@Override
 	public void onInitialize() {

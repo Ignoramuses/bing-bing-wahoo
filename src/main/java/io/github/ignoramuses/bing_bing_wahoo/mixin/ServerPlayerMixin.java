@@ -1,6 +1,7 @@
 package io.github.ignoramuses.bing_bing_wahoo.mixin;
 
 import com.mojang.authlib.GameProfile;
+import io.github.ignoramuses.bing_bing_wahoo.BingBingWahoo;
 import io.github.ignoramuses.bing_bing_wahoo.extensions.PlayerExtensions;
 import io.github.ignoramuses.bing_bing_wahoo.extensions.ServerPlayerExtensions;
 import io.github.ignoramuses.bing_bing_wahoo.content.movement.JumpType;
@@ -14,7 +15,6 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.Level.ExplosionInteraction;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -76,9 +76,16 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 						groundPoundBlockBreakPos.set(x, blockPosition().below().getY(), z);
 						if (level.mayInteract(this, groundPoundBlockBreakPos)) {
 							BlockState state = level.getBlockState(groundPoundBlockBreakPos);
-							if ((state.getDestroySpeed(level, groundPoundBlockBreakPos) <= 0.5 && !state.is(Blocks.NETHERRACK) && !state.is(Blocks.BEDROCK)) || state.is(Blocks.BRICKS) || state.is(Blocks.GRASS_BLOCK)) {
-								level.destroyBlock(groundPoundBlockBreakPos, true, this);
+							float destroySpeed = state.getDestroySpeed(level, groundPoundBlockBreakPos);
+							if (destroySpeed <= 0 || destroySpeed > 0.5) { // unbreakable
+								if (!state.is(BingBingWahoo.GROUND_POUND_WHITELIST))
+									continue; // if it's not in the whitelist, skip it
 							}
+
+							if (state.is(BingBingWahoo.GROUND_POUND_BLACKLIST))
+								continue; // skip if blacklisted
+
+							level.destroyBlock(groundPoundBlockBreakPos, true, this);
 						}
 					}
 				}

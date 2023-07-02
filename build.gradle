@@ -1,10 +1,8 @@
-//file:noinspection GroovyAssignabilityCheck
-//file:noinspection GroovyAccessibility
 plugins {
 	id "fabric-loom" version "1.0.+"
 	id "io.github.juuxel.loom-quiltflower" version "1.+" // Quiltflower, a better decompiler
 	id "io.github.p03w.machete" version "1.+" // automatic jar compressing on build
-	id "org.ajoberstar.grgit" version "4.1.1"
+	id "com.modrinth.minotaur" version "2.+"
 	id "maven-publish"
 }
 
@@ -15,7 +13,7 @@ archivesBaseName = project.archives_base_name
 group = project.maven_group
 
 String buildNumber = System.getenv("GITHUB_RUN_NUMBER")
-version = project.mod_version + (buildNumber != null ? "-${buildNumber}" : "")
+version = project.mod_version + (buildNumber != null ? "-build.$buildNumber" : "") + "+mc$minecraft_version"
 
 repositories {
 	maven { url = "https://maven.quiltmc.org/repository/release" }
@@ -71,13 +69,13 @@ tasks.register("buildOrPublish") {
 processResources {
 	exclude("assets/bingbingwahoo/icon_compressed.png")
 
-	Map<String, String> properties = new HashMap<>()
-	properties.put("version", project.version)
-	properties.put("loader_version", project.loader_version)
-	properties.put("fabric_version", project.fabric_version)
-	properties.put("minecraft_version", project.minecraft_version)
-	properties.put("java_version", sourceCompatibility)
-	properties.put("midnightlib_version", project.midnightlib_version)
+	Map<String, Object> properties = [
+			"version": version,
+			"loader_version": loader_version,
+			"fabric_version": fabric_version,
+			"minecraft_version": minecraft_version,
+			"midnightlib_version": midnightlib_version
+	]
 
 	properties.forEach((k, v) -> inputs.property(k, v))
 
@@ -87,7 +85,7 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = Integer.parseInt(sourceCompatibility)
+	it.options.release.set(17)
 }
 
 java {
@@ -119,4 +117,27 @@ publishing {
 			}
 		}
 	}
+}
+
+modrinth {
+	token = System.getenv("MODRINTH_TOKEN")
+	projectId = "p7ksDUGo"
+	versionNumber = version
+	versionName = "Bing Bing Wahoo " + version
+	versionType = "release"
+	changelog = getChangelog()
+	uploadFile = file("build/libs/${remapJar.archiveBaseName.get()}-${version}.jar")
+	gameVersions = compatible_minecraft_versions.split(",").toList()
+	loaders = [ "fabric", "quilt" ]
+	dependencies {
+		required.project("fabric-api")
+	}
+}
+
+String getChangelog() {
+	String text = Files.readString(project.file("CHANGELOG.txt").toPath())
+	String[] split = text.split("----------")
+	if (split.length != 2)
+		throw new IllegalStateException("Malformed changelog")
+	return split[1].trim()
 }

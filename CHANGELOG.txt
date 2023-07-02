@@ -1,0 +1,7 @@
+INFO:
+All changes should be appended to this file with each commit.
+On publish, it should be cleared to prepare for the next release cycle.
+
+Change logging starts below:
+----------
+- updated to 1.20

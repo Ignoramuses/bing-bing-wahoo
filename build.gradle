@@ -134,7 +134,6 @@ modrinth {
 	dependencies {
 		required.project("fabric-api")
 	}
-	debugMode = true
 }
 
 String readChangelog() {

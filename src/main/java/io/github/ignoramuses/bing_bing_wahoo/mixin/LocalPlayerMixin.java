@@ -2,6 +2,7 @@ package io.github.ignoramuses.bing_bing_wahoo.mixin;
 
 import com.mojang.authlib.GameProfile;
 import io.github.ignoramuses.bing_bing_wahoo.content.movement.FlipState;
+import io.github.ignoramuses.bing_bing_wahoo.content.movement.GroundPoundType;
 import io.github.ignoramuses.bing_bing_wahoo.packets.*;
 import io.github.ignoramuses.bing_bing_wahoo.synced_config.SyncedConfig;
 import net.fabricmc.api.EnvType;
@@ -679,7 +680,17 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	public boolean slidingOnGround() {
 		return slidingOnGround && forwardSliding;
 	}
-	
+
+	@Override
+	public boolean diving() {
+		return isDiving;
+	}
+
+	@Override
+	public void startDiving() {
+		dive();
+	}
+
 	// ---------- JUMPS ----------
 	
 	public void longJump() {
@@ -957,5 +968,32 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 	@Override
 	public boolean flippingForwards() {
 		return ticksFlipping() > 0 && !isBackFlipping;
+	}
+
+	@Override
+	public void stopAllActions() {
+		// temporarily make non-destructive
+		boolean destructive = BingBingWahooConfig.groundPoundType == GroundPoundType.DESTRUCTIVE;
+		if (destructive)
+			BingBingWahooConfig.groundPoundType = GroundPoundType.ENABLED;
+		if (isGroundPounding)
+			exitGroundPound();
+		if (destructive)
+			BingBingWahooConfig.groundPoundType = GroundPoundType.DESTRUCTIVE;
+
+		if (midTripleJump)
+			exitTripleJump();
+		if (isDiving)
+			exitDive();
+		if (bonked)
+			exitBonk();
+		if (wallJumping)
+			exitWallJump();
+		if (ledgeGrabbing)
+			exitLedgeGrab(true);
+		if (isBackFlipping)
+			exitBackFlip();
+		if (forwardSliding)
+			exitForwardSlide();
 	}
 }

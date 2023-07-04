@@ -126,13 +126,15 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 
 	@Override
 	public void setBonked(boolean value) {
-		if (value) {
+		if (bonked == value)
+			return;
+		bonked = value;
+		if (bonked) {
 			moveTo(Vec3.atCenterOf(blockPosition())); // don't suffocate in wall
 			setPose(Pose.SLEEPING);
 		} else {
 			setPose(Pose.STANDING);
 		}
-		bonked = value;
 	}
 
 	@Override
@@ -143,8 +145,10 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 	@Override
 	public void setGroundPounding(boolean value, boolean destruction) {
 		destructiveGroundPound = destruction;
+		if (groundPounding == value)
+			return;
 		groundPounding = value;
-		if (value) {
+		if (groundPounding) {
 			groundPoundStartPos.set(blockPosition());
 		} else {
 			if (destruction) {
@@ -203,5 +207,15 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 	@Override
 	public void setDestructionPermOverride(boolean value) {
 		destructionPermOverride = value;
+	}
+
+	@Override
+	public boolean isGroundPounding() {
+		return groundPounding;
+	}
+
+	@Override
+	public boolean isDiving() {
+		return diving;
 	}
 }

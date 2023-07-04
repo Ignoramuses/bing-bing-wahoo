@@ -17,7 +17,15 @@ public interface ServerPlayerExtensions {
 		throw new IllegalStateException("Not implemented");
 	}
 
+	default boolean isGroundPounding() {
+		throw new IllegalStateException("not implemented");
+	}
+
 	default void setDiving(boolean value, @Nullable BlockPos startPos) {
+		throw new IllegalStateException("Not implemented");
+	}
+
+	default boolean isDiving() {
 		throw new IllegalStateException("Not implemented");
 	}
 

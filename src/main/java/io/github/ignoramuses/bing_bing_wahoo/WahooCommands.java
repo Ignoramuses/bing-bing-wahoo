@@ -1,6 +1,7 @@
 package io.github.ignoramuses.bing_bing_wahoo;
 
 import com.mojang.brigadier.arguments.BoolArgumentType;
+import io.github.ignoramuses.bing_bing_wahoo.packets.RequestStopAllActionsPacket;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
@@ -37,19 +38,30 @@ public class WahooCommands {
 			});
 		}, entitySelectorReader -> true, Component.translatable("argument.entity.options.sliding.description"));
 		
-		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-				dispatcher.register(literal("bingbingwahoo:setDestructionPerms")
-						.requires(source -> source.hasPermission(2))
-						.then(argument("target", EntityArgument.player())
-								.then(argument("value", BoolArgumentType.bool())
-										.executes(context -> {
-											ServerPlayer target = EntityArgument.getPlayer(context, "target");
-											((ServerPlayerExtensions) target).setDestructionPermOverride(BoolArgumentType.getBool(context, "value"));
-											return 0;
-										})
-								)
-						)
-				)
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+					dispatcher.register(literal("bingbingwahoo:setDestructionPerms")
+							.requires(source -> source.hasPermission(2))
+							.then(argument("target", EntityArgument.player())
+									.then(argument("value", BoolArgumentType.bool())
+											.executes(context -> {
+												ServerPlayer target = EntityArgument.getPlayer(context, "target");
+												target.setDestructionPermOverride(BoolArgumentType.getBool(context, "value"));
+												return 0;
+											})
+									)
+							)
+					);
+					dispatcher.register(literal("bingbingwahoo:stopAllActions")
+							.requires(source -> source.hasPermission(2))
+							.then(argument("target", EntityArgument.player())
+									.executes(ctx -> {
+										ServerPlayer player = EntityArgument.getPlayer(ctx, "target");
+										RequestStopAllActionsPacket.send(player);
+										return 1;
+									})
+							)
+					);
+				}
 		);
 		
 	}

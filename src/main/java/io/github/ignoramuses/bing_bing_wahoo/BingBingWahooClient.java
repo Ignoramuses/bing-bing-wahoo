@@ -29,6 +29,7 @@ public class BingBingWahooClient implements ClientModInitializer {
 		MidnightConfig.init(BingBingWahoo.ID, BingBingWahooConfig.class);
 
 		CapSpawnPacket.clientInit();
+		RequestStopAllActionsPacket.initClient();
 		UpdateFlipStatePacket.initClient();
 		UpdateSyncedBooleanPacket.initClient();
 		UpdateSyncedDoublePacket.initClient();

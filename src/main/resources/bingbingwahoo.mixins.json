@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "io.github.ignoramuses.bing_bing_wahoo.mixin",
-  "refmap": "bingBingWahoo-refmap.json",
+  "refmap": "${archivesBaseName}-refmap.json",
   "compatibilityLevel": "JAVA_17",
   "client": [
     "EntityAccessor",

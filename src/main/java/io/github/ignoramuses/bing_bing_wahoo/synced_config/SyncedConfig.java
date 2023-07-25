@@ -34,6 +34,7 @@ public class SyncedConfig<T, V extends Value<V>> {
 			DESTRUCTIVE_GROUND_POUNDS = registerBoolean("destructiveGroundPounds", true, () -> BingBingWahooConfig.groundPoundType == GroundPoundType.DESTRUCTIVE),
 			BACKWARDS_LONG_JUMPS = registerBoolean("backwardsLongJumps", true, () -> BingBingWahooConfig.blj),
 			RAPID_FIRE_LONG_JUMPS = registerBoolean("rapidFireLongJumps", true, () -> BingBingWahooConfig.rapidFireLongJumps),
+			CONVEYOR_GLITCH = registerBoolean("conveyorGlitch", true, () -> true),
 			CAP_REQUIRED = registerBoolean("mysteriousCapRequired", true, () -> true);
 
 	public static final SyncedConfig<Double, DoubleRule>

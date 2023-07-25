@@ -45,12 +45,14 @@ dependencies {
 	// compat
 	modCompileOnly("dev.emi:trinkets:${project.trinkets_version}") { exclude(group: "com.terraformersmc") }
 	modCompileOnly("maven.modrinth:automobility:${project.automobility_version}")
+	modCompileOnly("maven.modrinth:templates-2:${project.templates_version}")
 
 	// dev
 	modLocalRuntime("dev.emi:trinkets:${project.trinkets_version}") { exclude(group: "com.terraformersmc") }
 
 	modLocalRuntime("maven.modrinth:automobility:${project.automobility_version}")
 	modLocalRuntime("maven.modrinth:jsonem:${project.jsonem_version}")
+//	modLocalRuntime("maven.modrinth:templates-2:${project.templates_version}")
 
 	modLocalRuntime("com.terraformersmc:modmenu:${project.mod_menu_version}")
 	modLocalRuntime("maven.modrinth:here-be-no-dragons:1.0.0")

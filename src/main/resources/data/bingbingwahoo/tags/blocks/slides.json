@@ -4,13 +4,12 @@
     "#minecraft:ice",
     "#minecraft:snow",
     "#minecraft:stairs",
+    "#bingbingwahoo:backwards_slopes",
+    "#bingbingwahoo:standard_slopes",
+
     {
-      "required": "false",
-      "id": "automobility:slope"
-    },
-    {
-      "required": "false",
-      "id": "automobility:steep_slope"
+      "id": "templates:slope",
+      "required": false
     }
   ]
 }

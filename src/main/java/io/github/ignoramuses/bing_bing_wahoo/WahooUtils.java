@@ -1,10 +1,10 @@
 package io.github.ignoramuses.bing_bing_wahoo;
 
 import com.mojang.math.Axis;
+import io.github.ignoramuses.bing_bing_wahoo.content.movement.Slopes;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import io.github.ignoramuses.bing_bing_wahoo.content.cap.MysteriousCapModel;
-import io.github.ignoramuses.bing_bing_wahoo.compat.AutomobilityCompat;
 import net.minecraft.client.model.HeadedModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.Model;
@@ -76,8 +76,8 @@ public class WahooUtils {
 	
 	public static double getVelocityForSlopeDirection(Direction directionOfSlope) {
 		return switch (directionOfSlope) {
-			case NORTH, WEST -> 0.1;
-			case SOUTH, EAST -> -0.1;
+			case NORTH, WEST -> -0.1;
+			case SOUTH, EAST -> 0.1;
 			default -> throw new IllegalStateException("Unexpected value: " + directionOfSlope);
 		};
 	}
@@ -111,35 +111,6 @@ public class WahooUtils {
 			}
 			return Direction.NORTH;
 		}
-	}
-	
-	/**
-	 * Checks both if a BlockState is a slope and is facing in a compatible direction.
-	 * @param state BlockState to check
-	 * @return If the BlockState can be slid up
-	 */
-	public static boolean canGoUpSlope(BlockState state, Direction playerMoving) {
-		if (state.getBlock() instanceof StairBlock) {
-			if (state.getValue(BlockStateProperties.HALF).equals(Half.TOP)) return false;
-			Direction blockFacing = state.getValue(HorizontalDirectionalBlock.FACING);
-			StairsShape shape = state.getValue(BlockStateProperties.STAIRS_SHAPE);
-			Direction secondaryDirection = switch (shape) {
-				case INNER_LEFT, OUTER_LEFT, STRAIGHT -> blockFacing.getCounterClockWise();
-				case INNER_RIGHT, OUTER_RIGHT -> blockFacing.getClockWise();
-			};
-			Direction tertiaryDirection = shape == StairsShape.STRAIGHT ? secondaryDirection.getOpposite() : null;
-			return playerMoving == blockFacing || playerMoving == secondaryDirection || playerMoving == tertiaryDirection;
-		} else if (AutomobilityCompat.isSlope(state)) {
-			Direction blockFacing = state.getValue(HorizontalDirectionalBlock.FACING).getOpposite();
-			Direction left = blockFacing.getCounterClockWise();
-			Direction right = blockFacing.getClockWise();
-			return blockFacing == playerMoving || left == playerMoving || right == playerMoving;
-		}
-		return false;
-	}
-	
-	public static boolean blockIsSlope(BlockState state) {
-		return state.getBlock() instanceof StairBlock || AutomobilityCompat.isSlope(state);
 	}
 
 	/**

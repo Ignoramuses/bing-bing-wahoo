@@ -38,15 +38,20 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
 		addLayer(new MysteriousCapFeatureRenderer<>(this, new MysteriousCapModel(ctx, this.model)));
 	}
 	
-	@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isBaby()Z"), method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V")
+	@Inject(
+			at = @At(value = "INVOKE",
+					target = "Lnet/minecraft/client/model/EntityModel;prepareMobModel(Lnet/minecraft/world/entity/Entity;FFF)V"
+			),
+			method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"
+	)
 	private void render(T livingEntity, float f, float g, PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i, CallbackInfo ci) {
 		if (livingEntity instanceof LocalPlayerExtensions extendedPlayer) {
 			if (extendedPlayer.slidingOnGround()) {
 				model.riding = true;
-				matrixStack.translate(0, -0.25, 0);
+				matrixStack.translate(0, 0.65, 0);
 			} else if (extendedPlayer.slidingOnSlope()) {
 				model.riding = true;
-				matrixStack.translate(0, -0.5, 0);
+				matrixStack.translate(0, 1, 0);
 			}
 		}
 	}

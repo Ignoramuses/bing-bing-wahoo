@@ -3,12 +3,12 @@ package io.github.ignoramuses.bing_bing_wahoo.mixin;
 import com.mojang.authlib.GameProfile;
 import io.github.ignoramuses.bing_bing_wahoo.content.movement.FlipState;
 import io.github.ignoramuses.bing_bing_wahoo.content.movement.GroundPoundType;
+import io.github.ignoramuses.bing_bing_wahoo.content.movement.Slopes;
 import io.github.ignoramuses.bing_bing_wahoo.packets.*;
 import io.github.ignoramuses.bing_bing_wahoo.synced_config.SyncedConfig;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import io.github.ignoramuses.bing_bing_wahoo.*;
-import io.github.ignoramuses.bing_bing_wahoo.compat.AutomobilityCompat;
 import io.github.ignoramuses.bing_bing_wahoo.compat.TrinketsCompat;
 import io.github.ignoramuses.bing_bing_wahoo.extensions.AbstractClientPlayerExtensions;
 import io.github.ignoramuses.bing_bing_wahoo.extensions.KeyboardInputExtensions;
@@ -30,8 +30,6 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.HorizontalDirectionalBlock;
-import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec2;
@@ -175,13 +173,13 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 		if (isDiving || forwardSliding) {
 			BlockPos floorPos = blockPosition();
 			BlockState floor = level.getBlockState(floorPos);
-			if (!WahooUtils.blockIsSlope(floor)) {
+			if (!Slopes.isSlope(floor)) {
 				floorPos = blockPosition().below();
 				floor = level.getBlockState(floorPos);
 			}
 			if (onGround()) {
 				if (floor.is(SLIDES)) {
-					if (WahooUtils.blockIsSlope(floor)) {
+					if (Slopes.isSlope(floor)) {
 						handleSlidingOnSlope(floor);
 					} else {
 						// assume flat surface
@@ -227,26 +225,25 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 			}
 			
 			Direction looking = Direction.fromYRot(getYRot());
-			Direction moving = WahooUtils.getHorizontalDirectionFromVector(getDeltaMovement());
 			BlockPos posInFront = blockPosition().relative(looking);
 			if (forwardSliding) posInFront = posInFront.below();
 			BlockState inFront = level.getBlockState(posInFront);
 			
-			if (horizontalCollision && !inFront.isAir() && !WahooUtils.canGoUpSlope(inFront, moving)) {
-				if (isDiving) exitDive();
-				if (forwardSliding) exitForwardSlide();
-				if (!ledgeGrabbing && !isCreative() && bonkCooldown == 0) {
-					Vec3 dMovement = getDeltaMovement();
-					boolean movingEnough = Math.abs(dMovement.x()) > 0.07 || Math.abs(dMovement.z()) > 0.07;
-					if (movingEnough) {
-						BlockPos offset = blockPosition().relative(looking);
-						if (level.getBlockState(offset).isRedstoneConductor(level, offset) &&
-								level.getBlockState(offset.above()).isRedstoneConductor(level, offset.above())) {
-							bonk();
-						}
-					}
-				}
-			}
+//			if (horizontalCollision && !inFront.isAir()) {
+//				if (isDiving) exitDive();
+//				if (forwardSliding) exitForwardSlide();
+//				if (!ledgeGrabbing && !isCreative() && bonkCooldown == 0) {
+//					Vec3 dMovement = getDeltaMovement();
+//					boolean movingEnough = Math.abs(dMovement.x()) > 0.07 || Math.abs(dMovement.z()) > 0.07;
+//					if (movingEnough) {
+//						BlockPos offset = blockPosition().relative(looking);
+//						if (level.getBlockState(offset).isRedstoneConductor(level, offset) &&
+//								level.getBlockState(offset.above()).isRedstoneConductor(level, offset.above())) {
+//							bonk();
+//						}
+//					}
+//				}
+//			}
 		}
 		
 		// Initiates Diving
@@ -291,15 +288,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 				// checks distance to block in front of eyes
 				position().distanceTo(Vec3.atCenterOf(blockPosition().relative(facing))) < 1.2 &&
 				WahooUtils.voxelShapeEligibleForGrab(level.getBlockState(inFrontOfHead).getCollisionShape(level, inFrontOfHead), facing)) {
-			// slopes are kinda funky
-			if (AutomobilityCompat.isSlope(level.getBlockState(inFrontOfHead))) {
-				Direction blockFacing = level.getBlockState(inFrontOfHead).getValue(HorizontalDirectionalBlock.FACING);
-				if (!blockFacing.getOpposite().equals(facing)) {
-					ledgeGrab();
-				}
-			} else {
-				ledgeGrab();
-			}
+			ledgeGrab();
 		}
 		
 		if (ledgeGrabbing) {
@@ -400,8 +389,8 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 		}
 		
 		// ----- FORWARD SLIDING -----
-		if ((WahooUtils.blockIsSlope(level.getBlockState(blockPosition())) ||
-				WahooUtils.blockIsSlope(level.getBlockState(blockPosition().below()))) && isShiftKeyDown()) {
+		if (isShiftKeyDown() && (Slopes.isSlope(level.getBlockState(blockPosition())) ||
+				Slopes.isSlope(level.getBlockState(blockPosition().below())))) {
 			startForwardSliding();
 		}
 	}
@@ -411,10 +400,9 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer
 		ticksSlidingOnGround = 0;
 		slidingOnSlope = true;
 		slidingOnGround = false;
-		Direction facing = floor.getValue(HorizontalDirectionalBlock.FACING);
-		if (AutomobilityCompat.isSlope(floor)) {
-			facing = facing.getOpposite();
-		}
+		Direction facing = Slopes.getSlideDirection(floor);
+		if (facing == null)
+			return;
 		double velocityToAdd = WahooUtils.getVelocityForSlopeDirection(facing);
 		Vec3 newVelocity;
 		if (facing.getAxis().equals(Direction.Axis.Z)) {

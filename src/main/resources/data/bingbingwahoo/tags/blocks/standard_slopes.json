@@ -1,0 +1,105 @@
+{
+  "values": [
+    {
+      "id": "automobility:slope",
+      "required": false
+    },
+    {
+      "id": "automobility:steep_slope",
+      "required": false
+    },
+    {
+      "id": "automobility:slope_with_dash_panel",
+      "required": false
+    },
+    {
+      "id": "automobility:steep_slope_with_dash_panel",
+      "required": false
+    },
+
+
+
+    {
+      "id": "conventional_cubes:celestite_brick_slope",
+      "required": false
+    },
+    {
+      "id": "conventional_cubes:celestite_smooth_slope",
+      "required": false
+    },
+    {
+      "id": "conventional_cubes:celestite_checker_slope",
+      "required": false
+    },
+
+
+    {
+      "id": "conventional_cubes:dolomite_brick_slope",
+      "required": false
+    },
+    {
+      "id": "conventional_cubes:dolomite_smooth_slope",
+      "required": false
+    },
+    {
+      "id": "conventional_cubes:dolomite_checker_slope",
+      "required": false
+    },
+
+
+    {
+      "id": "conventional_cubes:peridot_brick_slope",
+      "required": false
+    },
+    {
+      "id": "conventional_cubes:peridot_rock_slope",
+      "required": false
+    },
+    {
+      "id": "conventional_cubes:peridot_checker_slope",
+      "required": false
+    },
+
+
+    {
+      "id": "conventional_cubes:sanic_white_tiles_slope",
+      "required": false
+    },
+    {
+      "id": "conventional_cubes:sanic_bright_tiles_slope",
+      "required": false
+    },
+    {
+      "id": "conventional_cubes:sanic_medium_tiles_slope",
+      "required": false
+    },
+    {
+      "id": "conventional_cubes:sanic_dark_tiles_slope",
+      "required": false
+    },
+    {
+      "id": "conventional_cubes:sanic_darkest_tiles_slope",
+      "required": false
+    },
+
+
+    {
+      "id": "conventional_cubes:sanic_oil_checker_slope",
+      "required": false
+    },
+
+
+    {
+      "id": "conventional_cubes:figaro_roof_slate_slope",
+      "required": false
+    },
+    {
+      "id": "conventional_cubes:figaro_zozo_slope",
+      "required": false
+    },
+    {
+      "id": "conventional_cubes:figaro_bright_canal_slope",
+      "required": false
+    }
+  ]
+}

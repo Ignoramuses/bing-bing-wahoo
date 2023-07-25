@@ -1,6 +1,7 @@
 package io.github.ignoramuses.bing_bing_wahoo.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import io.github.ignoramuses.bing_bing_wahoo.extensions.AbstractClientPlayerExtensions;
@@ -13,6 +14,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -48,9 +50,11 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
 					mult = -mult;
 				}
 				vec.set(mult * vec.x(), 0, mult * vec.z());
-				//Quaternion q = vec.rotationDegrees((ticksFlipping + partialTicks) * 24); // magical speed number
-				//matrixStack.mulPose(q);
-				matrixStack.translate(0, -0.9, 0); // roughly half the player's height
+				Quaternionf q = Axis.of(vec).rotationDegrees((ticksFlipping + partialTicks) * 24); // magical speed number
+				float height = entity.getBbHeight();
+				matrixStack.translate(0, height / 2, 0); // offset pivot point
+				matrixStack.mulPose(q); // rotate
+				matrixStack.translate(0, -height / 2, 0); // offset model
 			}
 		}
 	}

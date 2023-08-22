@@ -1,5 +1,6 @@
 package io.github.ignoramuses.bing_bing_wahoo;
 
+import eu.midnightdust.lib.config.MidnightConfig;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -20,6 +21,7 @@ public class BingBingWahoo implements ModInitializer {
 		WahooNetworking.init();
 		WahooCommands.init();
 		WahooRegistry.init();
+		MidnightConfig.init(ID, BingBingWahooConfig.class);
 	}
 	
 	public static ResourceLocation id(String path) {

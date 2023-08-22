@@ -1,6 +1,5 @@
 package io.github.ignoramuses.bing_bing_wahoo;
 
-import eu.midnightdust.lib.config.MidnightConfig;
 import io.github.ignoramuses.bing_bing_wahoo.packets.*;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
@@ -26,8 +25,6 @@ public class BingBingWahooClient implements ClientModInitializer {
 	
 	@Override
 	public void onInitializeClient() {
-		MidnightConfig.init(BingBingWahoo.ID, BingBingWahooConfig.class);
-
 		CapSpawnPacket.clientInit();
 		RequestStopAllActionsPacket.initClient();
 		UpdateFlipStatePacket.initClient();

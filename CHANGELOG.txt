@@ -4,7 +4,4 @@ On publish, it should be cleared to prepare for the next release cycle.
 
 Change logging starts below:
 ----------
-- new tags for slope behavior
-- added compat with Conventional Cubes and Templates 2
-- fix player height when sliding
-- fix flipping player animation
+- fix mod load order affecting config screen appearing

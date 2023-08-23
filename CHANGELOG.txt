@@ -4,4 +4,4 @@ On publish, it should be cleared to prepare for the next release cycle.
 
 Change logging starts below:
 ----------
-- fix mod load order affecting config screen appearing
+- Allow boots to have NBT that allows ground-pounding blocks only in a specific area

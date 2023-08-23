@@ -7,12 +7,16 @@ import io.github.ignoramuses.bing_bing_wahoo.extensions.ServerPlayerExtensions;
 import io.github.ignoramuses.bing_bing_wahoo.content.movement.JumpType;
 import io.github.ignoramuses.bing_bing_wahoo.synced_config.SyncedConfig;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.Level.ExplosionInteraction;
 import net.minecraft.world.level.block.state.BlockState;
@@ -32,6 +36,8 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 	public abstract void teleportTo(double x, double y, double z);
 
 	@Shadow public abstract void moveTo(double x, double y, double z);
+
+	@Shadow public abstract boolean mayInteract(Level world, BlockPos pos);
 
 	@Unique
 	private final BlockPos.MutableBlockPos groundPoundBlockBreakPos = new BlockPos.MutableBlockPos();
@@ -70,11 +76,11 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 		if (groundPounding) {
 			ticksGroundPoundingFor++;
 			Level level = level();
-			if (onGround() && destructiveGroundPound && (level.getGameRules().getBoolean(SyncedConfig.DESTRUCTIVE_GROUND_POUNDS.ruleKey) || destructionPermOverride)) {
+			if (canCauseDestruction()) {
 				for (int x = (int) Math.floor(getBoundingBox().minX); x <= Math.floor(getBoundingBox().maxX); x++) {
 					for (int z = (int) Math.floor(getBoundingBox().minZ); z <= Math.floor(getBoundingBox().maxZ); z++) {
 						groundPoundBlockBreakPos.set(x, blockPosition().below().getY(), z);
-						if (level.mayInteract(this, groundPoundBlockBreakPos)) {
+						if (mayBreakBlock(groundPoundBlockBreakPos)) {
 							BlockState state = level.getBlockState(groundPoundBlockBreakPos);
 							float destroySpeed = state.getDestroySpeed(level, groundPoundBlockBreakPos);
 							if (destroySpeed <= 0 || destroySpeed > 0.5) { // unbreakable
@@ -91,6 +97,53 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 				}
 			}
 		}
+	}
+
+	@Unique
+	private boolean canCauseDestruction() {
+		if (!onGround())
+			return false; // must be grounded
+
+		if (destructionPermOverride)
+			return true; // forced true by command
+
+		if (!destructiveGroundPound)
+			return false; // player preference
+		if (!level().getGameRules().getBoolean(SyncedConfig.DESTRUCTIVE_GROUND_POUNDS.ruleKey))
+			return false; // forbidden by gamerule
+
+		return true;
+	}
+
+	@Unique
+	private boolean mayBreakBlock(BlockPos pos) {
+		if (destructionPermOverride || mayBuild())
+			return true;
+
+		ItemStack boots = getItemBySlot(EquipmentSlot.FEET);
+		if (!boots.isEmpty()) {
+			CompoundTag nbt = boots.getTag();
+			if (nbt != null && nbt.contains("DestructionArea", Tag.TAG_COMPOUND)) {
+				CompoundTag tag = nbt.getCompound("DestructionArea");
+				if (tag.contains("Dimension", Tag.TAG_STRING) && tag.contains("Bounds", Tag.TAG_INT_ARRAY)) {
+					String dim = tag.getString("Dimension");
+					int[] bounds = tag.getIntArray("Bounds");
+					if (bounds.length == 6 && level().dimension().location().toString().equals(dim)) {
+						int minX = bounds[0];
+						int minY = bounds[1];
+						int minZ = bounds[2];
+						int maxX = bounds[3];
+						int maxY = bounds[4];
+						int maxZ = bounds[5];
+						return pos.getX() >= minX && pos.getX() <= maxX
+								&& pos.getY() >= minY && pos.getY() <= maxY
+								&& pos.getZ() >= minZ && pos.getZ() <= maxZ;
+					}
+				}
+			}
+		}
+
+		return false;
 	}
 	
 	@Override

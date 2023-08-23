@@ -76,23 +76,22 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 		if (groundPounding) {
 			ticksGroundPoundingFor++;
 			Level level = level();
-			if (canCauseDestruction()) {
-				for (int x = (int) Math.floor(getBoundingBox().minX); x <= Math.floor(getBoundingBox().maxX); x++) {
-					for (int z = (int) Math.floor(getBoundingBox().minZ); z <= Math.floor(getBoundingBox().maxZ); z++) {
-						groundPoundBlockBreakPos.set(x, blockPosition().below().getY(), z);
-						if (mayBreakBlock(groundPoundBlockBreakPos)) {
-							BlockState state = level.getBlockState(groundPoundBlockBreakPos);
-							float destroySpeed = state.getDestroySpeed(level, groundPoundBlockBreakPos);
-							if (destroySpeed <= 0 || destroySpeed > 0.5) { // unbreakable
-								if (!state.is(BingBingWahoo.GROUND_POUND_WHITELIST))
-									continue; // if it's not in the whitelist, skip it
-							}
-
-							if (state.is(BingBingWahoo.GROUND_POUND_BLACKLIST))
-								continue; // skip if blacklisted
-
-							level.destroyBlock(groundPoundBlockBreakPos, true, this);
+			AABB bounds = getBoundingBox();
+			for (int x = (int) Math.floor(bounds.minX); x <= Math.floor(bounds.maxX); x++) {
+				for (int z = (int) Math.floor(bounds.minZ); z <= Math.floor(bounds.maxZ); z++) {
+					groundPoundBlockBreakPos.set(x, blockPosition().below().getY(), z);
+					if (mayBreakBlock(groundPoundBlockBreakPos)) {
+						BlockState state = level.getBlockState(groundPoundBlockBreakPos);
+						float destroySpeed = state.getDestroySpeed(level, groundPoundBlockBreakPos);
+						if (destroySpeed <= 0 || destroySpeed > 0.5) { // unbreakable
+							if (!state.is(BingBingWahoo.GROUND_POUND_WHITELIST))
+								continue; // if it's not in the whitelist, skip it
 						}
+
+						if (state.is(BingBingWahoo.GROUND_POUND_BLACKLIST))
+							continue; // skip if blacklisted
+
+						level.destroyBlock(groundPoundBlockBreakPos, true, this);
 					}
 				}
 			}
@@ -100,26 +99,15 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 	}
 
 	@Unique
-	private boolean canCauseDestruction() {
+	private boolean mayBreakBlock(BlockPos pos) {
 		if (!onGround())
 			return false; // must be grounded
 
+		// overrides
 		if (destructionPermOverride)
 			return true; // forced true by command
-
-		if (!destructiveGroundPound)
-			return false; // player preference
-		if (!level().getGameRules().getBoolean(SyncedConfig.DESTRUCTIVE_GROUND_POUNDS.ruleKey))
-			return false; // forbidden by gamerule
-
-		return true;
-	}
-
-	@Unique
-	private boolean mayBreakBlock(BlockPos pos) {
-		if (destructionPermOverride || mayBuild())
-			return true;
-
+		// check for override on boots
+		Level level = level();
 		ItemStack boots = getItemBySlot(EquipmentSlot.FEET);
 		if (!boots.isEmpty()) {
 			CompoundTag nbt = boots.getTag();
@@ -128,7 +116,7 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 				if (tag.contains("Dimension", Tag.TAG_STRING) && tag.contains("Bounds", Tag.TAG_INT_ARRAY)) {
 					String dim = tag.getString("Dimension");
 					int[] bounds = tag.getIntArray("Bounds");
-					if (bounds.length == 6 && level().dimension().location().toString().equals(dim)) {
+					if (bounds.length == 6 && level.dimension().location().toString().equals(dim)) {
 						int minX = bounds[0];
 						int minY = bounds[1];
 						int minZ = bounds[2];
@@ -143,7 +131,12 @@ public abstract class ServerPlayerMixin extends Player implements ServerPlayerEx
 			}
 		}
 
-		return false;
+		if (!destructiveGroundPound)
+			return false; // player preference
+		if (!level.getGameRules().getBoolean(SyncedConfig.DESTRUCTIVE_GROUND_POUNDS.ruleKey))
+			return false; // forbidden by gamerule
+
+		return mayBuild();
 	}
 	
 	@Override

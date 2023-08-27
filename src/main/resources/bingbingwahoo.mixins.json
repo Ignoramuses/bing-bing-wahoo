@@ -4,21 +4,11 @@
   "package": "io.github.ignoramuses.bing_bing_wahoo.mixin",
   "refmap": "${archivesBaseName}-refmap.json",
   "compatibilityLevel": "JAVA_17",
+  "mixins": [
+  ],
   "client": [
-    "EntityAccessor",
-    "HumanoidArmorLayerMixin",
-    "KeyboardInputMixin",
-    "LivingEntityRendererMixin",
-    "LocalPlayerMixin",
-    "PlayerRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
-  "mixins": [
-    "EntitySelectorOptionsAccessor",
-    "LivingEntityMixin",
-    "RemotePlayerMixin",
-    "ServerPlayerMixin"
-  ]
 }

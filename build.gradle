@@ -1,8 +1,7 @@
 import java.nio.file.Files
 
 plugins {
-	id "fabric-loom" version "1.3.+"
-	id "io.github.juuxel.loom-vineflower" version "1.+" // Quiltflower, a better decompiler
+	id "org.quiltmc.loom" version "1.2.+"
 	id "io.github.p03w.machete" version "1.+" // automatic jar compressing on build
 	id "com.modrinth.minotaur" version "2.+"
 	id "maven-publish"
@@ -36,10 +35,10 @@ dependencies {
 		it.mappings("org.quiltmc:quilt-mappings:${project.minecraft_version}+build.${project.qm_version}:intermediary-v2")
 		it.officialMojangMappings { nameSyntheticMembers = false }
 	})
-	modImplementation("net.fabricmc:fabric-loader:${project.loader_version}")
+	modImplementation("org.quiltmc:quilt-loader:${project.loader_version}")
 
 	// deps
-	modImplementation("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
+	modImplementation("org.quiltmc.quilted-fabric-api:quilted-fabric-api:${project.qfapi_version}")
 
 	// compat
 	modCompileOnly("dev.emi:trinkets:${project.trinkets_version}") { exclude(group: "com.terraformersmc") }
@@ -55,6 +54,9 @@ dependencies {
 
 	modLocalRuntime("com.terraformersmc:modmenu:${project.mod_menu_version}")
 	modLocalRuntime("maven.modrinth:here-be-no-dragons:1.0.0")
+
+	// have deprecated modules at runtime only
+	modLocalRuntime("org.quiltmc.quilted-fabric-api:quilted-fabric-api-deprecated:${project.qfapi_version}")
 }
 
 tasks.register("buildOrPublish") {
@@ -82,14 +84,14 @@ processResources {
 
 	Map<String, Object> properties = [
 			"version": version,
+			"minecraft_version": minecraft_version,
 			"loader_version": loader_version,
-			"fabric_version": fabric_version,
-			"minecraft_version": minecraft_version
+			"qfapi_version": qfapi_version
 	]
 
 	properties.forEach((k, v) -> inputs.property(k, v))
 
-	filesMatching("fabric.mod.json") {
+	filesMatching("quilt.mod.json") {
 		expand properties
 	}
 
@@ -142,9 +144,9 @@ modrinth {
 	changelog = readChangelog()
 	uploadFile = file("build/libs/${remapJar.archiveBaseName.get()}-${version}.jar")
 	gameVersions = compatible_minecraft_versions.split(",").toList()
-	loaders = [ "fabric", "quilt" ]
+	loaders = [ "quilt" ]
 	dependencies {
-		required.project("fabric-api")
+		required.project("qsl")
 	}
 }
 

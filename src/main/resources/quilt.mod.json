@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "quilt_loader": {
+    "group": "io.github.ignoramuses",
+    "id": "bingbingwahoo",
+    "version": "${version}",
+    "metadata": {
+      "name": "Bing Bing Wahoo",
+      "description": "Bringing the physics of Mario to Minecraft, one wahoo at a time.\nMade for ModFest 1.17.",
+      "contributors": {
+        "Tropheus Jay": "Owner",
+        "InsaneASockJr": "Owner"
+      },
+      "contact": {
+        "issues": "https://github.com/Ignoramuses/bing-bing-wahoo/issues",
+        "sources": "https://github.com/Ignoramuses/bing-bing-wahoo"
+      },
+      "icon": "assets/bingbingwahoo/icon.png"
+    },
+
+    "entrypoints": {
+      "main": [
+        "io.github.ignoramuses.bing_bing_wahoo.BingBingWahoo"
+      ],
+      "client": [
+        "io.github.ignoramuses.bing_bing_wahoo.BingBingWahooClient"
+      ]
+    },
+
+    "depends": [
+      {
+        "id": "minecraft",
+        "versions": ">=${minecraft_version}"
+      },
+      {
+        "id": "quilt_loader",
+        "versions": ">=${loader_version}"
+      },
+      {
+        "id": "quilted_fabric_api",
+        "versions": ">=${qfapi_version}"
+      }
+    ],
+
+    "intermediate_mappings": "net.fabricmc:intermediary"
+  },
+  "mixin": "bingbingwahoo.mixins.json"
+}

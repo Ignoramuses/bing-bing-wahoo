@@ -4,4 +4,4 @@ On publish, it should be cleared to prepare for the next release cycle.
 
 Change logging starts below:
 ----------
-- Make boot destruction area work properly
+- Complete rewrite. Many new features.

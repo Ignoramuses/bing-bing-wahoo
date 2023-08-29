@@ -1,5 +1,6 @@
 package io.github.ignoramuses.bing_bing_wahoo;
 
+import io.github.ignoramuses.bing_bing_wahoo.registry.WahooItems;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
@@ -12,6 +13,7 @@ public class BingBingWahoo implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		WahooItems.init();
 	}
 	
 	public static ResourceLocation id(String path) {

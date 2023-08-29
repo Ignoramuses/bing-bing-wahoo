@@ -19,10 +19,10 @@
     },
 
     "entrypoints": {
-      "main": [
+      "init": [
         "io.github.ignoramuses.bing_bing_wahoo.BingBingWahoo"
       ],
-      "client": [
+      "client_init": [
         "io.github.ignoramuses.bing_bing_wahoo.BingBingWahooClient"
       ]
     },

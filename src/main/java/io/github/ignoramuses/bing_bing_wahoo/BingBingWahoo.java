@@ -1,8 +1,9 @@
 package io.github.ignoramuses.bing_bing_wahoo;
 
 import io.github.ignoramuses.bing_bing_wahoo.registry.WahooItems;
-import net.fabricmc.api.ModInitializer;
 import net.minecraft.resources.ResourceLocation;
+import org.quiltmc.loader.api.ModContainer;
+import org.quiltmc.qsl.base.api.entrypoint.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +13,7 @@ public class BingBingWahoo implements ModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger(NAME);
 
 	@Override
-	public void onInitialize() {
+	public void onInitialize(ModContainer mod) {
 		WahooItems.init();
 	}
 	

@@ -19,7 +19,7 @@ public class WahooLogic {
 
 	}
 
-	public void jump() {
-		simpleJumps.jump();
+	public void afterJump() {
+		simpleJumps.afterJump();
 	}
 }

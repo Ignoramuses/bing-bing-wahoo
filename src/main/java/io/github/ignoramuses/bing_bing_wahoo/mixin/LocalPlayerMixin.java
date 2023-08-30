@@ -51,9 +51,9 @@ public class LocalPlayerMixin extends AbstractClientPlayer {
 		super.jumpFromGround();
 	}
 
-	@Inject(method = "jumpFromGround()V", at = @At("HEAD"), cancellable = true)
-	private void onJump() {
-		logic.jump();
+	@Inject(method = "jumpFromGround()V", at = @At("TAIL"))
+	private void onJump(CallbackInfo ci) {
+		logic.afterJump();
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public class LocalPlayerMixin extends AbstractClientPlayer {
 		return super.getJumpPower();
 	}
 
-	@Inject(method = "getJumpPower()F", cancellable = true)
+	@Inject(method = "getJumpPower()F", at = @At("RETURN"), cancellable = true)
 	private void modifyJumpPower(CallbackInfoReturnable<Float> cir) {
 		cir.setReturnValue(cir.getReturnValueF() * logic.simpleJumps.powerMultiplierForNextJump());
 	}
